@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+/myProj_RV/ref_E203v2_core/ref_E203v2_core.cache
+/myProj_RV/ref_E203v2_core/ref_E203v2_core.hw
+/ref_E203
+/ref_TinyRV
+/myProj_RV/ref_TinyRV/ref_TinyRV.cache
+/myProj_RV/ref_TinyRV/ref_TinyRV.hw
