@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2026/01/11 09:52:44
+// Create Date: 2026/01/14 09:05:32
 // Design Name: 
 // Module Name: tb_soc_top
 // Project Name: 
@@ -19,8 +19,110 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+// `include "G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/ref_TinyRV.srcs/sources_1/imports/core/defines.v"
+`include "../../sources_1/defines/macro.v"
+
 
 module tb_soc_top(
 
     );
+
+
+// select one option only
+`define TEST_PROG  1
+//`define TEST_JTAG  1
+
+
+
+reg clk;
+reg rst;
+
+
+////******** Instantiations ********////
+soc_top_v0 u_soc_top_v0(
+    .clk    (clk),
+    .rst    (rst)
+);
+
+
+wire[`RegBus] x3 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[3];
+wire[`RegBus] x26 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[26];
+wire[`RegBus] x27 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[27];
+
+integer r;
+
+
+////******** clk & rst ********////
+always #10 clk = ~clk;     // 50MHz
+initial begin
+    clk = 0;
+    rst = `RstEnable;  
+    #40;
+    rst = `RstDisable;
+    #200;
+end
+
+
+////******** wait result ********////
+
+initial begin
+    $display("test running...");
+`ifdef TEST_PROG
+    wait(x26 == 32'b1)   // wait sim end, when x26 == 1
+    #100
+    if (x27 == 32'b1) begin
+        $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #####     ##     ####    #### ~~~~~~~~~");
+        $display("~~~~~~~~~ #    #   #  #   #       #     ~~~~~~~~~");
+        $display("~~~~~~~~~ #    #  #    #   ####    #### ~~~~~~~~~");
+        $display("~~~~~~~~~ #####   ######       #       #~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #  #    #  #    #~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #   ####    #### ~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    end else begin
+        $display("~~~~~~~~~~~~~~~~~~~ TEST_FAIL ~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~######    ##       #    #     ~~~~~~~~~~");
+        $display("~~~~~~~~~~#        #  #      #    #     ~~~~~~~~~~");
+        $display("~~~~~~~~~~#####   #    #     #    #     ~~~~~~~~~~");
+        $display("~~~~~~~~~~#       ######     #    #     ~~~~~~~~~~");
+        $display("~~~~~~~~~~#       #    #     #    #     ~~~~~~~~~~");
+        $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("fail testnum = %2d", x3);
+        for (r = 0; r < 32; r = r + 1)
+            $display("x%2d = 0x%x", r, tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[r]);
+    end
+`endif
+
+    $finish;
+
+end
+
+
+
+// read mem data
+initial begin
+    // $readmemh ("G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/inst.data", tinyriscv_soc_top_0.u_rom._rom);
+    $readmemh ("../../../inst.data", u_soc_top_v0.u_rom._rom);
+end
+
+
+// sim timeout
+initial begin
+    #500000
+    $display("Time Out.");
+    $finish;
+end
+
+
+// generate wave file, used by gtkwave
+initial begin
+    $dumpfile("soc_top_v0.vcd");
+    $dumpvars(0, soc_top_v0);
+end
+
+
+
 endmodule

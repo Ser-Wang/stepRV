@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2026/01/11 09:54:48
+// Create Date: 2026/01/14 09:38:50
 // Design Name: 
-// Module Name: gpr_regs
+// Module Name: soc_top_v0
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,11 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module gpr_regs(
-
+module soc_top_v0(
+    input wire clk,
+    input wire rst
     );
 
 
 
-    
+
+
 endmodule
