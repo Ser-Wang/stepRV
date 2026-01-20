@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 // `include "G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/ref_TinyRV.srcs/sources_1/imports/core/defines.v"
-`include "../../sources_1/defines/macro.v"
+// `include "../sources_1/defines/config.v"
 
 
 module tb_soc_top(
@@ -45,9 +45,12 @@ soc_top_v0 u_soc_top_v0(
 );
 
 
-wire[`RegBus] x3 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[3];
-wire[`RegBus] x26 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[26];
-wire[`RegBus] x27 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[27];
+wire[32-1:0] x3;
+wire[32-1:0] x26;
+wire[32-1:0] x27;
+// wire[RegBus-1:0] x3 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[3];
+// wire[RegBus-1:0] x26 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[26];
+// wire[RegBus-1:0] x27 = tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[27];
 
 integer r;
 
@@ -56,9 +59,9 @@ integer r;
 always #10 clk = ~clk;     // 50MHz
 initial begin
     clk = 0;
-    rst = `RstEnable;  
+    rst = 0;  
     #40;
-    rst = `RstDisable;
+    rst = 1;
     #200;
 end
 
@@ -71,15 +74,15 @@ initial begin
     wait(x26 == 32'b1)   // wait sim end, when x26 == 1
     #100
     if (x27 == 32'b1) begin
-        $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        $display("~~~~~~~~~ #####     ##     ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~ #    #   #  #   #       #     ~~~~~~~~~");
-        $display("~~~~~~~~~ #    #  #    #   ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~ #####   ######       #       #~~~~~~~~~");
-        $display("~~~~~~~~~ #       #    #  #    #  #    #~~~~~~~~~");
-        $display("~~~~~~~~~ #       #    #   ####    #### ~~~~~~~~~");
-        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        $display("~~~~~~~~~ #####     ##     ####    ####  ~~~~~~~~~");
+        $display("~~~~~~~~~ #    #   #  #   #       #      ~~~~~~~~~");
+        $display("~~~~~~~~~ #    #  #    #   ####    ####  ~~~~~~~~~");
+        $display("~~~~~~~~~ #####   ######       #       # ~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #  #    #  #    # ~~~~~~~~~");
+        $display("~~~~~~~~~ #       #    #   ####    ####  ~~~~~~~~~");
+        $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     end else begin
         $display("~~~~~~~~~~~~~~~~~~~ TEST_FAIL ~~~~~~~~~~~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -91,8 +94,8 @@ initial begin
         $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("fail testnum = %2d", x3);
-        for (r = 0; r < 32; r = r + 1)
-            $display("x%2d = 0x%x", r, tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[r]);
+        // for (r = 0; r < 32; r = r + 1)
+            // $display("x%2d = 0x%x", r, tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[r]);
     end
 `endif
 
@@ -105,7 +108,7 @@ end
 // read mem data
 initial begin
     // $readmemh ("G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/inst.data", tinyriscv_soc_top_0.u_rom._rom);
-    $readmemh ("../../../inst.data", u_soc_top_v0.u_rom._rom);
+    // $readmemh ("../../../inst.data", u_soc_top_v0.u_rom._rom);
 end
 
 
@@ -120,7 +123,7 @@ end
 // generate wave file, used by gtkwave
 initial begin
     $dumpfile("soc_top_v0.vcd");
-    $dumpvars(0, soc_top_v0);
+    // $dumpvars(0, u_soc_top_v0);
 end
 
 
