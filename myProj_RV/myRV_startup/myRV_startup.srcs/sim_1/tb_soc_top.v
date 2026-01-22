@@ -35,13 +35,13 @@ module tb_soc_top(
 
 
 reg clk;
-reg rst;
+reg rst_n;
 
 
 ////******** Instantiations ********////
 soc_top_v0 u_soc_top_v0(
     .clk    (clk),
-    .rst    (rst)
+    .rst_n    (rst_n)
 );
 
 
@@ -59,9 +59,9 @@ integer r;
 always #10 clk = ~clk;     // 50MHz
 initial begin
     clk = 0;
-    rst = 0;  
+    rst_n = 0;  
     #40;
-    rst = 1;
+    rst_n = 1;
     #200;
 end
 
@@ -108,9 +108,9 @@ end
 // read mem data
 initial begin
     // $readmemh ("G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/inst.data", tinyriscv_soc_top_0.u_rom._rom);
-    // $readmemh ("../../../inst.data", u_soc_top_v0.u_rom._rom);
+    $readmemh ("../../../../inst.data", u_soc_top_v0.u_imem.r_imem);
+    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // need to be in {proj_name}.sim\sim_1\behav\xsim dir
 end
-
 
 // sim timeout
 initial begin

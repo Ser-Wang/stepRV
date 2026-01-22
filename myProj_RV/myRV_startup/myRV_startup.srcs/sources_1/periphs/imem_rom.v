@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2026/01/22 17:00:00
+// Create Date: 2026/01/22 17:23:50
 // Design Name: 
-// Module Name: core_rv32i_v0
+// Module Name: imem_rom
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,27 +19,27 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `include "../defines/config.v"
-// `include "./config.v"
 
-module core_rv32i_v0(
+module imem_rom(
     input wire clk,
-    input wire rst_n,   //
-    // if
-    output wire [31:0] o_if_pc_addr,
-    input  wire [31:0] i_if_instr_data
+    input wire rst_n,
+    input wire [31:0] i_rd_addr,
+    output wire [31:0] o_rd_data
     );
 
+reg [31:0] r_imem [0:`IMEM_DEPTH-1];    // 4096 by default
+reg [31:0] r_rd_data;
 
-ifu u_ifu(
-    .clk        (clk),
-    .rst_n      (rst_n),
-    .o_pc       (o_if_pc_addr)
-    );
+assign o_rd_data = r_rd_data;
 
-
-
-
-
+always @(*) begin
+    if (!rst_n) begin
+        r_rd_data = `ZERO_WORD;
+    end
+    else begin
+        r_rd_data = r_imem[i_rd_addr[31:2]];
+    end
+end
 
 
 

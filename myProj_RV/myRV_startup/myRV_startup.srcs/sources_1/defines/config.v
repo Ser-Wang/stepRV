@@ -1,6 +1,2 @@
-
-`define PC_SIZE 32
-`define IF_ADDR_WIDTH 32
-`define IF_DATA_WIDTH 32
-
-`define RegBus 32
+`define IMEM_DEPTH 4096
+`define ZERO_WORD 32'b0

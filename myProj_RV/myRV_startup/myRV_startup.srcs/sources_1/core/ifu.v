@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2026/01/14 10:47:09
+// Create Date: 2026/01/22 17:00:00
 // Design Name: 
 // Module Name: ifu
 // Project Name: 
@@ -23,17 +23,17 @@
 module ifu(
     input wire clk,
     input wire rst_n,
-    output wire [`PC_SIZE-1:0] o_pc
+    output wire [31:0] o_pc
     );
 
 
-reg [`PC_SIZE-1:0] pc_r;
+reg [31:0] pc_r;
 assign o_pc = pc_r;
 
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        pc_r <= `PC_SIZE'd0;
+        pc_r <= 32'd0;
     end
     else begin
         pc_r <= pc_r + 3'd4;
