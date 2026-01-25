@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2026/01/22 17:23:50
+// Create Date: 2026/01/22 17:00:00
 // Design Name: 
-// Module Name: imem_rom
+// Module Name: c_ifu
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,27 +20,25 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "../defines/config.v"
 
-module imem_rom(
+module c_ifu(
     input wire clk,
     input wire rst_n,
-    input wire [31:0] i_rd_addr,
-    output wire [31:0] o_rd_data
+    output wire [31:0] o_pc
     );
 
-reg [31:0] r_imem [0:`IMEM_DEPTH-1];    // 4096 by default
-reg [31:0] r_rd_data;
 
-assign o_rd_data = r_rd_data;
+reg [31:0] pc_r;
+assign o_pc = pc_r;
 
-always @(*) begin
+
+always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_rd_data = `ZERO_WORD;
+        pc_r <= 32'd0;
     end
     else begin
-        r_rd_data = r_imem[i_rd_addr[31:2]];
+        pc_r <= pc_r + 3'd4;
     end
 end
-
 
 
 endmodule

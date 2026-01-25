@@ -38,7 +38,7 @@ core_rv32i_v0 u_core(
     .i_if_instr_data    (if_instr_data  )
     );
 
-imem_rom u_imem(
+p_imem_rom u_p_imem(
     .clk        (clk            ),
     .rst_n      (rst_n          ),
     .i_rd_addr  (if_pc_addr     ),

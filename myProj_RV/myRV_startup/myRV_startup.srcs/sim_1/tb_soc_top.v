@@ -108,7 +108,7 @@ end
 // read mem data
 initial begin
     // $readmemh ("G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/inst.data", tinyriscv_soc_top_0.u_rom._rom);
-    $readmemh ("../../../../inst.data", u_soc_top_v0.u_imem.r_imem);
+    $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);
     // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // need to be in {proj_name}.sim\sim_1\behav\xsim dir
 end
 
