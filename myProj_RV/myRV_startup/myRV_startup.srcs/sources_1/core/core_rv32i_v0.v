@@ -25,52 +25,130 @@ module core_rv32i_v0(
     input wire clk,
     input wire rst_n,   //
     // if
-    output wire [31:0] o_if_pc_addr,
-    input  wire [31:0] i_if_instr_data
+    output wire [31:0] o_pc_if_addr,
+    input  wire [31:0] i_instr_if_data
     );
+
+////********    IO Insts    ********////
+assign o_pc_if_addr = pc_if;
+
+
 
 ////********    Wires    ********////
 // regfile
-wire [4:0] rf_read_rs1_idx;
-wire [4:0] rf_read_rs2_idx;
+wire [`RFIDX_WIDTH-1:0] rf_read_rs1_idx;
+wire [`RFIDX_WIDTH-1:0] rf_read_rs2_idx;
 wire [31:0] rf_read_rs1_data;
 wire [31:0] rf_read_rs2_data;
-wire rf_wb_wen;
-wire [4:0] rf_wb_dest_idx;
-wire [31:0] rf_wb_dest_data;
+wire rf_wbck_wen;
+wire [`RFIDX_WIDTH-1:0] rf_wbck_rdidx;
+wire [31:0] rf_wbck_data;
 
-// if_id
-wire [31:0] if_id_instr_d0;
-wire [31:0] if_id_pc_d0;
+// if_2_id
+wire [31:0] pc_if;  // this and above: reg_out
 
-c_regfile u_c_regfile(
-    .clk                (clk),
-    .rst_n              (rst_n),
+// id_2_ex
+wire [31:0] instr_id;
+wire [31:0] pc_id;      // this and above: reg_out
+wire [`RFIDX_WIDTH-1:0] dec_rdidx_id;
+wire [31:0] dec_imm;
+wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_id;
+wire dec_rdwen_id;
+
+// ex_2_mema
+wire [31:0] wbck_data_ex;
+wire [`RFIDX_WIDTH-1:0] wbck_rdidx_ex;
+wire wbck_wen_ex;
+
+// mema_2_wb
+wire [31:0] wbck_data_mema;
+wire [`RFIDX_WIDTH-1:0] wbck_rdidx_mema;
+wire wbck_rdwen_mema;
+
+// wb_out
+wire [31:0] wbck_data_wb;
+wire [`RFIDX_WIDTH-1:0] wbck_rdidx_wb;
+wire wbck_rdwen_wb;
+
+
+regfile u_regfile(
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
     .i_read_rs1_idx     (rf_read_rs1_idx),
     .i_read_rs2_idx     (rf_read_rs2_idx),
     .o_read_rs1_data    (rf_read_rs1_data),
     .o_read_rs2_data    (rf_read_rs2_data),
-    .i_wb_wen           (rf_wb_wen),
-    .i_wb_dest_idx      (rf_wb_dest_idx),   // write back
-    .i_wb_dest_data     (rf_wb_dest_data)
+    .i_wb_wen           (rf_wbck_wen      ),
+    .i_wb_dest_idx      (rf_wbck_rdidx ),   // write back
+    .i_wb_dest_data     (rf_wbck_data)
     );
 
-c_ifu u_c_ifu(
-    .clk        (clk),
-    .rst_n      (rst_n),
-    .o_pc       (o_if_pc_addr)
-    );
+assign rf_wbck_wen = wbck_rdwen_wb;
+assign rf_wbck_rdidx = wbck_rdidx_wb;
+assign rf_wbck_data = wbck_data_wb;
 
-c_if_id u_c_if_id(
+
+ifu u_ifu(
     .clk        (clk    ),
     .rst_n      (rst_n  ),
-    .i_instr    (i_if_instr_data),
-    .i_pc       (o_if_pc_addr   ),
-    .o_instr_d0 (if_id_instr_d0 ),
-    .o_pc_d0    (if_id_pc_d0    )
+    .o_pc_if    (pc_if  )
     );
 
+idu u_idu(
+    .clk            (clk    ),
+    .rst_n          (rst_n  ),
+    .i_instr        (i_instr_if_data),
+    .i_pc_if        (pc_if          ),
+    .o_dec_rs1idx   (rf_read_rs1_idx),
+    .o_dec_rs2idx   (rf_read_rs2_idx),
+    .o_dec_rdidx    (dec_rdidx_id   ),
+    .o_dec_imm      (dec_imm        ),
+    .o_dec_info_bus_id (dec_info_bus_id   ),
+    .o_dec_rdwen_id (dec_rdwen_id   ),
+    // Pipeline_reg_out
+    .o_instr_id     (instr_id       ),    // for what
+    .o_pc_id        (pc_id          )
+    );
 
+exu u_exu(
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
+    .i_rf_rs1_data      (rf_read_rs1_data   ),
+    .i_rf_rs2_data      (rf_read_rs2_data   ),
+    .i_dec_imm          (dec_imm            ),
+    .i_dec_info_bus_id  (dec_info_bus_id    ),
+    .o_wbck_data_ex     (wbck_data_ex       ),
+    .i_pc_id            (pc_id              ),
+    // pass by
+    .i_dec_rdidx_id     (dec_rdidx_id       ),
+    .i_dec_rdwen_id     (dec_rdwen_id       ),
+    .o_wbck_rdidx_ex    (wbck_rdidx_ex      ),
+    .o_wbck_wen_ex      (wbck_wen_ex        )
+    );
+
+mau u_mau(
+    .clk                (clk),
+    .rst_n              (rst_n),
+    // pass by
+    .i_wbck_data_ex     (wbck_data_ex   ),
+    .i_wbck_rdidx_ex    (wbck_rdidx_ex  ),
+    .i_wbck_rdwen_ex    (wbck_wen_ex    ),
+    .o_wbck_data_mema   (wbck_data_mema ),
+    .o_wbck_rdidx_mema  (wbck_rdidx_mema),
+    .o_wbck_rdwen_mema  (wbck_rdwen_mema)
+    );
+
+wbu u_wbu(
+    .clk                (clk),
+    .rst_n              (rst_n),
+    // pass by
+    .i_wbck_data_mema   (wbck_data_mema ),
+    .i_wbck_rdidx_mema  (wbck_rdidx_mema),
+    .i_wbck_rdwen_mema  (wbck_rdwen_mema),
+    .o_wbck_data_wb     (wbck_data_wb   ),
+    .o_wbck_rdidx_wb    (wbck_rdidx_wb  ),
+    .o_wbck_rdwen_wb    (wbck_rdwen_wb  )
+    );
 
 
 endmodule

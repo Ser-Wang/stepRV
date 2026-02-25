@@ -25,8 +25,8 @@ module soc_top_v0(
     input wire rst_n
     );
 
-wire [31:0] if_pc_addr;
-wire [31:0] if_instr_data;
+wire [31:0] pc_addr_if;
+wire [31:0] instr_if_data;
 
 
 
@@ -34,15 +34,15 @@ core_rv32i_v0 u_core(
     .clk                (clk            ),
     .rst_n              (rst_n          ),
     // if
-    .o_if_pc_addr       (if_pc_addr     ),
-    .i_if_instr_data    (if_instr_data  )
+    .o_pc_if_addr       (pc_addr_if     ),
+    .i_instr_if_data    (instr_if_data  )
     );
 
 p_imem_rom u_p_imem(
     .clk        (clk            ),
     .rst_n      (rst_n          ),
-    .i_rd_addr  (if_pc_addr     ),
-    .o_rd_data  (if_instr_data  )
+    .i_rd_addr  (pc_addr_if     ),
+    .o_rd_data  (instr_if_data  )
     );
 
 

@@ -5,7 +5,7 @@
 // 
 // Create Date: 2026/01/24 17:15:04
 // Design Name: 
-// Module Name: c_regfile
+// Module Name: regfile
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,9 +18,9 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "../defines/config.v"
 
-
-module c_regfile(
+module regfile(
     input wire clk,
     input wire rst_n,
     input wire [4:0] i_read_rs1_idx,
@@ -41,12 +41,6 @@ assign o_read_rs1_data = w_regfile[i_read_rs1_idx];
 assign o_read_rs2_data = w_regfile[i_read_rs2_idx];
 
 // write
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-        
-    end
-end
-
 genvar i;
 generate
     for (i=0; i<32; i=i+1) begin: regfile
@@ -55,6 +49,7 @@ generate
             assign w_regfile[i] = 32'b0;
         end
         else begin
+            assign w_regfile[i] = r_regfile[i];
             assign wen[i] = i_wb_wen & (i_wb_dest_idx == i);
             always @(posedge clk or negedge rst_n) begin
                 if (!rst_n) begin
