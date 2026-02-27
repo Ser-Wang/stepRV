@@ -40,9 +40,9 @@ wire [`RFIDX_WIDTH-1:0] rf_read_rs1_idx;
 wire [`RFIDX_WIDTH-1:0] rf_read_rs2_idx;
 wire [31:0] rf_read_rs1_data;
 wire [31:0] rf_read_rs2_data;
-wire rf_wbck_wen;
-wire [`RFIDX_WIDTH-1:0] rf_wbck_rdidx;
-wire [31:0] rf_wbck_data;
+wire rf_wrbk_wen;
+wire [`RFIDX_WIDTH-1:0] rf_wrbk_rdidx;
+wire [31:0] rf_wrbk_data;
 
 // if_2_id
 wire [31:0] pc_if;  // this and above: reg_out
@@ -56,19 +56,19 @@ wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_id;
 wire dec_rdwen_id;
 
 // ex_2_mema
-wire [31:0] wbck_data_ex;
-wire [`RFIDX_WIDTH-1:0] wbck_rdidx_ex;
-wire wbck_wen_ex;
+wire [31:0] wrbk_data_ex;
+wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_ex;
+wire wrbk_wen_ex;
 
 // mema_2_wb
-wire [31:0] wbck_data_mema;
-wire [`RFIDX_WIDTH-1:0] wbck_rdidx_mema;
-wire wbck_rdwen_mema;
+wire [31:0] wrbk_data_mema;
+wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_mema;
+wire wrbk_rdwen_mema;
 
 // wb_out
-wire [31:0] wbck_data_wb;
-wire [`RFIDX_WIDTH-1:0] wbck_rdidx_wb;
-wire wbck_rdwen_wb;
+wire [31:0] wrbk_data_wb;
+wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_wb;
+wire wrbk_rdwen_wb;
 
 
 regfile u_regfile(
@@ -78,14 +78,14 @@ regfile u_regfile(
     .i_read_rs2_idx     (rf_read_rs2_idx),
     .o_read_rs1_data    (rf_read_rs1_data),
     .o_read_rs2_data    (rf_read_rs2_data),
-    .i_wb_wen           (rf_wbck_wen      ),
-    .i_wb_dest_idx      (rf_wbck_rdidx ),   // write back
-    .i_wb_dest_data     (rf_wbck_data)
+    .i_wb_wen           (rf_wrbk_wen      ),
+    .i_wb_dest_idx      (rf_wrbk_rdidx ),   // write back
+    .i_wb_dest_data     (rf_wrbk_data)
     );
 
-assign rf_wbck_wen = wbck_rdwen_wb;
-assign rf_wbck_rdidx = wbck_rdidx_wb;
-assign rf_wbck_data = wbck_data_wb;
+assign rf_wrbk_wen = wrbk_rdwen_wb;
+assign rf_wrbk_rdidx = wrbk_rdidx_wb;
+assign rf_wrbk_data = wrbk_data_wb;
 
 
 ifu u_ifu(
@@ -117,37 +117,37 @@ exu u_exu(
     .i_rf_rs2_data      (rf_read_rs2_data   ),
     .i_dec_imm          (dec_imm            ),
     .i_dec_info_bus_id  (dec_info_bus_id    ),
-    .o_wbck_data_ex     (wbck_data_ex       ),
+    .o_wrbk_data_ex     (wrbk_data_ex       ),
     .i_pc_id            (pc_id              ),
     // pass by
     .i_dec_rdidx_id     (dec_rdidx_id       ),
     .i_dec_rdwen_id     (dec_rdwen_id       ),
-    .o_wbck_rdidx_ex    (wbck_rdidx_ex      ),
-    .o_wbck_wen_ex      (wbck_wen_ex        )
+    .o_wrbk_rdidx_ex    (wrbk_rdidx_ex      ),
+    .o_wrbk_wen_ex      (wrbk_wen_ex        )
     );
 
 mau u_mau(
     .clk                (clk),
     .rst_n              (rst_n),
     // pass by
-    .i_wbck_data_ex     (wbck_data_ex   ),
-    .i_wbck_rdidx_ex    (wbck_rdidx_ex  ),
-    .i_wbck_rdwen_ex    (wbck_wen_ex    ),
-    .o_wbck_data_mema   (wbck_data_mema ),
-    .o_wbck_rdidx_mema  (wbck_rdidx_mema),
-    .o_wbck_rdwen_mema  (wbck_rdwen_mema)
+    .i_wrbk_data_ex     (wrbk_data_ex   ),
+    .i_wrbk_rdidx_ex    (wrbk_rdidx_ex  ),
+    .i_wrbk_rdwen_ex    (wrbk_wen_ex    ),
+    .o_wrbk_data_mema   (wrbk_data_mema ),
+    .o_wrbk_rdidx_mema  (wrbk_rdidx_mema),
+    .o_wrbk_rdwen_mema  (wrbk_rdwen_mema)
     );
 
 wbu u_wbu(
-    .clk                (clk),
-    .rst_n              (rst_n),
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
     // pass by
-    .i_wbck_data_mema   (wbck_data_mema ),
-    .i_wbck_rdidx_mema  (wbck_rdidx_mema),
-    .i_wbck_rdwen_mema  (wbck_rdwen_mema),
-    .o_wbck_data_wb     (wbck_data_wb   ),
-    .o_wbck_rdidx_wb    (wbck_rdidx_wb  ),
-    .o_wbck_rdwen_wb    (wbck_rdwen_wb  )
+    .i_wrbk_data_mema   (wrbk_data_mema ),
+    .i_wrbk_rdidx_mema  (wrbk_rdidx_mema),
+    .i_wrbk_rdwen_mema  (wrbk_rdwen_mema),
+    .o_wrbk_data_wb     (wrbk_data_wb   ),
+    .o_wrbk_rdidx_wb    (wrbk_rdidx_wb  ),
+    .o_wrbk_rdwen_wb    (wrbk_rdwen_wb  )
     );
 
 

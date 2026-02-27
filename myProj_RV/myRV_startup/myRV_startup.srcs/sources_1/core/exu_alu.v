@@ -23,17 +23,22 @@
 module exu_alu(
     input wire clk,
     input wire rst_n,
-    input wire [31:0] i_alu_req_op1,
-    input wire [31:0] i_alu_req_op2,
+    // input wire [31:0] alu_req_op1,
+    // input wire [31:0] alu_req_op2,
+    input wire [31:0] i_alu_rs1,
+    input wire [31:0] i_alu_rs2,
+    input wire [31:0] i_alu_imm,
+    input wire [31:0] i_alu_pc,
     input wire [`DECINFO_BUS_ALU_WIDTH-1:0] i_dec_info_bus_alu,
     output wire [31:0] o_alu_req_result
     );
 
-
-
-
 // ----------------        dec_info debus        ---------------- //
-// dec_info debus, can also used for logic-gating ctrl
+// ---- op1 and op2
+wire [31:0] alu_req_op1 = (i_dec_info_bus_alu[`DECINFO_ALU_OP1PC]) ? i_alu_pc : i_alu_rs1;
+wire [31:0] alu_req_op2 = (i_dec_info_bus_alu[`DECINFO_ALU_OP2IMM]) ? i_alu_imm : i_alu_rs2;
+
+// ---- dec_info debus, can also used for logic-gating ctrl
 wire dec_req_addsub = i_dec_info_bus_alu[`DECINFO_ALU_ADD] | i_dec_info_bus_alu[`DECINFO_ALU_SUB];
 wire dec_req_xor    = i_dec_info_bus_alu[`DECINFO_ALU_XOR];
 wire dec_req_or     = i_dec_info_bus_alu[`DECINFO_ALU_OR];
@@ -50,6 +55,9 @@ wire dec_req_slttu  = dec_req_slt | dec_req_sltu;
 
 wire dec_req_lui    = i_dec_info_bus_alu[`DECINFO_ALU_LUI];
 
+wire flag_adder_sub = i_dec_info_bus_alu[`DECINFO_ALU_SUB];
+wire flag_op_unsigned = dec_req_sltu;
+
 
 // ----------------        instruction ex logic        ---------------- //
 wire [31:0] alu_result_addsub;
@@ -62,9 +70,6 @@ wire [31:0] alu_result_sra;
 wire [31:0] alu_result_slttu;   // slt(slti), sltu(sltiu)
 wire [31:0] alu_result_lui;
 
-wire flag_adder_sub = i_dec_info_bus_alu[`DECINFO_ALU_SUB];
-wire flag_op_unsigned = dec_req_sltu;
-
 
 //---- adder, with logic-gating.  //add, sub, addi  //slt, sltu, slti, sltiu
 // extent 1bit to (32+1)bit adder, so that it can handle comparison instructions, for instance slt, sltu.
@@ -72,8 +77,8 @@ wire [31+1:0] adder_extend_op1, adder_extend_op2;
 wire [31+1:0] adder_in1, adder_in2; // for sub operation compatibility and logic-gating.
 wire adder_cin;
 wire [31+1:0] adder_result;
-assign adder_extend_op1 = {((~flag_op_unsigned) & i_alu_req_op1[31]), i_alu_req_op1};
-assign adder_extend_op2 = {((~flag_op_unsigned) & i_alu_req_op2[31]), i_alu_req_op2};
+assign adder_extend_op1 = {((~flag_op_unsigned) & alu_req_op1[31]), alu_req_op1};
+assign adder_extend_op2 = {((~flag_op_unsigned) & alu_req_op2[31]), alu_req_op2};
 
 assign adder_in1 = {33{dec_req_addsub}} & adder_extend_op1;
 assign adder_in2 = {33{dec_req_addsub}} & (adder_extend_op2 ^ {33{flag_adder_sub}});
@@ -89,13 +94,13 @@ assign alu_result_slttu = comp_lessthan ? 32'b1 : 32'b0;
 
 //---- xorer, with logic-gating  //xor, xori
 wire [31:0] xorer_in1, xorer_in2;
-assign xorer_in1 = {32{dec_req_xor}} & i_alu_req_op1;
-assign xorer_in2 = {32{dec_req_xor}} & i_alu_req_op2;
+assign xorer_in1 = {32{dec_req_xor}} & alu_req_op1;
+assign xorer_in2 = {32{dec_req_xor}} & alu_req_op2;
 assign alu_result_xor = xorer_in1 ^ xorer_in2;
 
 //---- or, and, too lightweight wo use logic-gating(no need)  //or, and, ori, andi
-assign alu_result_or = i_alu_req_op1 | i_alu_req_op2;   // no need to gate off, for the OR and AND circuit is quite light-weight
-assign alu_result_and = i_alu_req_op1 & i_alu_req_op2;
+assign alu_result_or = alu_req_op1 | alu_req_op2;   // no need to gate off, for the OR and AND circuit is quite light-weight
+assign alu_result_and = alu_req_op1 & alu_req_op2;
 
 //---- shifter, with logic-gating  //sll, srl, sra, slli, srli, srai
 wire [31:0] shifter_in1;
@@ -103,16 +108,16 @@ wire [5-1:0] shifter_in2;
 wire [31:0] shifter_result;     // sll, srl, sra share one left-shifter
 wire [31:0] mask_sign_extention;
 assign shifter_in1 = {5{dec_req_shift}} & 
-                                        ( dec_req_sll ? i_alu_req_op1 :     // convert op1 input, then the left-shifter will perform as a right-shifter.
-                                                      { i_alu_req_op1[00], i_alu_req_op1[01], i_alu_req_op1[02], i_alu_req_op1[03],
-                                                        i_alu_req_op1[04], i_alu_req_op1[05], i_alu_req_op1[06], i_alu_req_op1[07],
-                                                        i_alu_req_op1[08], i_alu_req_op1[09], i_alu_req_op1[10], i_alu_req_op1[11],
-                                                        i_alu_req_op1[12], i_alu_req_op1[13], i_alu_req_op1[14], i_alu_req_op1[15],
-                                                        i_alu_req_op1[16], i_alu_req_op1[17], i_alu_req_op1[18], i_alu_req_op1[19],
-                                                        i_alu_req_op1[20], i_alu_req_op1[21], i_alu_req_op1[22], i_alu_req_op1[23],
-                                                        i_alu_req_op1[24], i_alu_req_op1[25], i_alu_req_op1[26], i_alu_req_op1[27],
-                                                        i_alu_req_op1[28], i_alu_req_op1[29], i_alu_req_op1[30], i_alu_req_op1[31]  });
-assign shifter_in2 = {5{dec_req_shift}} & i_alu_req_op2[4:0];
+                                        ( dec_req_sll ? alu_req_op1 :     // convert op1 input, then the left-shifter will perform as a right-shifter.
+                                                      { alu_req_op1[00], alu_req_op1[01], alu_req_op1[02], alu_req_op1[03],
+                                                        alu_req_op1[04], alu_req_op1[05], alu_req_op1[06], alu_req_op1[07],
+                                                        alu_req_op1[08], alu_req_op1[09], alu_req_op1[10], alu_req_op1[11],
+                                                        alu_req_op1[12], alu_req_op1[13], alu_req_op1[14], alu_req_op1[15],
+                                                        alu_req_op1[16], alu_req_op1[17], alu_req_op1[18], alu_req_op1[19],
+                                                        alu_req_op1[20], alu_req_op1[21], alu_req_op1[22], alu_req_op1[23],
+                                                        alu_req_op1[24], alu_req_op1[25], alu_req_op1[26], alu_req_op1[27],
+                                                        alu_req_op1[28], alu_req_op1[29], alu_req_op1[30], alu_req_op1[31]  });
+assign shifter_in2 = {5{dec_req_shift}} & alu_req_op2[4:0];
 assign shifter_result = shifter_in1 << shifter_in2;
 assign mask_sign_extention = 32'b1 >> shifter_in2;
 
@@ -129,11 +134,7 @@ assign alu_result_srl = {
 assign alu_result_sra = (alu_result_srl & mask_sign_extention) | ({32{shifter_in1[31]}} & ~(mask_sign_extention));
 
 // ---- move-op2  //lui
-assign alu_result_lui = i_alu_req_op2;  // imm is connected to op2.
-
-
-
-
+assign alu_result_lui = alu_req_op2;  // imm is connected to op2.
 
 
 // ----------------        result out mux        ---------------- //

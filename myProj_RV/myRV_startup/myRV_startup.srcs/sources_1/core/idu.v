@@ -29,7 +29,7 @@ module idu(
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs2idx,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rdidx,
     output wire [31:0] o_dec_imm,
-    output wire [`DECINFO_BUS_ALU_WIDTH-1:0] o_dec_info_bus_id,
+    output wire [`DECINFO_BUS_WIDTH-1:0] o_dec_info_bus_id,
     output wire o_dec_rdwen_id,
     // Pipeline Reg Output
     output wire [31:0] o_instr_id,
@@ -174,7 +174,11 @@ wire dec_rv32i_sb   = dec_rv32i_store_type  & dec_rv32_func3_000;
 wire dec_rv32i_sh   = dec_rv32i_store_type  & dec_rv32_func3_001;
 wire dec_rv32i_sw   = dec_rv32i_store_type  & dec_rv32_func3_010;
 
-// ALU Instructions
+wire dec_info_lsu_size = instr32_func3[1:0];
+wire dec_info_lsu_unsigned = instr32_func3[2];
+
+
+// Arithmetic Instructions
 wire dec_rv32i_addi  = dec_rv32i_arithm_imm_type & dec_rv32_func3_000;
 wire dec_rv32i_slti  = dec_rv32i_arithm_imm_type & dec_rv32_func3_010;
 wire dec_rv32i_sltiu = dec_rv32i_arithm_imm_type & dec_rv32_func3_011;
@@ -184,7 +188,7 @@ wire dec_rv32i_andi  = dec_rv32i_arithm_imm_type & dec_rv32_func3_111;
 wire dec_rv32i_slli  = dec_rv32i_arithm_imm_type & dec_rv32_func3_001 & (rv32_instr[31:26] == 6'b000000);
 wire dec_rv32i_srli  = dec_rv32i_arithm_imm_type & dec_rv32_func3_101 & (rv32_instr[31:26] == 6'b000000);
 wire dec_rv32i_srai  = dec_rv32i_arithm_imm_type & dec_rv32_func3_101 & (rv32_instr[31:26] == 6'b010000);
-  
+
 wire dec_rv32i_add  = dec_rv32i_arithm_type & dec_rv32_func3_000 & dec_rv32_func7_0000000;
 wire dec_rv32i_sub  = dec_rv32i_arithm_type & dec_rv32_func3_000 & dec_rv32_func7_0100000;
 wire dec_rv32i_sll  = dec_rv32i_arithm_type & dec_rv32_func3_001 & dec_rv32_func7_0000000;
@@ -245,7 +249,7 @@ wire dec_info_need_rs2;
 // wire dec_info_need_rd = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_load_type | dec_rv32i_csr_type | dec_rv32i_lui | dec_rv32i_auipc | dec_rv32i_jal | dec_rv32i_jalr;
 wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak);
 
-wire dec_need_imm = rv32_imm_sel_i | rv32_imm_sel_s | rv32_imm_sel_b | rv32_imm_sel_u | rv32_imm_sel_j;
+wire dec_info_need_imm = rv32_imm_sel_i | rv32_imm_sel_s | rv32_imm_sel_b | rv32_imm_sel_u | rv32_imm_sel_j;
 
 
 // ----------------        Decode Ctrl Sigs        ---------------- //
@@ -257,26 +261,56 @@ assign o_dec_rdwen_id = dec_info_need_rd;
 // ----------------        Decode Info Bus        ---------------- //
 // The following buses achieves a many-to-one mapping from instructions to exu circuits.
 // wire [`E203_DECINFO_BJP_WIDTH-1:0] bjp_info_bus;
-wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu; 
+wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu;
+wire [`DECINFO_BUS_LSU_WIDTH-1:0] dec_info_bus_lsu;
+wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
 
-assign o_dec_info_bus_id = dec_info_bus_alu;
+wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
+wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
+wire dec_oper_dispatch_bru;
 
-// ALU,
-assign dec_info_bus_alu[`DECINFO_ALU_ADD]   = dec_rv32i_add | dec_rv32i_addi | dec_rv32i_auipc;
-assign dec_info_bus_alu[`DECINFO_ALU_SUB]   = dec_rv32i_sub;
-assign dec_info_bus_alu[`DECINFO_ALU_SLL]   = dec_rv32i_sll | dec_rv32i_slli;
-assign dec_info_bus_alu[`DECINFO_ALU_SLT]   = dec_rv32i_slt | dec_rv32i_slti;
-assign dec_info_bus_alu[`DECINFO_ALU_SLTU]  = dec_rv32i_sltu | dec_rv32i_sltiu;
-assign dec_info_bus_alu[`DECINFO_ALU_XOR]   = dec_rv32i_xor | dec_rv32i_xori;
-assign dec_info_bus_alu[`DECINFO_ALU_SRL]   = dec_rv32i_srl | dec_rv32i_srli;
-assign dec_info_bus_alu[`DECINFO_ALU_SRA]   = dec_rv32i_sra | dec_rv32i_srai;
-assign dec_info_bus_alu[`DECINFO_ALU_OR]    = dec_rv32i_or | dec_rv32i_ori;
-assign dec_info_bus_alu[`DECINFO_ALU_AND]   = dec_rv32i_and | dec_rv32i_andi;
-assign dec_info_bus_alu[`DECINFO_ALU_LUI]   = dec_rv32i_lui;
-assign dec_info_bus_alu[`DECINFO_ALU_OP2IMM] = dec_need_imm;
+
+// ALU group
+assign dec_info_bus_alu[`DECINFO_GRP]        = `DECINFO_GRP_ALU;
+assign dec_info_bus_alu[`DECINFO_ALU_ADD]    = dec_rv32i_add | dec_rv32i_addi | dec_rv32i_auipc;
+assign dec_info_bus_alu[`DECINFO_ALU_SUB]    = dec_rv32i_sub;
+assign dec_info_bus_alu[`DECINFO_ALU_SLL]    = dec_rv32i_sll | dec_rv32i_slli;
+assign dec_info_bus_alu[`DECINFO_ALU_SLT]    = dec_rv32i_slt | dec_rv32i_slti;
+assign dec_info_bus_alu[`DECINFO_ALU_SLTU]   = dec_rv32i_sltu | dec_rv32i_sltiu;
+assign dec_info_bus_alu[`DECINFO_ALU_XOR]    = dec_rv32i_xor | dec_rv32i_xori;
+assign dec_info_bus_alu[`DECINFO_ALU_SRL]    = dec_rv32i_srl | dec_rv32i_srli;
+assign dec_info_bus_alu[`DECINFO_ALU_SRA]    = dec_rv32i_sra | dec_rv32i_srai;
+assign dec_info_bus_alu[`DECINFO_ALU_OR]     = dec_rv32i_or | dec_rv32i_ori;
+assign dec_info_bus_alu[`DECINFO_ALU_AND]    = dec_rv32i_and | dec_rv32i_andi;
+assign dec_info_bus_alu[`DECINFO_ALU_LUI]    = dec_rv32i_lui;
+assign dec_info_bus_alu[`DECINFO_ALU_OP2IMM] = dec_info_need_imm;
 assign dec_info_bus_alu[`DECINFO_ALU_OP1PC]  = dec_rv32i_auipc;
 
-// BRU, BRanch Unit, handle Branch and System Instrs
+
+// LSU group, Load and Store Instrs
+assign dec_info_bus_lsu[`DECINFO_GRP]        = `DECINFO_GRP_LSU;
+assign dec_info_bus_lsu[`DECINFO_LSU_LOAD]   = dec_rv32i_load_type;
+assign dec_info_bus_lsu[`DECINFO_LSU_STORE]  = dec_rv32i_store_type;
+assign dec_info_bus_lsu[`DECINFO_LSU_SIZE]   = dec_info_lsu_size;
+assign dec_info_bus_lsu[`DECINFO_LSU_USIGN]  = dec_info_lsu_unsigned;
+assign dec_info_bus_lsu[`DECINFO_LSU_OP2IMM] = dec_info_need_imm;
+
+
+// BRU, Branch Unit, handle Branch and System Instrs
+
+
+
+
+// assign o_dec_info_bus_id = dec_info_bus_alu;
+assign o_dec_info_bus_id = 
+                        ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_alu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_ALU_WIDTH{1'b0}}, dec_info_bus_alu})
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_lsu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_LSU_WIDTH{1'b0}}, dec_info_bus_lsu})
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_bru}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_bru});
+
+
+
+
+
 
 
 endmodule
