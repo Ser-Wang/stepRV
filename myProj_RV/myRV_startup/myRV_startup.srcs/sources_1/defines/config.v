@@ -3,6 +3,8 @@
 
 `define RFIDX_WIDTH 5
 
+`define XWIDTH 32   // RV32, regfile width is 32
+
 // ===========================================================================
 // Decode relevant macro, E203v2 as a reference.
 
@@ -10,7 +12,7 @@
 `define DECINFO_GRP_WIDTH           3
 `define DECINFO_GRP_ALU             `DECINFO_GRP_WIDTH'd0
 `define DECINFO_GRP_LSU             `DECINFO_GRP_WIDTH'd1
-`define DECINFO_GRP_BJP             `DECINFO_GRP_WIDTH'd2
+`define DECINFO_GRP_BRU             `DECINFO_GRP_WIDTH'd2
 `define DECINFO_GRP_CSR             `DECINFO_GRP_WIDTH'd3
 
     `define DECINFO_GRP_LSB         0
@@ -97,7 +99,7 @@
 
 
 
-// ----------------        BJP group        ---------------- //
+// ----------------        BRU group        ---------------- //
 
 `define DECINFO_BUS_BRU_WIDTH   3
 

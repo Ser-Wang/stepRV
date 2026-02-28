@@ -30,6 +30,12 @@ def main():
     except subprocess.TimeoutExpired:
         print('!!!Fail, vvp exec timeout!!!')
 
+    # 4.查看波形
+    gtkw_cmd = r'gtkwave' + ' ' + r'tb_soc_top.vcd'
+    f = os.popen(gtkw_cmd)
+    f.close()
+
+
 
 if __name__ == '__main__':
     sys.exit(main())

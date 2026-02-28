@@ -264,10 +264,12 @@ assign o_dec_rdwen_id = dec_info_need_rd;
 wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu;
 wire [`DECINFO_BUS_LSU_WIDTH-1:0] dec_info_bus_lsu;
 wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
+wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_csr;
 
 wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
 wire dec_oper_dispatch_bru;
+wire dec_oper_dispatch_csr;
 
 
 // ALU group
@@ -305,7 +307,8 @@ assign dec_info_bus_lsu[`DECINFO_LSU_OP2IMM] = dec_info_need_imm;
 assign o_dec_info_bus_id = 
                         ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_alu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_ALU_WIDTH{1'b0}}, dec_info_bus_alu})
                       | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_lsu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_LSU_WIDTH{1'b0}}, dec_info_bus_lsu})
-                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_bru}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_bru});
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_bru}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_bru})
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_csr}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_csr});
 
 
 

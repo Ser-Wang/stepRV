@@ -26,7 +26,12 @@ module core_rv32i_v0(
     input wire rst_n,   //
     // if
     output wire [31:0] o_pc_if_addr,
-    input  wire [31:0] i_instr_if_data
+    input  wire [31:0] i_instr_if_data,
+    // mem access
+    output wire [31:0] o_mema_addr,
+    output wire o_mema_wren,
+    input  wire [31:0] i_mema_rd_data,
+    output wire [31:0] o_mema_wr_data
     );
 
 ////********    IO Insts    ********////
@@ -119,6 +124,11 @@ exu u_exu(
     .i_dec_info_bus_id  (dec_info_bus_id    ),
     .o_wrbk_data_ex     (wrbk_data_ex       ),
     .i_pc_id            (pc_id              ),
+    // mem access
+    .o_mema_addr        (o_mema_addr        ),
+    .o_mema_wren        (o_mema_wren        ),
+    .i_mema_rd_data     (i_mema_rd_data     ),
+    .o_mema_wr_data     (o_mema_wr_data     ),
     // pass by
     .i_dec_rdidx_id     (dec_rdidx_id       ),
     .i_dec_rdwen_id     (dec_rdwen_id       ),

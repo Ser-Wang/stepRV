@@ -35,7 +35,12 @@ core_rv32i_v0 u_core(
     .rst_n              (rst_n          ),
     // if
     .o_pc_if_addr       (pc_addr_if     ),
-    .i_instr_if_data    (instr_if_data  )
+    .i_instr_if_data    (instr_if_data  ),
+    // mem access
+    .o_mema_addr        ( ),
+    .o_mema_wren        ( ),
+    .i_mema_rd_data     ( ),
+    .o_mema_wr_data     ( )
     );
 
 p_imem_rom u_p_imem(

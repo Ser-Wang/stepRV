@@ -122,8 +122,8 @@ end
 
 // generate wave file, used by gtkwave
 initial begin
-    $dumpfile("soc_top_v0.vcd");
-    // $dumpvars(0, u_soc_top_v0);
+    $dumpfile("tb_soc_top.vcd");
+    $dumpvars(0, tb_soc_top);
 end
 
 

@@ -30,12 +30,12 @@ def main():
     # 定义要搜索的子目录
     search_dirs = [
         'sources_1/core',
-        # 'sources_1/perips', 
-        # 'sources_1/debug',
-        'sources_1/soc',
-        # 'sources_1/utils'
         'sources_1/defines'
-        'sources_1/new'     # in case I forget to move files outof 'new'.
+        'sources_1/periphs', 
+        'sources_1/soc',
+        # 'sources_1/debug',
+        # 'sources_1/utils'
+        'sources_1/new'     # in case I forget to move files out of 'new' dir.
     ]
 
     # 查找所有Verilog文件
