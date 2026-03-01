@@ -79,7 +79,7 @@ module e203_exu_decode(
   output dec_bxx,
 
   output [`E203_RFIDX_WIDTH-1:0] dec_jalr_rs1idx,
-  output [`E203_XLEN-1:0] dec_bjp_imm 
+  output [`E203_XLEN-1:0] dec_bjp_imm
   );
 
 

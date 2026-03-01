@@ -126,13 +126,6 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req
 // assign dec_info_bus_alu = r_dec_info_bus_ex;
 
 
-// ---- results wrbk
-wire [31:0] alu_req_result;
-wire [31:0] lsu_req_result;
-assign o_wrbk_data_ex = ({`XWIDTH{req_disp_alu}} & alu_req_result)
-                      | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
-
-
 // ---- rs1, rs2, imm logic-gating
 wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rf_rs1_r_ex;
 wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rf_rs2_r_ex;
@@ -145,6 +138,12 @@ wire [`XWIDTH-1:0] lsu_imm = {`XWIDTH{req_disp_lsu}} & dec_imm_r_ex;
 wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & rf_rs1_r_ex;
 wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rf_rs2_r_ex;
 wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
+
+// ---- results wrbk
+wire [31:0] alu_req_result;
+wire [31:0] lsu_req_result;
+assign o_wrbk_data_ex = ({`XWIDTH{req_disp_alu}} & alu_req_result)
+                      | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
 
 
 // ----------------        Instantiations        ---------------- //
