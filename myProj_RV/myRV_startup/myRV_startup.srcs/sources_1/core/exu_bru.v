@@ -47,12 +47,17 @@ wire bru_req_fence_i = i_dec_info_bus_bru[`DECINFO_BRU_FENCEI];
 
 wire bru_req_info_bxx = i_dec_info_bus_bru[`DECINFO_BRU_BXX];
 
+// adder, serve as a subber
+wire [31+1:0] adder_in1, adder_in2;
+wire op_usign = bru_req_bltu | bru_req_bgeu;
+wire [31+1:0] adder_result;
+assign adder_in1 = {(~op_usign & i_bru_rs1[31]), i_bru_rs1};
+assign adder_in2 = {(~op_usign & i_bru_rs2[31]), i_bru_rs2};
+assign adder_result = adder_in1 + (~adder_in2) + 1'b1; // 1'b1 is cin_0, making it a subber
 
-
-
-
-
-
+wire comp_lessthan = adder_result[32];
+wire comp_equal = (i_bru_rs1 == i_bru_rs2) ? 1'b1 : 1'b0;
+wire comp_ne = ~comp_equal;
 
 wire [31:0] pc_add4 = i_pc + 3'd4;
 
