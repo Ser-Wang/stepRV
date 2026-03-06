@@ -1,3 +1,4 @@
 inst.data
 out.vvp
-tinyriscv_soc_tb.vcd
+tb_soc_top.vcd
+filelist.f

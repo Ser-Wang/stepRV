@@ -9,8 +9,8 @@ import os
 def main():
     #print(sys.argv[0] + ' ' + sys.argv[1] + ' ' + sys.argv[2])
 
-    # 1.将bin文件转成mem文件
-    cmd = r'python ./BinToMem_CLI.py' + ' ' + r'../tests/isa/generated/rv32ui-p-' + sys.argv[1] + '.bin' + ' ' + r'../../myRV_startup/inst.data'
+    # 1.将bin文件转成mem文件，输出在当前运行目录下
+    cmd = r'python ./BinToMem_CLI.py' + ' ' + r'../../tests/isa/generated/rv32ui-p-' + sys.argv[1] + '.bin' + ' ' + r'inst.data'
     f = os.popen(cmd)
     f.close()
 
