@@ -5,5 +5,7 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"verilog.linting.iverilog.arguments": "-c ${workspaceFolder}/sim/filelist.f"
+	}
 }

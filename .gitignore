@@ -1,7 +1,5 @@
 /myProj_RV/ref_E203v2_core/ref_E203v2_core.cache
 /myProj_RV/ref_E203v2_core/ref_E203v2_core.hw
-/ref_E203
-/ref_TinyRV
 /myProj_RV/ref_TinyRV/ref_TinyRV.cache
 /myProj_RV/ref_TinyRV/ref_TinyRV.hw
 /myProj_RV/ref_TinyRV/ref_TinyRV.sim
@@ -11,3 +9,6 @@
 /myProj_RV/1_rtl_current
 /Xprojs/v0_rv32i_basic/v0_rv32i_basic.cache
 /Xprojs/v0_rv32i_basic/v0_rv32i_basic.hw
+/.VSCodeCounter0
+ref/e203_hbirdv2-master.zip
+ref/tinyriscv-master.zip
