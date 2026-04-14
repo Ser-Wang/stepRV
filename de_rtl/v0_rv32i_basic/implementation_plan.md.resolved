@@ -74,7 +74,7 @@ end
 流水线停顿意味着送入EX阶段的指令应该作废（变为NOP）。
 ```verilog
 // exu.v 新增输入：
-input wire i_bubble, // 对应顶层的stall信号
+input wire i_ bubble, // 对应顶层的stall信号
 
 // 修改 pipeline regs，比如 r_wrbk_wen_ex 和 r_dec_info_bus_ex
 always @(posedge clk or negedge rst_n) begin
