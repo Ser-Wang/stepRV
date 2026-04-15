@@ -30,7 +30,7 @@ module exu_alu(
     input wire [31:0] i_alu_imm,
     input wire [31:0] i_alu_pc,
     input wire [`DECINFO_BUS_ALU_WIDTH-1:0] i_dec_info_bus_alu,
-    output wire [31:0] o_alu_req_result
+    output wire [31:0] o_alu_wrbk_res
     );
 
 // ----------------        dec_info debus        ---------------- //
@@ -138,15 +138,15 @@ assign alu_result_lui = alu_req_op2;  // imm is connected to op2.
 
 
 // ----------------        result out mux        ---------------- //
-assign o_alu_req_result = ({32{dec_req_addsub }} & alu_result_addsub )
-                        | ({32{dec_req_xor    }} & alu_result_xor    )
-                        | ({32{dec_req_or     }} & alu_result_or     )
-                        | ({32{dec_req_and    }} & alu_result_and    )
-                        | ({32{dec_req_sll    }} & alu_result_sll    )
-                        | ({32{dec_req_srl    }} & alu_result_srl    )
-                        | ({32{dec_req_sra    }} & alu_result_sra    )
-                        | ({32{dec_req_slttu  }} & alu_result_slttu  )
-                        | ({32{dec_req_lui    }} & alu_result_lui    );
+assign o_alu_wrbk_res = ({32{dec_req_addsub }} & alu_result_addsub )
+                      | ({32{dec_req_xor    }} & alu_result_xor    )
+                      | ({32{dec_req_or     }} & alu_result_or     )
+                      | ({32{dec_req_and    }} & alu_result_and    )
+                      | ({32{dec_req_sll    }} & alu_result_sll    )
+                      | ({32{dec_req_srl    }} & alu_result_srl    )
+                      | ({32{dec_req_sra    }} & alu_result_sra    )
+                      | ({32{dec_req_slttu  }} & alu_result_slttu  )
+                      | ({32{dec_req_lui    }} & alu_result_lui    );
 
 
 

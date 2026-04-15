@@ -4,7 +4,7 @@
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.                   -->
 <!-- Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.   -->
 
-<Project Product="Vivado" Version="7" Minor="68" Path="G:/myProjs/11_myRV/Xprojs/v0_rv32i_basic/v0_rv32i_basic.xpr">
+<Project Product="Vivado" Version="7" Minor="68" Path="D:/myProj_WJH/11_myRV/Xprojs/v0_rv32i_basic/v0_rv32i_basic.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="a0ae25326a49479d9162b26a38e8c7d3"/>
@@ -117,6 +117,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_bru.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_lsu.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -168,14 +175,6 @@
       </File>
       <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/soc/soc_top_v0.v">
         <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_bru.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>

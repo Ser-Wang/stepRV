@@ -26,14 +26,18 @@ module exu(
     input  wire [31:0] i_rf_rs1_data,
     input  wire [31:0] i_rf_rs2_data,
     input  wire [31:0] i_dec_imm,
+    input  wire [31:0] i_pc_id,
     input  wire [`DECINFO_BUS_WIDTH-1:0] i_dec_info_bus_id,
     output wire [31:0] o_wrbk_data_ex,
-    input  wire [31:0] i_pc_id,
-    // mem access
-    output wire [31:0] o_mema_addr,
-    output wire o_mema_wren,
-    input  wire [31:0] i_mema_rd_data,
-    output wire [31:0] o_mema_wr_data,
+    // branch
+    output wire [31:0] o_pc_bru_next,
+    output wire o_jump_flag,
+    // to mem access unit
+    output wire [31:0] o_mema_addr_exu,
+    output wire [31:0] o_mema_wr_data_exu,
+    output wire o_mema_wren_exu,
+    output wire [3:0] o_mema_ld_info,  // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    // input  wire [31:0] i_mema_rd_data,
     // pass by
     input  wire [`RFIDX_WIDTH-1:0] i_dec_rdidx_id,
     input  wire i_dec_rdwen_id,
@@ -90,13 +94,13 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-reg [31:0] pc_r_ex;
+reg [31:0] r_pc_exu;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        pc_r_ex <= 32'b0;
+        r_pc_exu <= 32'b0;
     end
     else begin
-        pc_r_ex <= i_pc_id;
+        r_pc_exu <= i_pc_id;
     end
 end
 
@@ -140,17 +144,19 @@ wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rf_rs2_r_ex;
 wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
 
 // ---- results wrbk
-wire [31:0] alu_req_result;
-wire [31:0] lsu_req_result;
-assign o_wrbk_data_ex = ({`XWIDTH{req_disp_alu}} & alu_req_result)
-                      | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
+wire [31:0] alu_wrbk_data;
+wire [31:0] bru_wrbk_data;
+// wire [31:0] lsu_req_result;
+assign o_wrbk_data_ex = ({`XWIDTH{req_disp_alu}} & alu_wrbk_data)
+                      | ({`XWIDTH{req_disp_bru}} & bru_wrbk_data);
+                    //   | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
 
 
 // ----------------        Instantiations        ---------------- //
 
 // // ---- op1 and op2
 // wire [31:0] alu_req_op1, alu_req_op2;
-// assign alu_req_op1 = (dec_info_bus_alu[`DECINFO_ALU_OP1PC]) ? pc_r_ex : rf_rs1_r_ex;
+// assign alu_req_op1 = (dec_info_bus_alu[`DECINFO_ALU_OP1PC]) ? r_pc_exu : rf_rs1_r_ex;
 // assign alu_req_op2 = (dec_info_bus_alu[`DECINFO_ALU_OP2IMM]) ? dec_imm_r_ex : rf_rs2_r_ex;
 exu_alu u_exu_alu(
     .clk                (clk    ),
@@ -158,9 +164,9 @@ exu_alu u_exu_alu(
     .i_alu_rs1          (alu_rs1            ),
     .i_alu_rs2          (alu_rs2            ),
     .i_alu_imm          (alu_imm            ),
-    .i_alu_pc           (pc_r_ex            ),
+    .i_alu_pc           (r_pc_exu           ),
     .i_dec_info_bus_alu (dec_info_bus_alu   ),
-    .o_alu_req_result   (alu_req_result     )
+    .o_alu_wrbk_res     (alu_wrbk_data      )
     );
 
 
@@ -171,25 +177,27 @@ exu_lsu u_exu_lsu(
     .i_lsu_rs2          (lsu_rs2            ),
     .i_lsu_imm          (lsu_imm            ),
     .i_dec_info_bus_lsu (dec_info_bus_lsu   ),
-    .o_mema_addr        (o_mema_addr        ),
-    .o_mema_wren        (o_mema_wren        ),
-    .i_mema_rd_data     (i_mema_rd_data     ),
-    .o_mema_wr_data     (o_mema_wr_data     ),
-    .o_lsu_req_result   (lsu_req_result     )
+    .o_mema_addr_exu    (o_mema_addr_exu    ),
+    .o_mema_wr_data_exu (o_mema_wr_data_exu ),
+    .o_mema_wren_exu    (o_mema_wren_exu    ),
+    .o_mema_ld_info     (o_mema_ld_info     )  // {lsu_req_info_size, lsu_req_info_usign}
+    // .i_mema_rd_data     (i_mema_rd_data     ),
+    // .o_lsu_req_result   (lsu_req_result     )
+    );
+
+exu_bru u_exu_bru(
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
+    .i_bru_rs1          (bru_rs1            ),
+    .i_bru_rs2          (bru_rs2            ),
+    .i_bru_imm          (bru_imm            ),
+    .i_bru_pc           (r_pc_exu           ),
+    .i_dec_info_bus_bru (dec_info_bus_bru   ),
+    .o_bru_wrbk_data    (bru_wrbk_data      ),
+    .o_pc_bru_next      (o_pc_bru_next      ),
+    .o_jump_flag        (o_jump_flag        )
     );
 
 
-
-
-
-
-// exu_alu u_exu_alu(
-//     .clk                (clk    ),
-//     .rst_n              (rst_n  ),
-//     .i_alu_req_op1      (alu_req_op1        ),
-//     .i_alu_req_op2      (alu_req_op2        ),
-//     .i_dec_info_bus_alu (dec_info_bus_alu   ),
-//     .o_alu_req_result   (alu_req_result     )
-//     );
 
 endmodule
