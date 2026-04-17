@@ -63,7 +63,7 @@ wire dec_rdwen_id;
 // ex_2_mema
 wire [31:0] mema_addr_exu;
 wire mema_wren_exu;
-wire [31:0] mema_wr_data_exu
+wire [31:0] mema_wr_data_exu;
 wire [3:0] mema_ld_info;
 
 wire [31:0] wrbk_data_ex;
