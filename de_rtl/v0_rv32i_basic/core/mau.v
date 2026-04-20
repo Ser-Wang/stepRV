@@ -32,12 +32,12 @@ module mau(
     output wire [31:0] o_mema_wr_data_mau,
     input wire [31:0] i_mema_rd_data_mau,
     // pass by
-    input wire [31:0] i_wrbk_data_ex,
-    input wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_ex,
-    input wire i_wrbk_rdwen_ex,
-    output wire [31:0] o_wrbk_data_mema,
-    output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_mema,
-    output wire o_wrbk_rdwen_mema
+    input wire [31:0] i_wrbk_data_exu,
+    input wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_exu,
+    input wire i_wrbk_rdwen_exu,
+    output wire [31:0] o_wrbk_data_mau,
+    output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_mau,
+    output wire o_wrbk_rdwen_mau
     );
 
 
@@ -48,8 +48,8 @@ reg [31:0] r_mema_wr_data_mau;
 reg [3:0] r_mema_ld_info;
 // pass by
 reg [31:0] r_wrbk_data_exu_d1;  // wrbk data may load from mem
-reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_mema;
-reg r_wrbk_rdwen_mema;
+reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_mau;
+reg r_wrbk_rdwen_mau;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -84,26 +84,26 @@ always @(posedge clk or negedge rst_n) begin
         r_wrbk_data_exu_d1 <= 32'd0;
     end
     else begin
-        r_wrbk_data_exu_d1 <= i_wrbk_data_ex;
+        r_wrbk_data_exu_d1 <= i_wrbk_data_exu;
     end
 end
 
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_rdidx_mema <= {`RFIDX_WIDTH{1'b0}};
+        r_wrbk_rdidx_mau <= {`RFIDX_WIDTH{1'b0}};
     end
     else begin
-        r_wrbk_rdidx_mema <= i_wrbk_rdidx_ex;
+        r_wrbk_rdidx_mau <= i_wrbk_rdidx_exu;
     end
 end
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_rdwen_mema <= 1'd0;
+        r_wrbk_rdwen_mau <= 1'd0;
     end
     else begin
-        r_wrbk_rdwen_mema <= i_wrbk_rdwen_ex;
+        r_wrbk_rdwen_mau <= i_wrbk_rdwen_exu;
     end
 end
 
@@ -111,9 +111,9 @@ assign o_mema_addr_mau = r_mema_addr_mau;
 assign o_mema_wren_mau = r_mema_wren_mau;
 assign o_mema_wr_data_mau = r_mema_wr_data_mau;
 // pass by
-assign o_wrbk_data_mema = mau_req_load ? mau_load_data : r_wrbk_data_exu_d1; // wrbk data may load from mem
-assign o_wrbk_rdidx_mema = r_wrbk_rdidx_mema;
-assign o_wrbk_rdwen_mema = r_wrbk_rdwen_mema;
+assign o_wrbk_data_mau = mau_req_load ? mau_load_data : r_wrbk_data_exu_d1; // wrbk data may load from mem
+assign o_wrbk_rdidx_mau = r_wrbk_rdidx_mau;
+assign o_wrbk_rdwen_mau = r_wrbk_rdwen_mau;
 
 
 

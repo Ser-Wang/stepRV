@@ -1,0 +1,1080 @@
+//     %%%%%%%%%%%%      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//  %%%%%%%%%%%%%%%%%%                      
+// %%%%%%%%%%%%%%%%%%%% %%                
+//    %% %%%%%%%%%%%%%%%%%%                
+//        % %%%%%%%%%%%%%%%                 
+//           %%%%%%%%%%%%%%                 ////    O P E N - S O U R C E     ////////////////////////////////////////////////////////////
+//           %%%%%%%%%%%%%      %%          _________________________________////
+//           %%%%%%%%%%%       %%%%                ________    _                             __      __                _     
+//          %%%%%%%%%%        %%%%%%              / ____/ /_  (_)___  ____ ___  __  ______  / /__   / /   ____  ____ _(_)____ TM 
+//         %%%%%%%    %%%%%%%%%%%%*%%%           / /   / __ \/ / __ \/ __ `__ \/ / / / __ \/ //_/  / /   / __ \/ __ `/ / ___/
+//        %%%%% %%%%%%%%%%%%%%%%%%%%%%%         / /___/ / / / / /_/ / / / / / / /_/ / / / / ,<    / /___/ /_/ / /_/ / / /__  
+//       %%%%*%%%%%%%%%%%%%  %%%%%%%%%          \____/_/ /_/_/ .___/_/ /_/ /_/\__,_/_/ /_/_/|_|  /_____/\____/\__, /_/\___/
+//       %%%%%%%%%%%%%%%%%%%    %%%%%%%%%                   /_/                                              /____/  
+//       %%%%%%%%%%%%%%%%                                                             ___________________________________________________               
+//       %%%%%%%%%%%%%%                    //////////////////////////////////////////////       c h i p m u n k l o g i c . c o m    //// 
+//         %%%%%%%%%                       
+//           %%%%%%%%%%%%%%%%               
+//    
+//----%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//----%% 
+//----%% File Name        : pqr5_core_top.sv
+//----%% Module Name      : pqr5 Core Top                                           
+//----%% Developer        : Mitu Raj, chip@chipmunklogic.com
+//----%% Vendor           : Chipmunk Logic ™ , https://chipmunklogic.com
+//----%%
+//----%% Description      : Pequeno RISC-V aka PQR5 is 5-stage pipelined RISC-V CPU which supports RV32I ISA User Level v2.2.
+//----%%                    PQR5 is a 32-bit single-issue, single-core CPU which incorporates strictly in-order pipeline.
+//----%%                    The core is bare RTL, balanced for area/performance, and portable across platforms like FPGA, ASIC.
+//----%%                         ____________________________
+//----%%                        / CHIPMUNK LOGIC            /\
+//----%%                       /                           / /\
+//----%%                      /     =================     / /
+//----%%                     /     / P e q u e n o  /   / \/
+//----%%                    /     /  RISC-V 32-bit /    /\
+//----%%                   /     /================/    / /
+//----%%                  /___________________________/ /
+//----%%                  \___________________________\/
+//----%%                   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+//----%%
+//----%%                    [For full specs, refer to pequeno_riscv_v1_0 User Guide/IP Documentation]
+//----%%
+//----%%                    This is the top module for pqr5 core, this module integrates:
+//----%%                    # Fetch Unit (FU)           -- [Stage 1] : Fetches and issues instructions (single issue)
+//----%%                    # Decode Unit (DU)          -- [Stage 2] : Decodes instructions
+//----%%                    # Register File (RF)        --           : General purpose registers   
+//----%%                    # Execution Unit (EXU)      -- [Stage 3] : Executes instructions and forwards results
+//----%%                    # Memory Access Unit (MAU)  -- [Stage 4] : Manages data memory access
+//----%%                    # Write Back Unit (WBU)     -- [Stage 5] : Writes back results to Register File
+//----%%
+//----%%                                                                         [Data Memory/Cache]                 
+//----%%                                                                            ^
+//----%%                                                                            |
+//----%%                                                                            v
+//----%%                          Stage-1          Stage-2        Stage-3         Stage-4         Stage-5                 
+//----%%                        +----------+    +----------+    +----------+    +----------+    +----------+
+//----%%                        |  Fetch   |===>|  Decode  |===>| Execute  |===>|  Access  |===>| Writeback|    
+//----%%                        +__________+    +__________+    +__________+    +__________+    +__________+
+//----%%                            ^              ^         +---------------+                     |
+//----%%                            |              |_________| Register File |_____________________v 
+//----%%                            v                        +---------------+                               
+//----%%                    [Instruction Memory/Cache]                                                                       
+//----%%
+//----%%                    Configurability
+//----%%                    ===============
+//----%%                    -- On-reset PC value ie., reset vector
+//----%%                    -- Register File target (Block RAM/LUT RAM/Flops)
+//----%%                    -- Static/Dynamic Branch predictor
+//----%%                    -- Branch History Table target (Block RAM/LUT RAM/Flops)
+//----%%                    -- Speculative RAS predictor
+//----%%                    -- Debug interfaces/modules to probe internal CPU signals during simulation can be generated using DBG macro.
+//----%%
+//----%% Tested on        : Basys-3 Artix-7 FPGA board, Vivado 2019.2 Synthesiser
+//----%% Last modified on : Sept-2025
+//----%% Notes            : -
+//----%%
+//----%% User Guide       : [TBD]
+//----%%             
+//----%% Copyright        : Open-source license, see LICENSE.
+//----%%                                                                                             
+//----%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+//###################################################################################################################################################
+//                                                              P Q R 5   C O R E   T O P                                          
+//###################################################################################################################################################
+// Header files
+`include "../include/pqr5_core_macros.svh"
+
+// Packages imported
+import pqr5_core_pkg :: * ;
+
+// Module definition
+module pqr5_core_top #(
+   // Configurable parameters
+   parameter PC_INIT         = `PC_INIT,          // Init PC on reset
+   parameter IS_RF_ON_BRAM   = `IS_RF_ON_BRAM,    // Register File target = Block RAM?
+   parameter EN_BPREDICT_DYN = `IS_BPREDICT_DYN,  // Dynamic Branch Predictor enabled?
+   parameter BHT_IDW         = `BHT_IDW,          // Branch History Table (BHT) index width
+   parameter BHT_TYPE        = `BHT_TYPE,         // BHT target configuration (for Dynamic Branch Predictor)
+   parameter BHT_BIAS        = `BHT_BIAS,         // BHT entries reset value
+   parameter GHRW            = `GHRW,             // Global History Register (GHR) width
+   parameter EN_RAS          = `EN_RAS,           // RAS enabled?
+   parameter RAS_DPT         = `RAS_DPT           // RAS depth
+)
+(   
+   // Clock and Reset  
+   input  logic             clk                 ,  // Clock
+   input  logic             aresetn             ,  // Asynchronous Reset; active-low
+
+   `ifdef TEST_PORTS
+   // Test Ports  
+   output logic [3:0]       o_x31_tst           ,  // x31 bits: {x31[24], x31[16], x31[8], x31[0]}
+   output logic             o_boot_flag         ,  // Boot flag: flags that the core is out of reset and booted
+   `endif
+   
+   // External Stall Interface
+   input  logic             i_ext_stall         ,  // External stall to CPU
+
+   // Instruction Memory/Cache Interface (IMEMIF)
+   output logic [`XLEN-1:0] o_imem_pc           ,  // PC to IMEMIF
+   output logic             o_imem_pc_valid     ,  // PC valid
+   input  logic             i_imem_stall        ,  // Stall signal from IMEMIF 
+
+   input  logic [`XLEN-1:0] i_imem_pc           ,  // PC from IMEMIF; corresponding to the packet
+   input  logic [`ILEN-1:0] i_imem_pkt          ,  // Instruction packet from IMEMIF
+   input  logic             i_imem_pkt_valid    ,  // Instruction packet valid
+   output logic             o_imem_stall        ,  // Stall signal to IMEMIF
+   output logic             o_imem_flush        ,  // Flush signal to IMEMIF
+
+   // Data Memory/Cache Interface (DMEMIF)
+   output logic             o_dmem_wen          ,  // Write enable to DMEMIF
+   output logic [`XLEN-1:0] o_dmem_addr         ,  // Address to DMEMIF
+   output logic [1:0]       o_dmem_size         ,  // Access size to DMEMIF
+   output logic [`XLEN-1:0] o_dmem_wdata        ,  // Write-data to DMEMIF
+   output logic             o_dmem_req          ,  // Request to DMEMIF
+   input  logic             i_dmem_stall        ,  // Stall signal from DMEMIF
+   output logic             o_dmem_flush        ,  // Flush signal to DMEMIF
+   input  logic [`XLEN-1:0] i_dmem_rdata        ,  // Read-data from DMEMIF
+   input  logic             i_dmem_ack          ,  // Acknowledge from DMEMIF
+   output logic             o_dmem_stall           // Stall signal to DMEMIF
+);
+
+//===================================================================================================================================================
+// Localparams
+//===================================================================================================================================================
+localparam BPCW  = BHT_IDW+2 ;        // PC width to index BHT
+localparam RPTW  = $clog2(RAS_DPT) ;  // RAS pointer size
+
+//===================================================================================================================================================
+// Internal Registers/Signals
+//===================================================================================================================================================
+// FU-DU Interface
+logic [`XLEN-1:0] fu_du_pc          ;  // PC from FU to DU
+logic [`ILEN-1:0] fu_du_instr       ;  // Instruction from FU to DU
+logic             fu_du_br_taken    ;  // Branch taken status from FU to DU
+logic             fu_du_bubble      ;  // Bubble from FU to DU
+logic             du_fu_stall       ;  // Stall signal from DU to FU
+`ifdef RAS
+logic             fu_du_is_call      ;  // CALL flag from FU to DU
+logic [`XLEN-1:0] fu_du_ras_ret_addr ;  // RAS predicted RET address from FU to DU
+logic             fu_du_ras_ret_taken;  // RAS predicted RET taken status from FU to DU
+logic [RPTW-1:0]  fu_du_ras_snap_ptr ;  // RAS pointer snapshot from FU to DU
+logic             fu_du_ras_snap_full;  // RAS full flag snapshot from FU to DU
+`endif
+
+// DU-RF Interface
+logic             du_rf_rden        ;  // Read-enable from DU to RF
+logic [4:0]       du_rf_rs0         ;  // rs0 from DU to RF
+logic [4:0]       du_rf_rs1         ;  // rs1 from DU to RF
+
+// RF read control
+logic             rf_rden0          ;  // Read enable-0 (rs0) to RF
+logic             rf_rden1          ;  // Read enable-1 (rs1) to RF
+logic [4:0]       rf_rs0_addr       ;  // rs0 address to RF
+logic [4:0]       rf_rs1_addr       ;  // rs1 address to RF
+
+// Operand Forward Control Interface
+logic [`XLEN-1:0] opfwd_exu_op0     ;  // Operand-0 forwarded to EXU
+logic [`XLEN-1:0] opfwd_exu_op1     ;  // Operand-1 forwarded to EXU
+
+// EXU-BU signals to pipeline
+logic             exu_bu_flush          ;  // Flush signal from EXU-BU
+logic [`XLEN-1:0] exu_bu_pc             ;  // Branch PC from EXU-BU
+logic             du_exu_bu_pred_btaken ;  // Predicted branch taken status to EXU-BU
+
+// RF-EXU Interface
+logic [`XLEN-1:0] rf_exu_op0        ;  // Operand-0 from RF to EXU
+logic [`XLEN-1:0] rf_exu_op1        ;  // Operand-1 from RF to EXU
+
+// DU-EXU Interface
+logic [`XLEN-1:0] du_exu_pc         ;  // PC from DU to EXU   
+`ifdef DBG
+logic [`ILEN-1:0] du_exu_instr      ;  // Instruction from DU to EXU
+`endif
+logic             du_exu_bubble     ;  // Bubble from DU to EXU
+logic             du_exu_pkt_valid  ;  // Packet valid from DU to EXU
+logic             exu_du_stall      ;  // Stall signal from EXU to DU
+
+logic [6:0]       du_exu_opcode     ;  // Opcode from DU to EXU
+logic             du_exu_is_alu_op  ;  // ALU operation flag from DU to EXU
+logic [3:0]       du_exu_alu_opcode ;  // ALU opcode from DU to EXU
+logic [4:0]       du_exu_rs0        ;  // rs0 from DU to EXU
+logic [4:0]       du_exu_rs0_cpy    ;  // rs0 copy from DU to EXU
+logic [4:0]       du_exu_rs1        ;  // rs1 from DU to EXU
+logic [4:0]       du_exu_rs1_cpy    ;  // rs1 copy from DU to EXU
+logic [4:0]       du_exu_rdt        ;  // rdt from DU to EXU
+logic             du_exu_rdt_not_x0 ;  // rdt neq x0
+logic [2:0]       du_exu_funct3     ;  // funct3 from DU to EXU
+
+logic             du_exu_is_r_type    ;  // R-type instruction flag from DU to EXU
+logic             du_exu_is_i_type    ;  // I-type instruction flag from DU to EXU
+logic             du_exu_is_s_type    ;  // S-type instruction flag from DU to EXU
+logic             du_exu_is_b_type    ;  // B-type instruction flag from DU to EXU
+logic             du_exu_is_u_type    ;  // U-type instruction flag from DU to EXU; Tapped by opfwd block...
+logic             du_exu_is_j_type    ;  // J-type instruction flag from DU to EXU
+logic             du_exu_is_rsb       ;  // RSB flag from DU to EXU
+logic             du_exu_is_risb      ;  // RISB flag from DU to EXU
+logic             du_exu_is_riuj      ;  // RIUJ flag from DU to EXU
+logic             du_exu_is_j_or_jalr ;  // J/JALR flag from DU to EXU
+logic             du_exu_is_jalr      ;  // JALR flag from DU to EXU
+logic             du_exu_is_load      ;  // Load flag from DU to EXU
+logic             du_exu_is_lui       ;  // LUI flag from DU to EXU; Tapped by opfwd block...
+`ifdef RAS
+logic             du_exu_is_call      ;  // CALL flag from DU to EXU
+logic [`XLEN-1:0] du_exu_ras_ret_addr ;  // RAS predicted RET address from DU to EXU
+logic             du_exu_ras_ret_taken;  // RAS predicted RET taken status from DU to EXU
+logic [RPTW-1:0]  du_exu_ras_snap_ptr ;  // RAS pointer snapshot from DU to EXU
+logic             du_exu_ras_snap_full;  // RAS full flag snapshot from DU to EXU
+`endif
+logic [11:0]      du_exu_i_type_imm   ;  // I-type immediate from DU to EXU
+logic [11:0]      du_exu_s_type_imm   ;  // S-type immediate from DU to EXU
+logic [11:0]      du_exu_b_type_imm   ;  // B-type immediate from DU to EXU
+logic [19:0]      du_exu_u_type_imm   ;  // U-type immediate from DU to EXU; Tapped by opfwd block...
+logic [19:0]      du_exu_j_type_imm   ;  // J-type immediate from DU to EXU
+
+// EXU-MACCU Interface
+`ifdef DBG
+logic [`XLEN-1:0] exu_maccu_pc            ;  // PC from EXU to MACCU    
+logic [`ILEN-1:0] exu_maccu_instr         ;  // Instruction from EXU to MACCU
+`endif
+logic             exu_maccu_is_riuj       ;  // RIUJ flag from EXU to MACCU
+logic [2:0]       exu_maccu_funct3        ;  // Funct3 from EXU to MACCU
+logic             exu_maccu_bubble        ;  // Bubble from EXU to MACCU
+logic             maccu_exu_stall         ;  // Stall signal from MACCU to EXU
+
+logic [4:0]       exu_maccu_rdt_addr      ;  // Writeback register address from EXU to MACCU 
+logic [`XLEN-1:0] exu_maccu_rdt_data      ;  // Writeback register data from EXU to MACCU 
+logic             exu_maccu_rdt_not_x0    ;  // rdt neq x0
+logic             exu_maccu_is_macc_op    ;  // Memory access operation flag from EXU to MACCU
+logic             exu_maccu_cmd           ;  // Memory access command from EXU to MACCU
+logic [`XLEN-1:0] exu_maccu_addr          ;  // Memory access address from EXU to MACCU 
+logic [1:0]       exu_maccu_size          ;  // Memory access size from EXU to MACCU
+logic [`XLEN-1:0] exu_maccu_data          ;  // Memory access data (for Store) from EXU to MACCU 
+
+// MACCU-WBU Interface  
+`ifdef DBG
+logic [`XLEN-1:0] maccu_wbu_pc            ;  // PC from MACCU to WBU   
+logic [`ILEN-1:0] maccu_wbu_instr         ;  // Instruction from MACCU to WBU
+`endif
+logic             maccu_wbu_is_riuj       ;  // RIUJ flag from MACCU to WBU
+logic [2:0]       maccu_wbu_funct3        ;  // Funct3 from MACCU to WBU
+logic             maccu_wbu_bubble        ;  // Bubble from MACCU to WBU
+logic             wbu_maccu_stall         ;  // Stall signal from WBU to MACCU  
+logic [4:0]       maccu_wbu_rdt_addr      ;  // rdt address from MACCU to WBU
+logic [`XLEN-1:0] maccu_wbu_rdt_data      ;  // rdt data from MACCU to WBU
+logic             maccu_wbu_rdt_not_x0    ;  // rdt neq x0
+logic             maccu_wbu_is_macc       ;  // Memory access flag from MACCU to WBU
+logic             maccu_wbu_is_load       ;  // Load operation flag from MACCU to WBU
+logic             maccu_wbu_is_dwback     ;  // Direct writeback operation flag from MACCU to WBU
+logic [`XLSB-1:0] maccu_wbu_macc_addr_lsb ;  // Memory access address from MACCU to WBU
+logic [`XLEN-1:0] dmem_load_data          ;  // Load data from memory access
+
+// WBU-RF Interface
+logic             wbu_rf_wren      ;  // Write Enable from WBU to RF  
+logic [4:0]       wbu_rf_rdt_addr  ;  // rdt address from WBU to RF
+logic [`XLEN-1:0] wbu_rf_rdt_data  ;  // rdt data from WBU to RF
+
+// WBU Interface
+`ifdef DBG
+logic [`XLEN-1:0] wbu_pc_out           ;  // PC from WBU
+logic [`ILEN-1:0] wbu_instr_out        ;  // Instruction from WBU
+`else
+`ifdef SIMEXIT_INSTR_END
+logic [`ILEN-1:0] wbu_instr_out        ;  // Instruction from WBU
+`endif
+`endif
+logic             wbu_is_riuj_out      ;  // RIUJ flag from WBU
+logic             wbu_pkt_valid_out    ;  // Packet valid from WBU
+logic             wbu_rdt_wren_out     ;  // rdt write enable from WBU
+logic [4:0]       wbu_rdt_addr_out     ;  // rdt address from WBU
+logic [`XLEN-1:0] wbu_rdt_data_out     ;  // rdt data from WBU
+logic             wbu_rdt_not_x0_out   ;  // rdt neq x0
+//logic             wbu_stall_in         ;  // Stall to WBU
+
+// Debug signals
+`ifdef DBG
+`ifdef RAS
+logic [5:0]       fu_dbg                ;  // Debug signal from FU  : {ras_flush, is_call, is_ret, bp_flush, is_op_branch, is_op_jal}
+logic [5:0]       exu_dbg               ;  // Debug signal from EXU : {is_ras_mispred, is_pipe_inlock, bu_branch_taken, lsu_bubble, alu_bubble, bu_bubble}
+`else
+logic [2:0]       fu_dbg                ;  // Debug signal from FU  : {bp_flush, is_op_branch, is_op_jal}
+logic [4:0]       exu_dbg               ;  // Debug signal from EXU : {is_pipe_inlock, bu_branch_taken, lsu_bubble, alu_bubble, bu_bubble}
+`endif//RAS
+logic [9:0]       du_dbg                ;  // Debug signal from DU  : {(opcode == OP_LUI), (opcode == OP_JALR), (opcode == OP_LOAD), is_op_alui, instr_type_rg} 
+logic             exu_dbg_is_b_instr    ;  // Branch instruction flag from EXU  
+logic             exu_dbg_is_pred_wrong ;  // Branch prediction wrong flag from EXU
+logic [4:0]       wbu_dbg               ;  // Debug signal from WBU : {is_usig_macc, is_dmem_acc_load, is_dir_writeback, pipe_stall, dmem_acc_stall}
+logic [`XLEN-1:0] regf [32]             ;  // Debug signal from REGF: Register File
+`endif//DBG
+
+// Dynamic branch prediction related
+`ifdef BPREDICT_DYN
+logic [GHRW-1:0] fu_du_ghr_snapshot  ;  // GHR snapshot from FU to DU
+logic [GHRW-1:0] du_exu_ghr_snapshot ;  // GHR snapshot from DU to EXU
+logic            exu_bp_upd_ghr      ;  // Update GHR signal from EXU to Branch Predictor
+logic            exu_bp_upd_bht      ;  // Update BHT signal from EXU to Branch Predictor
+logic [BPCW-1:0] exu_bp_upd_pc       ;  // PC to index BHT from EXU to Branch Predictor
+logic            exu_bp_sts_btaken   ;  // Branch taken status from EXU to Branch Predictor
+logic [BPCW-1:0] exu_bp_idx_pc       ;  // PC index from EXU-BU to predictor
+logic [GHRW-1:0] exu_bp_idx_ghr      ;  // GHR index from EXU-BU to predictor
+`endif
+
+// RAS rollback related
+`ifdef RAS
+logic             ras_rbk_en       ;  // RAS roll back enable
+logic [RPTW-1:0]  ras_rbk_ptr      ;  // RAS roll back pointer
+logic             ras_rbk_full     ;  // RAS roll back to full
+logic             ras_rbk_incr_ptr ;  // RAS roll back pointer increment flag
+`endif
+
+// Test signals
+`ifdef TEST_PORTS
+logic [`XLEN-1:0] x31_tst   ;  // x31
+logic boot_flag_rg          ;  // Boot flag
+`endif
+
+//===================================================================================================================================================
+// Instances of submodules
+//===================================================================================================================================================
+// Fetch Unit (FU)
+fetch_unit #(
+   .PC_INIT         (PC_INIT),
+   .EN_BPREDICT_DYN (EN_BPREDICT_DYN),
+   .BHT_IDW         (BHT_IDW),
+   .BHT_TYPE        (BHT_TYPE),
+   .BHT_BIAS        (BHT_BIAS),
+   .GHRW            (GHRW),
+   .EN_RAS          (EN_RAS),
+   .RAS_DPT         (RAS_DPT)
+)  inst_fetch_unit (
+   .clk                 (clk),
+   .aresetn             (aresetn),
+
+   `ifdef DBG
+   .o_fu_dbg            (fu_dbg),
+   `endif
+    
+   .o_imem_pc           (o_imem_pc),
+   .o_imem_pc_valid     (o_imem_pc_valid) ,
+   .i_imem_stall        (i_imem_stall),
+
+   .i_imem_pc           (i_imem_pc),
+   .i_imem_pkt          (i_imem_pkt),
+   .i_imem_pkt_valid    (i_imem_pkt_valid),
+   .o_imem_stall        (o_imem_stall),
+   .o_imem_flush        (o_imem_flush),
+   
+   .o_du_pc             (fu_du_pc),
+   .o_du_instr          (fu_du_instr),
+   .o_du_br_taken       (fu_du_br_taken),
+   `ifdef BPREDICT_DYN
+   .o_du_ghr_snapshot   (fu_du_ghr_snapshot),
+   `endif
+
+   `ifdef RAS
+   .i_ras_rbk_en        (ras_rbk_en),
+   .i_ras_rbk_ptr       (ras_rbk_ptr),
+   .i_ras_rbk_full      (ras_rbk_full),
+   .i_ras_rbk_incr_ptr  (ras_rbk_incr_ptr),
+   .i_du_is_call        (du_exu_is_call       & ~du_exu_bubble),  // This flag must be qualified by instr valid DU->EXU
+   .i_du_is_ret_taken   (du_exu_ras_ret_taken & ~du_exu_bubble),  // This flag must be qualified by instr valid DU->EXU
+
+   .o_du_is_call        (fu_du_is_call),
+   .o_du_ras_ret_addr   (fu_du_ras_ret_addr),
+   .o_du_ras_ret_taken  (fu_du_ras_ret_taken),
+   .o_du_ras_snap_ptr   (fu_du_ras_snap_ptr),
+   .o_du_ras_snap_full  (fu_du_ras_snap_full),
+   `endif
+
+   .o_du_bubble         (fu_du_bubble),
+   .i_du_stall          (du_fu_stall),
+   
+   `ifdef BPREDICT_DYN
+   .i_exu_bp_upd_ghr    (exu_bp_upd_ghr),
+   .i_exu_bp_upd_bht    (exu_bp_upd_bht),
+   .i_exu_bp_idx_pc     (exu_bp_idx_pc),
+   .i_exu_bp_idx_ghr    (exu_bp_idx_ghr),
+   .i_exu_bp_sts_btaken (exu_bp_sts_btaken),
+   `endif
+
+   .i_exu_bu_flush      (exu_bu_flush),
+   .i_exu_bu_pc         (exu_bu_pc)
+);
+
+// Decode Unit (DU)
+decode_unit #(
+   .PC_INIT (PC_INIT),
+   .GHRW    (GHRW)   
+)  inst_decode_unit (
+   .clk               (clk),     
+   .aresetn           (aresetn),
+
+   `ifdef DBG
+   .o_du_dbg          (du_dbg),    
+   `endif
+
+   .i_fu_pc           (fu_du_pc),      
+   .i_fu_instr        (fu_du_instr),
+   .i_fu_br_taken     (fu_du_br_taken),
+   `ifdef BPREDICT_DYN
+   .i_fu_ghr_snapshot (fu_du_ghr_snapshot),
+   `endif
+
+   `ifdef RAS
+   .i_fu_is_call      (fu_du_is_call),
+   .i_fu_ras_ret_addr (fu_du_ras_ret_addr),
+   .i_fu_ras_ret_taken(fu_du_ras_ret_taken),
+   .i_fu_ras_snap_ptr (fu_du_ras_snap_ptr),
+   .i_fu_ras_snap_full(fu_du_ras_snap_full),
+   `endif
+
+   .i_fu_bubble       (fu_du_bubble),
+   .o_fu_stall        (du_fu_stall),
+   
+   .o_rf_rden         (du_rf_rden),      
+   .o_rf_rs0          (du_rf_rs0),      
+   .o_rf_rs1          (du_rf_rs1),      
+   
+   .i_exu_bu_flush    (exu_bu_flush),
+   .o_exu_bu_br_taken (du_exu_bu_pred_btaken),
+   `ifdef BPREDICT_DYN
+   .o_exu_ghr_snapshot(du_exu_ghr_snapshot),
+   `endif
+
+   .o_exu_pc          (du_exu_pc),
+   `ifdef DBG
+   .o_exu_instr       (du_exu_instr),
+   `endif
+   .o_exu_bubble      (du_exu_bubble),  
+   .o_exu_pkt_valid   (du_exu_pkt_valid),
+   .i_exu_stall       (exu_du_stall),
+
+    `ifdef RAS
+   .o_exu_is_call      (du_exu_is_call),
+   .o_exu_ras_ret_addr (du_exu_ras_ret_addr),
+   .o_exu_ras_ret_taken(du_exu_ras_ret_taken),
+   .o_exu_ras_snap_ptr (du_exu_ras_snap_ptr),
+   .o_exu_ras_snap_full(du_exu_ras_snap_full),
+   `endif  
+
+   .o_exu_is_alu_op   (du_exu_is_alu_op),
+   .o_exu_alu_opcode  (du_exu_alu_opcode),
+   .o_exu_rs0         (du_exu_rs0),
+   .o_exu_rs0_cpy_ff  (du_exu_rs0_cpy),
+   .o_exu_rs1         (du_exu_rs1),
+   .o_exu_rs1_cpy_ff  (du_exu_rs1_cpy),
+   .o_exu_rdt         (du_exu_rdt), 
+   .o_exu_rdt_not_x0  (du_exu_rdt_not_x0),
+   .o_exu_funct3      (du_exu_funct3), 
+   
+   .o_exu_is_r_type   (du_exu_is_r_type),
+   .o_exu_is_i_type   (du_exu_is_i_type),
+   .o_exu_is_s_type   (du_exu_is_s_type),
+   .o_exu_is_b_type   (du_exu_is_b_type),
+   .o_exu_is_u_type   (du_exu_is_u_type),
+   .o_exu_is_rsb      (du_exu_is_rsb),
+   .o_exu_is_risb     (du_exu_is_risb),
+   .o_exu_is_riuj     (du_exu_is_riuj),
+   .o_exu_is_jalr     (du_exu_is_jalr),
+   .o_exu_is_j_or_jalr(du_exu_is_j_or_jalr),
+   .o_exu_is_load     (du_exu_is_load),
+   .o_exu_is_lui      (du_exu_is_lui),
+   .o_exu_i_type_imm  (du_exu_i_type_imm),
+   .o_exu_s_type_imm  (du_exu_s_type_imm),
+   .o_exu_b_type_imm  (du_exu_b_type_imm),
+   .o_exu_u_type_imm  (du_exu_u_type_imm) 
+);
+
+// RF Read Control
+rf_rdctl inst_rf_rdctl (
+   .i_du_rf_rden  (du_rf_rden),
+   .i_du_rs0      (du_rf_rs0),
+   .i_du_rs1      (du_rf_rs1),
+   .i_du_stall    (du_fu_stall),
+   .i_pkt2exu_rs0 (du_exu_rs0),
+   .i_pkt2exu_rs1 (du_exu_rs1),
+   .i_wbk_rdt     (wbu_rdt_addr_out),
+   .i_wbk_en      (wbu_rdt_wren_out),
+
+   .o_rf_rden0    (rf_rden0),
+   .o_rf_rden1    (rf_rden1),
+   .o_rf_rs0_addr (rf_rs0_addr),
+   .o_rf_rs1_addr (rf_rs1_addr)
+);
+
+// Register File (RF)
+regfile #(
+   .IS_RF_ON_BRAM (IS_RF_ON_BRAM)
+)  inst_regfile (
+   .clk        (clk),  
+   .aresetn    (aresetn), 
+   `ifdef DBG
+   .o_regf_dbg (regf),
+   `endif
+   `ifdef TEST_PORTS
+   .o_x31_tst  (x31_tst),
+   `endif
+   .i_rden0    (rf_rden0),
+   .i_rs0_addr (rf_rs0_addr),  
+   .o_rs0_data (rf_exu_op0),  
+
+   .i_rden1    (rf_rden1),
+   .i_rs1_addr (rf_rs1_addr),  
+   .o_rs1_data (rf_exu_op1),  
+
+   .i_wren     (wbu_rf_wren),
+   .i_rdt_addr (wbu_rf_rdt_addr), 
+   .i_rdt_data (wbu_rf_rdt_data)
+);
+
+// Operand Forward Control
+opfwd_control inst_opfwd_control (
+   .i_rf_op0            (rf_exu_op0)           ,   
+   .i_rf_op1            (rf_exu_op1)           ,
+   
+   .i_du_pc             (du_exu_pc)            ,
+   .i_du_rs0            (du_exu_rs0)           ,
+   .i_du_rs0_cpy        (du_exu_rs0_cpy)       ,
+   .i_du_rs1            (du_exu_rs1)           , 
+   .i_du_rs1_cpy        (du_exu_rs1_cpy)       ,
+   .i_du_is_i_type      (du_exu_is_i_type)     ,
+   .i_du_i_type_imm     (du_exu_i_type_imm)    ,
+   .i_du_is_u_type      (du_exu_is_u_type)     ,
+   .i_du_u_type_imm     (du_exu_u_type_imm)    ,
+   .i_du_is_lui         (du_exu_is_lui)        ,
+   .i_du_instr_rsb      (du_exu_is_rsb)        ,
+   .i_du_instr_risb     (du_exu_is_risb)       ,
+
+   .i_exu_result        (exu_maccu_rdt_data)   ,  
+   .i_exu_rdt           (exu_maccu_rdt_addr)   ,  
+   .i_exu_rdt_not_x0    (exu_maccu_rdt_not_x0) ,
+   .i_exu_instr_riuj    (exu_maccu_is_riuj)    ,  
+   
+   .i_dmem_load_data    (dmem_load_data)       ,
+   .i_maccu_wbdata      (maccu_wbu_rdt_data)   ,
+   .i_is_load           (maccu_wbu_is_load)    ,
+   .i_maccu_rdt         (maccu_wbu_rdt_addr)   ,
+   .i_maccu_rdt_not_x0  (maccu_wbu_rdt_not_x0) ,
+   .i_maccu_instr_riuj  (maccu_wbu_is_riuj)    ,
+
+   .i_wbu_result        (wbu_rdt_data_out)     ,  
+   .i_wbu_rdt           (wbu_rdt_addr_out)     ,  
+   .i_wbu_rdt_not_x0    (wbu_rdt_not_x0_out)   ,
+   .i_wbu_instr_riuj    (wbu_is_riuj_out)      ,  
+
+   .o_fwd_op0           (opfwd_exu_op0)        , 
+   .o_fwd_op1           (opfwd_exu_op1) 
+);
+
+// Execution Unit (EXU)
+execution_unit #(
+   .PC_INIT         (PC_INIT),
+   .GHRW            (GHRW), 
+   .BPCW            (BPCW)
+)  inst_execution_unit (
+   .clk                  (clk),          
+   .aresetn              (aresetn),
+
+   `ifdef DBG
+   .o_exu_dbg            (exu_dbg), 
+   .o_dbg_is_b_instr     (exu_dbg_is_b_instr),
+   .o_dbg_is_pred_wrong  (exu_dbg_is_pred_wrong),   
+   `endif 
+
+   .i_op0                (opfwd_exu_op0),
+   .i_op1                (opfwd_exu_op1),
+
+   .o_exu_bu_flush       (exu_bu_flush),   
+   .o_exu_bu_pc          (exu_bu_pc),  
+   .i_exu_bu_pred_btaken (du_exu_bu_pred_btaken),
+
+   `ifdef BPREDICT_DYN
+   .i_du_ghr_snapshot  (du_exu_ghr_snapshot),
+   .o_bp_upd_ghr       (exu_bp_upd_ghr),
+   .o_bp_upd_bht       (exu_bp_upd_bht),
+   .o_bp_idx_pc        (exu_bp_idx_pc),
+   .o_bp_idx_ghr       (exu_bp_idx_ghr),
+   .o_bp_sts_btaken    (exu_bp_sts_btaken),
+   `endif
+
+   .i_du_pc            (du_exu_pc),
+   `ifdef DBG
+   .i_du_instr         (du_exu_instr),
+   `endif
+   .i_du_bubble        (du_exu_bubble),
+   .i_du_pkt_valid     (du_exu_pkt_valid),
+   .o_du_stall         (exu_du_stall),
+
+   `ifdef RAS
+   .i_du_is_call       (du_exu_is_call),
+   .i_du_ras_ret_addr  (du_exu_ras_ret_addr),
+   .i_du_ras_ret_taken (du_exu_ras_ret_taken),
+   .i_du_ras_snap_ptr  (du_exu_ras_snap_ptr),
+   .i_du_ras_snap_full (du_exu_ras_snap_full),
+
+   .o_ras_rbk_en       (ras_rbk_en),
+   .o_ras_rbk_ptr      (ras_rbk_ptr),
+   .o_ras_rbk_full     (ras_rbk_full),
+   .o_ras_rbk_incr_ptr (ras_rbk_incr_ptr),
+   `endif
+
+   .i_du_is_alu_op     (du_exu_is_alu_op),
+   .i_du_alu_opcode    (du_exu_alu_opcode),
+   .i_du_rs0           (du_exu_rs0),
+   .i_du_rs1           (du_exu_rs1),
+   .i_du_rdt           (du_exu_rdt),
+   .i_du_rdt_not_x0    (du_exu_rdt_not_x0),
+   .i_du_funct3        (du_exu_funct3),
+
+   .i_du_is_r_type     (du_exu_is_r_type),
+   .i_du_is_i_type     (du_exu_is_i_type),
+   .i_du_is_s_type     (du_exu_is_s_type),
+   .i_du_is_b_type     (du_exu_is_b_type),
+   .i_du_is_riuj       (du_exu_is_riuj),
+   .i_du_is_jal_or_jalr(du_exu_is_j_or_jalr),
+   .i_du_is_jalr       (du_exu_is_jalr),
+   .i_du_is_load       (du_exu_is_load),
+   .i_du_i_type_imm    (du_exu_i_type_imm),
+   .i_du_s_type_imm    (du_exu_s_type_imm),
+   .i_du_b_type_imm    (du_exu_b_type_imm),
+   
+   `ifdef DBG
+   .o_maccu_pc         (exu_maccu_pc),
+   .o_maccu_instr      (exu_maccu_instr),
+   `endif
+   .o_maccu_is_riuj    (exu_maccu_is_riuj),
+   .o_maccu_funct3     (exu_maccu_funct3),
+   .o_maccu_bubble     (exu_maccu_bubble),
+   .i_maccu_stall      (maccu_exu_stall),
+
+   .o_maccu_rdt_addr   (exu_maccu_rdt_addr),
+   .o_maccu_rdt_data   (exu_maccu_rdt_data),
+   .o_maccu_rdt_not_x0 (exu_maccu_rdt_not_x0),
+   .o_maccu_is_macc_op (exu_maccu_is_macc_op), 
+   .o_maccu_macc_cmd   (exu_maccu_cmd),
+   .o_maccu_macc_addr  (exu_maccu_addr),
+   .o_maccu_macc_size  (exu_maccu_size),
+   .o_maccu_macc_data  (exu_maccu_data)
+);
+
+// Memory Access Unit (MACCU)
+memory_access_unit #(
+   .PC_INIT(PC_INIT)
+)  inst_memory_access_unit (   
+   .clk                 (clk)     ,
+   .aresetn             (aresetn) ,
+   
+   `ifdef DBG
+   .i_exu_pc            (exu_maccu_pc)         ,
+   .i_exu_instr         (exu_maccu_instr)      ,
+   `endif
+   .i_exu_is_riuj       (exu_maccu_is_riuj)    ,
+   .i_exu_funct3        (exu_maccu_funct3)     ,
+   .i_exu_bubble        (exu_maccu_bubble)     ,
+   .o_exu_stall         (maccu_exu_stall)      ,
+
+   .i_exu_rdt_addr      (exu_maccu_rdt_addr)   ,
+   .i_exu_rdt_data      (exu_maccu_rdt_data)   ,
+   .i_exu_rdt_not_x0    (exu_maccu_rdt_not_x0) ,
+   .i_exu_is_macc_op    (exu_maccu_is_macc_op) ,
+   .i_exu_macc_cmd      (exu_maccu_cmd)        ,
+   .i_exu_macc_addr     (exu_maccu_addr)       ,
+   .i_exu_macc_size     (exu_maccu_size)       ,
+   .i_exu_macc_data     (exu_maccu_data)       ,
+
+   .o_dmem_wen          (o_dmem_wen)           ,
+   .o_dmem_addr         (o_dmem_addr)          ,
+   .o_dmem_size         (o_dmem_size)          ,
+   .o_dmem_wdata        (o_dmem_wdata)         ,
+   .o_dmem_req          (o_dmem_req)           ,
+   .i_dmem_stall        (i_dmem_stall)         ,
+   .o_dmem_flush        (o_dmem_flush)         ,
+   
+   `ifdef DBG
+   .o_wbu_pc            (maccu_wbu_pc)         ,
+   .o_wbu_instr         (maccu_wbu_instr)      ,
+   `endif
+   .o_wbu_is_riuj       (maccu_wbu_is_riuj)    ,
+   .o_wbu_funct3        (maccu_wbu_funct3)     ,
+   .o_wbu_bubble        (maccu_wbu_bubble)     ,
+   .i_wbu_stall         (wbu_maccu_stall)      ,
+   .o_wbu_rdt_addr      (maccu_wbu_rdt_addr)   ,
+   .o_wbu_rdt_data      (maccu_wbu_rdt_data)   ,
+   .o_wbu_rdt_not_x0    (maccu_wbu_rdt_not_x0) ,
+   .o_wbu_is_macc       (maccu_wbu_is_macc)    ,
+   .o_wbu_is_load       (maccu_wbu_is_load)    ,
+   .o_wbu_is_dwback     (maccu_wbu_is_dwback)  ,
+   .o_wbu_macc_addr_lsb (maccu_wbu_macc_addr_lsb)  
+);
+
+// WriteBack Unit (WBU)
+writeback_unit #(
+   .PC_INIT(PC_INIT)
+)  inst_writeback_unit ( 
+   .clk                   (clk),
+   .aresetn               (aresetn),
+   
+   `ifdef DBG
+   .o_wbu_dbg             (wbu_dbg),    
+   `endif 
+
+   .i_dmem_rdata          (i_dmem_rdata),
+   .i_dmem_ack            (i_dmem_ack),
+   .o_dmem_stall          (o_dmem_stall),
+
+   .o_load_data           (dmem_load_data),
+   
+   `ifdef DBG
+   .i_maccu_pc            (maccu_wbu_pc),
+   .i_maccu_instr         (maccu_wbu_instr),
+   `endif
+   .i_maccu_is_riuj       (maccu_wbu_is_riuj),
+   .i_maccu_funct3        (maccu_wbu_funct3),
+   .i_maccu_bubble        (maccu_wbu_bubble),
+   .o_maccu_stall         (wbu_maccu_stall),
+   .i_maccu_rdt_addr      (maccu_wbu_rdt_addr),
+   .i_maccu_rdt_data      (maccu_wbu_rdt_data),
+   .i_maccu_rdt_not_x0    (maccu_wbu_rdt_not_x0),
+   .i_maccu_is_macc       (maccu_wbu_is_macc),
+   .i_maccu_is_load       (maccu_wbu_is_load),
+   .i_maccu_is_dwback     (maccu_wbu_is_dwback),
+   .i_maccu_macc_addr_lsb (maccu_wbu_macc_addr_lsb),
+   
+   .o_rf_wren             (wbu_rf_wren),
+   .o_rf_rdt_addr         (wbu_rf_rdt_addr),
+   .o_rf_rdt_data         (wbu_rf_rdt_data),
+   
+   `ifdef DBG  
+   .o_pc                  (wbu_pc_out),  
+   .o_instr               (wbu_instr_out),  
+   `else
+   `ifdef SIMEXIT_INSTR_END
+   .o_instr               (wbu_instr_out),
+   `endif
+   `endif
+   .o_is_riuj             (wbu_is_riuj_out),  
+   .o_pkt_valid           (wbu_pkt_valid_out),
+   .o_rdt_wren            (wbu_rdt_wren_out),
+   .o_rdt_addr            (wbu_rdt_addr_out),
+   .o_rdt_data            (wbu_rdt_data_out), 
+   .o_rdt_not_x0          (wbu_rdt_not_x0_out), 
+   .i_stall               (i_ext_stall)        
+);
+
+//assign wbu_stall_in = 1'b0 ;
+
+//===================================================================================================================================================
+// Debug block
+//===================================================================================================================================================
+`ifdef SIMEXIT_INSTR_END
+// Simulation END control
+initial begin
+   forever begin 
+       @(posedge clk);
+       if (wbu_instr_out == `INSTR_END && wbu_pkt_valid_out) begin   // END simulation command: mvi x0, 0xEEE ??  
+          $display("| PQR5_SIM_CORE: [INFO ] Simulation exit triggered by END command @t = %0t ns", $time); 
+          $finish;  // Finish simulation
+      end
+   end
+end
+`endif  //SIMEXIT_INSTR_END
+
+`ifdef DBG
+// Registers/Signals/Variables
+int   clk_cycles  ;
+int   exec_cycles ;
+int   stal_cycles ;
+int   bubb_cycles ;
+int   jb_cycles   ;
+int   bp_flush_cycles;
+int   bu_flush_cycles;
+`ifdef RAS
+int   ras_flush_cycles;
+int   ras_mispred_cycles;
+`endif
+int   b_cycles;
+int   bu_b_flush_cycles;
+
+final begin
+   $display("");
+   $display("///////////// SUMMARY STARTS //////////////");
+   $display("");
+   $display("+============================+");
+   $display("| CPI MONITOR");
+   $display("+============================+");
+   $display("| Clocks = %0d cycles", clk_cycles);
+   $display("| Exec   = %0d cycles ", exec_cycles);
+   $display("| Bubble = %0d cycles ", bubb_cycles);
+   $display("| Stall  = %0d cycles ", stal_cycles);
+   $display("| CPI    = %0.2f ", (clk_cycles * 1.0)/((clk_cycles * 1.0) - bubb_cycles - stal_cycles));
+   $display("+============================+");
+   $display("");
+   $display("+============================+");
+   `ifdef RAS
+   $display("| BRANCH+RAS PREDICT MONITOR (J/B)");
+   `else
+   $display("| BRANCH PREDICT MONITOR (J/B)");
+   `endif
+   $display("+============================+");
+   $display("| Jump/Branch = %0d cycles", jb_cycles);
+   $display("| BP Flush    = %0d cycles", bp_flush_cycles);
+   `ifdef RAS
+   $display("| RAS Flush   = %0d cycles", ras_flush_cycles);
+   `endif
+   $display("| BU Flush    = %0d cycles ", bu_flush_cycles);
+   `ifdef RAS
+   $display("| RAS mispred = %0d cycles ", ras_mispred_cycles);
+   `endif
+   if (jb_cycles == 0)
+      $display("| Hit rate    = NA");
+   else
+      $display("| Hit rate    = %0.2f %%", (((jb_cycles - bu_flush_cycles)*1.0)/jb_cycles)*100);
+   $display("+============================+");
+   $display(""); 
+   $display("+============================+");
+   $display("| BRANCH PREDICT MONITOR (B)");
+   $display("+============================+");
+   $display("| Branch      = %0d cycles", b_cycles);
+   $display("| BU Flush    = %0d cycles ", bu_b_flush_cycles);
+   if (b_cycles == 0)
+      $display("| Hit rate    = NA");
+   else
+      $display("| Hit rate    = %0.2f %%", (((b_cycles - bu_b_flush_cycles)*1.0)/b_cycles)*100);
+   $display("+============================+");
+   $display(""); 
+   $display("///////////// SUMMARY ENDS   //////////////");   
+   $display("");    
+end
+`endif
+
+`ifdef DBG
+// DEBUG BLOCK
+
+// Registers/Signals/Variables
+logic clk_stable  ;
+logic exec_begin  ;
+
+// Header display
+initial begin
+   disp_simheader();
+end
+
+// Display debug signals
+`ifdef DBG_PRINT
+always @(posedge clk or negedge clk or negedge aresetn) begin
+   if (!aresetn) begin
+      //$display("| PQR5_SIM_CORE: [INFO ] Under reset @t = %0t ns", $time);   
+      clk_stable <= 1'b0 ;
+   end
+   else if (clk) begin            
+      $display("");
+      $display("| PQR5_SIM_CORE: [INFO ] Dumping to console @t = %0t ns", $time);
+      $display("");
+      disp_regfile(regf);  
+      $display("");      
+      clk_stable <= 1'b1 ;
+   end 
+   else if (!clk && clk_stable) begin
+      $display("+================================================");
+      $display("| FETCH - DEBUG");
+      $display("+------------------------------------------------");
+      $display("| BP flush      : %s", ynstatus(fu_dbg[2]));
+      $display("| JAL instr     : %s", ynstatus(fu_dbg[0] & ~fu_du_bubble));
+      $display("| Branch instr  : %s", ynstatus(fu_dbg[1] & ~fu_du_bubble));
+      `ifdef RAS
+      $display("| RAS flush     : %s", ynstatus(fu_dbg[5]));
+      $display("| CALL instr    : %s", ynstatus(fu_dbg[4] & ~fu_du_bubble));
+      $display("| RET instr     : %s", ynstatus(fu_dbg[3] & ~fu_du_bubble));      
+      `endif
+      $write  ("| Flush to IMEM : %s", ynstatus(o_imem_flush));
+      //if (fu_dbg[2] && !exu_bu_flush) $write(", by %s", ynstatus(fu_dbg[0], "JAL instr", "Branch instr")); 
+      $write("\n");
+      $display("| Stall generated : %s", ynstatus(o_imem_stall));
+      $display("+================================================");
+      $display("| DECODE - DEBUG");
+      $display("+------------------------------------------------");
+      $write  ("| Instr decoded   : %s", instrtype(du_dbg[5:0], ~du_exu_bubble));
+      if      (du_dbg[9] && !du_exu_bubble) $write(", LUI");
+      else if (du_dbg[1] && !du_exu_bubble) $write(", AUIPC");
+      else if (du_dbg[8] && !du_exu_bubble) $write(", JALR");
+      else if (du_dbg[7] && !du_exu_bubble) $write(", LOAD");
+      else if (du_dbg[6] && !du_exu_bubble) $write(", ALUI");
+      $write("\n");
+      $display("| Stall generated : %s", ynstatus(du_fu_stall));
+      $display("+================================================");
+      $display("| EXECUTE - DEBUG");
+      $display("+------------------------------------------------");
+      $display("| Pipe interlock : %s", ynstatus(exu_dbg[4]));
+      $display("| Branch taken    : %s", ynstatus(exu_dbg[3]));
+      if      (exu_dbg[2] && !exu_maccu_bubble) $display("| Instr executed  : by Load-Store Unit");
+      else if (exu_dbg[1] && !exu_maccu_bubble) $display("| Instr executed  : by ALU");
+      else if (exu_dbg[0] && !exu_maccu_bubble) $display("| Instr executed  : by Branch Unit");  
+      else                                      $display("| Instr executed  : --");
+      $write  ("| MEM access init : %s, ", ynstatus(exu_maccu_is_macc_op));
+      $write  ("%s", memacctype(exu_maccu_size, exu_maccu_cmd, exu_maccu_is_macc_op));
+      $write  ("\n");
+      $display("| Write back init : %s", ynstatus(~exu_maccu_is_macc_op && ~exu_maccu_bubble));
+      $write  ("| Flush generated : %s", ynstatus(exu_bu_flush));
+      if (exu_bu_flush) $write(", by JALR/Branch instr");
+      $write("\n");
+      $display("| Stall generated : %s", ynstatus(exu_du_stall));
+      $display("+================================================");
+      $display("| MEMACC - DEBUG");
+      $display("+------------------------------------------------");      
+      $display("| Stall generated : %s", ynstatus(maccu_exu_stall));
+      $display("+================================================");
+      $display("| WRITEBACK - DEBUG");
+      $display("+------------------------------------------------");
+      $display("| Write to REGF   : %s", ynstatus(wbu_rf_wren));
+      $display("| Stall generated : %s", ynstatus(wbu_maccu_stall));
+      $display("+================================================");
+      $display("");
+      $display("+===========================+");
+      $display("| CPI MONITOR");
+      $display("+===========================+");
+      $display("| Clocks = %0d cycles", clk_cycles);
+      $display("| Exec   = %0d cycles ", exec_cycles);
+      $display("| Bubble = %0d cycles ", bubb_cycles);
+      $display("| Stall  = %0d cycles ", stal_cycles);
+      $display("| CPI    = %0.2f ", (clk_cycles * 1.0)/((clk_cycles * 1.0) - bubb_cycles - stal_cycles));
+      $display("+===========================+");
+      $display("");
+      $display("+===========================+");
+      `ifdef RAS
+      $display("| BRANCH+RAS PREDICT MONITOR");
+      `else
+      $display("| BRANCH PREDICT MONITOR");
+      `endif
+      $display("+===========================+");
+      $display("| Jump/Branch = %0d cycles", jb_cycles);
+      $display("| BU Flush    = %0d cycles ", bu_flush_cycles);
+      if (jb_cycles == 0)
+         $display("| Hit rate    = NA");
+      else
+         $display("| Hit rate    = %0.2f %%", (((jb_cycles - bu_flush_cycles)*1.0)/jb_cycles)*100);
+      $display("+===========================+");
+      $display("");
+      $display("+=====================================================================================+");
+      $display("| PIPELINE STATUS                                                                     |");
+      $display("+=====================================================================================+");
+      $display("| Stage    |     FETCH    |    DECODE    |    EXECUTE   |    MEMACC    |  WRITEBACK   |");
+      $display("+----------+--------------+--------------+--------------+--------------+--------------+");
+      $write  ("| Valid    |");
+      $write  ("       %0d      |", ~fu_du_bubble);
+      $write  ("       %0d      |", ~du_exu_bubble);
+      $write  ("       %0d      |", ~exu_maccu_bubble);
+      $write  ("       %0d      |", ~maccu_wbu_bubble);
+      $write  ("       %0d      |", wbu_pkt_valid_out);
+      $write  ("\n");
+      $display("+----------+--------------+--------------+--------------+--------------+--------------+");      
+      $write  ("| PC       |");
+      hex2txt (32, fu_du_pc,     " 0x", "_", 4, "  |");
+      hex2txt (32, du_exu_pc,    " 0x", "_", 4, "  |");
+      hex2txt (32, exu_maccu_pc, " 0x", "_", 4, "  |");
+      hex2txt (32, maccu_wbu_pc, " 0x", "_", 4, "  |");
+      hex2txt (32, wbu_pc_out,   " 0x", "_", 4, "  |");
+      $write  ("\n");
+      $write  ("| Instr    |");
+      hex2txt (32, fu_du_instr,     " 0x", "_", 4, "  |");
+      hex2txt (32, du_exu_instr,    " 0x", "_", 4, "  |");
+      hex2txt (32, exu_maccu_instr, " 0x", "_", 4, "  |");
+      hex2txt (32, maccu_wbu_instr, " 0x", "_", 4, "  |");
+      hex2txt (32, wbu_instr_out,   " 0x", "_", 4, "  |");
+      $write  ("\n");
+      $write  ("| Stall in |");
+      $write  ("       %0d      |", du_fu_stall);
+      $write  ("       %0d      |", exu_du_stall);
+      $write  ("       %0d      |", maccu_exu_stall);
+      $write  ("       %0d      |", wbu_maccu_stall);
+      $write  ("       %0d      |", i_ext_stall);
+      $write  ("\n");
+      $write  ("| Flush in |");
+      $write  ("       %0d      |", exu_bu_flush);
+      $write  ("       %0d      |", exu_bu_flush);
+      $write  ("       %0d      |", 0);
+      $write  ("       %0d      |", 0);
+      $write  ("       %0d      |", 0);
+      $write  ("\n");
+      $display("+----------+--------------+--------------+--------------+--------------+--------------+");
+      $write  ("| DMEM Access : %s", ynstatus((exu_maccu_is_macc_op | wbu_dbg[0]), "ACTIVE", "IDLE"));
+      $write  ("\n");
+      $display("+=====================================================================================+");
+      $display("");
+   end   
+end
+`endif  //DBG_PRINT
+
+///////////////////////////////////////////////////////////////////////////////
+// CPI Monitor
+///////////////////////////////////////////////////////////////////////////////
+logic is_cpu_bubble ;
+assign is_cpu_bubble = du_exu_bubble | exu_bu_flush ;
+
+always @(posedge clk or negedge aresetn) begin
+   if (!aresetn) begin    
+      clk_cycles  <= 0 ; 
+      exec_cycles <= 0 ;
+      stal_cycles <= 0 ;
+      bubb_cycles <= 0 ;
+   end
+   else begin
+      if (!du_exu_bubble && (exu_du_stall || exu_dbg[4])) stal_cycles <= stal_cycles + 1 ; 
+      if (is_cpu_bubble)                                  bubb_cycles <= bubb_cycles + 1 ;
+      if (!is_cpu_bubble && !exu_du_stall)                exec_cycles <= exec_cycles + 1 ; 
+      clk_cycles <= clk_cycles + 1 ;
+   end
+end
+
+///////////////////////////////////////////////////////////////////////////////
+// Branch Predict Monitor
+///////////////////////////////////////////////////////////////////////////////
+logic is_j_or_b ;
+assign is_j_or_b = du_exu_is_j_or_jalr | du_exu_is_b_type ;
+
+always @(posedge clk or negedge aresetn) begin
+   if (!aresetn) begin    
+      jb_cycles          <= 0 ;
+      b_cycles           <= 0 ; 
+      bu_b_flush_cycles  <= 0 ;
+      bu_flush_cycles    <= 0 ;
+      bp_flush_cycles    <= 0 ;
+      `ifdef RAS
+      ras_flush_cycles   <= 0 ;
+      ras_mispred_cycles <= 0 ;
+      `endif
+   end
+   else begin
+      if (!(du_exu_bubble | exu_bu_flush) && is_j_or_b && !exu_du_stall) jb_cycles          <= jb_cycles + 1 ;
+      if (exu_dbg_is_b_instr && !maccu_exu_stall)                        b_cycles           <= b_cycles + 1  ; 
+      if (exu_dbg_is_b_instr && exu_dbg_is_pred_wrong)                   bu_b_flush_cycles  <= bu_b_flush_cycles + 1 ;
+      if (exu_bu_flush)                                                  bu_flush_cycles    <= bu_flush_cycles + 1 ;
+      if (fu_dbg[2])                                                     bp_flush_cycles    <= bp_flush_cycles + 1 ;
+      `ifdef RAS
+      if (fu_dbg[5])                                                     ras_flush_cycles   <= ras_flush_cycles + 1 ;
+      if (exu_bu_flush && exu_dbg[5])                                    ras_mispred_cycles <= ras_mispred_cycles + 1 ;
+      `endif
+   end
+end
+
+`endif  //DBG
+
+`ifdef TEST_PORTS
+// Test ports
+assign o_x31_tst = {x31_tst[24], x31_tst[16], x31_tst[8], x31_tst[0]} ;
+
+// Boot flag
+always @(posedge clk or negedge aresetn) begin
+   if (!aresetn) begin    
+      boot_flag_rg <= 1'b0 ;
+   end
+   else begin
+      boot_flag_rg <= 1'b1 ;   // Core is out of reset and booted
+   end
+end
+assign o_boot_flag = boot_flag_rg ;
+`endif  //TEST_PORTS
+
+endmodule
+//###################################################################################################################################################
+//                                                              P Q R 5   C O R E   T O P                                          
+//###################################################################################################################################################

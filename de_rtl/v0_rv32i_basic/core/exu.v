@@ -28,7 +28,12 @@ module exu(
     input  wire [31:0] i_dec_imm,
     input  wire [31:0] i_pc_id,
     input  wire [`DECINFO_BUS_WIDTH-1:0] i_dec_info_bus_id,
-    output wire [31:0] o_wrbk_data_ex,
+    output wire [31:0] o_wrbk_data_exu,
+    // forwarding
+    input wire [31:0] i_fwd_wrbk_data_mau,
+    input wire [31:0] i_fwd_wrbk_data_wbu,
+    input wire [1:0] i_fwd_datasel_1,
+    input wire [1:0] i_fwd_datasel_2,
     // branch
     output wire [31:0] o_pc_bru_next,
     output wire o_jump_flag,
@@ -39,36 +44,36 @@ module exu(
     output wire [3:0] o_mema_ld_info,  // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     // input  wire [31:0] i_mema_rd_data,
     // pass by
-    input  wire [`RFIDX_WIDTH-1:0] i_dec_rdidx_id,
-    input  wire i_dec_rdwen_id,
-    output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_ex,
-    output wire o_wrbk_wen_ex
+    input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_idu,
+    input  wire i_wrbk_rdwen_idu,
+    output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_exu,
+    output wire o_wrbk_rdwen_exu
     );
 
 // ================================================================
 // ----------------        Pipeline Regs        ---------------- //
 // to wb
-reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_ex;
+reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_exu;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_rdidx_ex <= 'd0;
+        r_wrbk_rdidx_exu <= 'd0;
     end
     else begin
-        r_wrbk_rdidx_ex <= i_dec_rdidx_id;
+        r_wrbk_rdidx_exu <= i_wrbk_rdidx_idu;
     end
 end
-assign o_wrbk_rdidx_ex = r_wrbk_rdidx_ex;
+assign o_wrbk_rdidx_exu = r_wrbk_rdidx_exu;
 
-reg r_wrbk_wen_ex;
+reg r_wrbk_wen_exu;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_wen_ex <= 1'b0;
+        r_wrbk_wen_exu <= 1'b0;
     end
     else begin
-        r_wrbk_wen_ex <= i_dec_rdwen_id;
+        r_wrbk_wen_exu <= i_wrbk_rdwen_idu;
     end
 end
-assign o_wrbk_wen_ex = r_wrbk_wen_ex;
+assign o_wrbk_rdwen_exu = r_wrbk_wen_exu;
 
 
 // Comb in, reg 
@@ -115,6 +120,12 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
+// ================================================================
+// ----------------        Data Forwarding        ---------------- //
+
+
+
+
 
 // ================================================================
 // ----------------        Datapath Dispatch        ---------------- //
@@ -147,7 +158,7 @@ wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
 wire [31:0] alu_wrbk_data;
 wire [31:0] bru_wrbk_data;
 // wire [31:0] lsu_req_result;
-assign o_wrbk_data_ex = ({`XWIDTH{req_disp_alu}} & alu_wrbk_data)
+assign o_wrbk_data_exu = ({`XWIDTH{req_disp_alu}} & alu_wrbk_data)
                       | ({`XWIDTH{req_disp_bru}} & bru_wrbk_data);
                     //   | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
 
