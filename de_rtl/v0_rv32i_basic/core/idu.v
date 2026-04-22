@@ -31,6 +31,8 @@ module idu(
     output wire [31:0] o_dec_imm,
     output wire [`DECINFO_BUS_WIDTH-1:0] o_dec_info_bus_id,
     output wire o_dec_rdwen_id,
+    output wire o_need_rs1_idu,
+    output wire o_need_rs2_idu,
     // Pipeline Reg Output
     output wire [31:0] o_instr_id,
     output wire [31:0] o_pc_id
@@ -151,7 +153,7 @@ wire dec_rv32i_ecall_ebreak = dec_rv32i_system_type & dec_rv32_func3_000;
 
 ////************    Specific Instruction decode    ************////
 wire dec_rv32i_lui   = dec_opcode_6_5_01 & dec_opcode_4_2_101 & dec_opcode_1_0_11; // U-type, "lui".
-wire dec_rv32i_auipc = dec_opcode_6_5_00 & dec_opcode_4_2_101 & dec_opcode_1_0_11; // U-type, "luipc".
+wire dec_rv32i_auipc = dec_opcode_6_5_00 & dec_opcode_4_2_101 & dec_opcode_1_0_11; // U-type, "auipc".
 wire dec_rv32i_jal   = dec_opcode_6_5_11 & dec_opcode_4_2_011 & dec_opcode_1_0_11; // J-type, "jal".
 wire dec_rv32i_jalr  = dec_opcode_6_5_11 & dec_opcode_4_2_001 & dec_opcode_1_0_11; // J-type, "jalr".
 
@@ -201,9 +203,9 @@ wire dec_rv32i_or   = dec_rv32i_arithm_type & dec_rv32_func3_110 & dec_rv32_func
 wire dec_rv32i_and  = dec_rv32i_arithm_type & dec_rv32_func3_111 & dec_rv32_func7_0000000;
 
 // Memory Order Instructions
-assign dec_rv32i_fence    = dec_rv32i_miscmem_type & dec_rv32_func3_000;
-assign dec_rv32i_fence_i  = dec_rv32i_miscmem_type & dec_rv32_func3_001;
-assign dec_rv32i_fence_fencei  = dec_rv32i_miscmem_type;
+wire dec_rv32i_fence    = dec_rv32i_miscmem_type & dec_rv32_func3_000;
+wire dec_rv32i_fence_i  = dec_rv32i_miscmem_type & dec_rv32_func3_001;
+wire dec_rv32i_fence_fencei  = dec_rv32i_miscmem_type;
 
 // System Instructions
 wire dec_rv32i_ecall  = dec_rv32i_system_type & dec_rv32_func3_000 & (rv32_instr[31:20] == 12'b0000_0000_0000);
@@ -244,17 +246,31 @@ assign o_dec_imm = rv32_imm;
 
 // =======================================================================
 // ----------------        EXU Datapath Ctrl Sigs        ---------------- //
-wire dec_info_need_rs1;
-wire dec_info_need_rs2;
 // wire dec_info_need_rd = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_load_type | dec_rv32i_csr_type | dec_rv32i_lui | dec_rv32i_auipc | dec_rv32i_jal | dec_rv32i_jalr;
 wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak);
+wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (   // TODO: Needs further consideration: 需要排除rs==x0的情况吗？
+                                              (~dec_rv32i_lui)
+                                            & (~dec_rv32i_auipc) 
+                                            & (~dec_rv32i_jal) 
+                                            & (~dec_rv32i_fence_fencei) 
+                                            & (~dec_rv32i_ecall_ebreak)
+                                            & (~rv32_csrrwi)
+                                            & (~rv32_csrrsi)
+                                            & (~rv32_csrrci)
+                                            );
+wire dec_info_need_rs2 = (~dec_rv32_rs2_x0) & (
+                                              (dec_rv32i_branch_type)
+                                            | (dec_rv32i_store_type)
+                                            | (dec_rv32i_arithm_type)
+                                            );
 
-wire dec_info_need_imm = rv32_imm_sel_i | rv32_imm_sel_s | rv32_imm_sel_b | rv32_imm_sel_u | rv32_imm_sel_j;
-
+wire dec_info_op1pc = dec_rv32i_auipc;
+wire dec_info_op2imm = rv32_imm_sel_i | rv32_imm_sel_s | rv32_imm_sel_b | rv32_imm_sel_u | rv32_imm_sel_j;
 
 // ----------------        Decode Ctrl Sigs        ---------------- //
 assign o_dec_rdwen_id = dec_info_need_rd;
-
+assign o_need_rs1_idu = dec_info_need_rs1;
+assign o_need_rs2_idu = dec_info_need_rs2;
 
 
 // =======================================================================
@@ -285,8 +301,8 @@ assign dec_info_bus_alu[`DECINFO_ALU_SRA    ] = dec_rv32i_sra | dec_rv32i_srai;
 assign dec_info_bus_alu[`DECINFO_ALU_OR     ] = dec_rv32i_or | dec_rv32i_ori;
 assign dec_info_bus_alu[`DECINFO_ALU_AND    ] = dec_rv32i_and | dec_rv32i_andi;
 assign dec_info_bus_alu[`DECINFO_ALU_LUI    ] = dec_rv32i_lui;
-assign dec_info_bus_alu[`DECINFO_ALU_OP2IMM ] = dec_info_need_imm;
-assign dec_info_bus_alu[`DECINFO_ALU_OP1PC  ] = dec_rv32i_auipc;
+assign dec_info_bus_alu[`DECINFO_ALU_OP2IMM ] = dec_info_op2imm;
+assign dec_info_bus_alu[`DECINFO_ALU_OP1PC  ] = dec_info_op1pc;
 
 
 // LSU group, Load and Store Instrs
@@ -295,7 +311,7 @@ assign dec_info_bus_lsu[`DECINFO_LSU_LOAD   ] = dec_rv32i_load_type;
 assign dec_info_bus_lsu[`DECINFO_LSU_STORE  ] = dec_rv32i_store_type;
 assign dec_info_bus_lsu[`DECINFO_LSU_SIZE   ] = dec_info_lsu_size;
 assign dec_info_bus_lsu[`DECINFO_LSU_USIGN  ] = dec_info_lsu_unsigned;
-assign dec_info_bus_lsu[`DECINFO_LSU_OP2IMM ] = dec_info_need_imm;
+assign dec_info_bus_lsu[`DECINFO_LSU_OP2IMM ] = dec_info_op2imm;
 
 
 // BRU, Branch Unit, handle Branch and System Instrs

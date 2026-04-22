@@ -57,8 +57,16 @@ wire [31:0] instr_id;
 wire [31:0] pc_id;      // this and above: reg_out
 wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_idu;
 wire [31:0] dec_imm;
-wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_id;
+wire [`DECINFO_BUS_WIDTH-1:0] dec_info_bus_id;
 wire wrbk_rdwen_idu;
+wire need_rs1_idu;
+wire need_rs2_idu;
+
+// ex_fowarding_ctrl
+wire need_rs1_exu;
+wire need_rs2_exu;
+wire [`RFIDX_WIDTH-1:0] rs1idx_exu;
+wire [`RFIDX_WIDTH-1:0] rs2idx_exu;
 
 // ex_2_mema
 wire [31:0] mema_addr_exu;
@@ -115,6 +123,8 @@ idu u_idu(
     .o_dec_imm          (dec_imm        ),
     .o_dec_info_bus_id  (dec_info_bus_id),
     .o_dec_rdwen_id     (wrbk_rdwen_idu ),
+    .o_need_rs1_idu     (need_rs1_idu   ),  // decision basis: 该信号不能直接送入forwarding_ctrl模块，一方面fwd_ctrl工作在ex级，另一方面need_rs信号须与exu状态保持一致，如果stall要同时stall住，因此最好放在exu中
+    .o_need_rs2_idu     (need_rs2_idu   ),
     // Pipeline_reg_out
     .o_instr_id         (instr_id       ),    // for what
     .o_pc_id            (pc_id          )
@@ -130,10 +140,18 @@ exu u_exu(
     .i_dec_info_bus_id  (dec_info_bus_id    ),
     .o_wrbk_data_exu    (wrbk_data_exu      ),
     // forwarding
+    .i_need_rs1_idu     (need_rs1_idu       ),
+    .i_need_rs2_idu     (need_rs2_idu       ),
+    .o_need_rs1_exu     (need_rs1_exu       ),
+    .o_need_rs2_exu     (need_rs2_exu       ),
+    .i_rs1idx_idu       (rf_read_rs1_idx    ),
+    .i_rs2idx_idu       (rf_read_rs2_idx    ),
+    .o_rs1idx_exu       (rs1idx_exu         ),
+    .o_rs2idx_exu       (rs2idx_exu         ),
     .i_fwd_wrbk_data_mau(wrbk_data_mau      ),
     .i_fwd_wrbk_data_wbu(wrbk_data_wbu      ),
-    .i_fwd_datasel_1    (fwd_datasel_1      ),
-    .i_fwd_datasel_2    (fwd_datasel_2      ),
+    .i_fwding_rs1_sel   (fwding_rs1_sel     ),
+    .i_fwding_rs2_sel   (fwding_rs2_sel     ),
     // branch
     .o_pc_bru_next      (o_pc_bru_next      ),
     .o_jump_flag        (o_jump_flag        ),
@@ -149,20 +167,22 @@ exu u_exu(
     .o_wrbk_rdwen_ex    (wrbk_rdwen_exu     )
     );
 
-wire [1:0] fwd_datasel_1;
-wire [1:0] fwd_datasel_2;
+wire [1:0] fwding_rs1_sel;
+wire [1:0] fwding_rs2_sel;
 ctrl_hazard u_ctrl_hazard(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
     // for forwarding
-    .i_wrbk_rdidx_exu   (wrbk_rdidx_exu     ),
-    .i_wrbk_rdwen_exu   (wrbk_rdwen_exu     ),
-    .i_wrbk_rdidx_mau   (wrbk_rdidx_mau     ),
+    .i_need_rs1_exu     (need_rs1_exu       ),
+    .i_need_rs2_exu     (need_rs2_exu       ),
+    .i_rs1idx_exu       (rs1idx_exu         ),
+    .i_rs2idx_exu       (rs2idx_exu         ),
     .i_wrbk_rdwen_mau   (wrbk_rdwen_mau     ),
-    .i_wrbk_rdidx_wbu   (wrbk_rdidx_wbu     ),
+    .i_wrbk_rdidx_mau   (wrbk_rdidx_mau     ),
     .i_wrbk_rdwen_wbu   (wrbk_rdwen_wbu     ),
-    .o_fwd_datasel_1    (fwd_datasel_1      ),
-    .o_fwd_datasel_2    (fwd_datasel_2      )
+    .i_wrbk_rdidx_wbu   (wrbk_rdidx_wbu     ),
+    .o_fwding_rs1_sel   (fwding_rs1_sel     ),
+    .o_fwding_rs2_sel   (fwding_rs2_sel     )
     );
 
 

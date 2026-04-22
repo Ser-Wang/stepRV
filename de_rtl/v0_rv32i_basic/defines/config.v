@@ -9,6 +9,7 @@
 // Decode relevant macro, E203v2 as a reference.
 
 // ---- decinfo_bus
+// ----------------        Common Seg        ---------------- //
 `define DECINFO_GRP_WIDTH           3
 `define DECINFO_GRP_ALU             `DECINFO_GRP_WIDTH'd0
 `define DECINFO_GRP_LSU             `DECINFO_GRP_WIDTH'd1

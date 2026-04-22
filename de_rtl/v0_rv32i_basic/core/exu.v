@@ -30,10 +30,18 @@ module exu(
     input  wire [`DECINFO_BUS_WIDTH-1:0] i_dec_info_bus_id,
     output wire [31:0] o_wrbk_data_exu,
     // forwarding
+    input wire i_need_rs1_idu,
+    input wire i_need_rs2_idu,
+    output wire o_need_rs1_exu,
+    output wire o_need_rs2_exu,
+    input wire [`RFIDX_WIDTH-1:0] i_rs1idx_idu,
+    input wire [`RFIDX_WIDTH-1:0] i_rs2idx_idu,
+    output wire [`RFIDX_WIDTH-1:0] o_rs1idx_exu,
+    output wire [`RFIDX_WIDTH-1:0] o_rs2idx_exu,
     input wire [31:0] i_fwd_wrbk_data_mau,
     input wire [31:0] i_fwd_wrbk_data_wbu,
-    input wire [1:0] i_fwd_datasel_1,
-    input wire [1:0] i_fwd_datasel_2,
+    input wire [1:0] i_fwding_rs1_sel,
+    input wire [1:0] i_fwding_rs2_sel,
     // branch
     output wire [31:0] o_pc_bru_next,
     output wire o_jump_flag,
@@ -52,7 +60,7 @@ module exu(
 
 // ================================================================
 // ----------------        Pipeline Regs        ---------------- //
-// to wb
+//---- pass by, to wb
 reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_exu;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -119,11 +127,45 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+//---- for forwarding and stall
+reg r_need_rs1_exu, r_need_rs2_exu;
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        r_need_rs1_exu <= 1'b0;
+        r_need_rs2_exu <= 1'b0;
+    end
+    else begin
+        r_need_rs1_exu <= i_need_rs1_idu;
+        r_need_rs2_exu <= i_need_rs2_idu;
+    end
+end
+assign o_need_rs1_exu = r_need_rs1_exu;
+assign o_need_rs2_exu = r_need_rs2_exu;
+
+
+reg [`RFIDX_WIDTH-1:0] r_rs1idx_exu;
+reg [`RFIDX_WIDTH-1:0] r_rs2idx_exu;
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        r_rs1idx_exu <= 'd0;
+        r_rs2idx_exu <= 'd0;
+    end
+    else begin
+        r_rs1idx_exu <= i_rs1idx_idu;
+        r_rs2idx_exu <= i_rs2idx_idu;
+    end
+end
+assign o_rs1idx_exu = r_rs1idx_exu;
+assign o_rs2idx_exu = r_rs2idx_exu;
+
 
 // ================================================================
 // ----------------        Data Forwarding        ---------------- //
-
-
+wire [`XWIDTH-1:0] fwded_rs1, fwded_rs2;
+assign fwded_rs1 = (~i_fwding_rs1_sel[1]) ? rf_rs1_r_ex : 
+                   ( i_fwding_rs1_sel[0]) ? i_fwd_wrbk_data_mau : i_fwd_wrbk_data_wbu;
+assign fwded_rs2 = (~i_fwding_rs2_sel[1]) ? rf_rs2_r_ex : 
+                   ( i_fwding_rs2_sel[0]) ? i_fwd_wrbk_data_mau : i_fwd_wrbk_data_wbu;
 
 
 
@@ -142,16 +184,16 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req
 
 
 // ---- rs1, rs2, imm logic-gating
-wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rf_rs1_r_ex;
-wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rf_rs2_r_ex;
+wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & fwded_rs1;
+wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & fwded_rs2;
 wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
 
-wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & rf_rs1_r_ex;
-wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & rf_rs2_r_ex;
+wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & fwded_rs1;
+wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & fwded_rs2;
 wire [`XWIDTH-1:0] lsu_imm = {`XWIDTH{req_disp_lsu}} & dec_imm_r_ex;
 
-wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & rf_rs1_r_ex;
-wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rf_rs2_r_ex;
+wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & fwded_rs1;
+wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & fwded_rs2;
 wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
 
 // ---- results wrbk
