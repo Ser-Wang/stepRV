@@ -23,6 +23,8 @@
 module exu(
     input  wire clk,
     input  wire rst_n,
+    input  wire i_stall,
+    input  wire i_flush,
     input  wire [31:0] i_rf_rs1_data,
     input  wire [31:0] i_rf_rs2_data,
     input  wire [31:0] i_dec_imm,
@@ -66,7 +68,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wrbk_rdidx_exu <= 'd0;
     end
-    else begin
+    else if(!i_stall) begin
         r_wrbk_rdidx_exu <= i_wrbk_rdidx_idu;
     end
 end
@@ -77,7 +79,10 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wrbk_wen_exu <= 1'b0;
     end
-    else begin
+    else if(i_flush) begin
+        r_wrbk_wen_exu <= 1'b0;
+    end
+    else if(!i_stall) begin
         r_wrbk_wen_exu <= i_wrbk_rdwen_idu;
     end
 end
@@ -91,7 +96,7 @@ always @(posedge clk or negedge rst_n) begin
         rf_rs1_r_ex <= 32'd0;
         rf_rs2_r_ex <= 32'd0;
     end
-    else begin
+    else if(!i_stall) begin
         rf_rs1_r_ex <= i_rf_rs1_data;
         rf_rs2_r_ex <= i_rf_rs2_data;
     end
@@ -102,7 +107,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         dec_imm_r_ex <= 32'd0;
     end
-    else begin
+    else if(!i_stall) begin
         dec_imm_r_ex <= i_dec_imm;
     end
 end
@@ -112,7 +117,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_pc_exu <= 32'b0;
     end
-    else begin
+    else if(!i_stall) begin
         r_pc_exu <= i_pc_id;
     end
 end
@@ -122,7 +127,10 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_dec_info_bus_ex <= {`DECINFO_BUS_WIDTH{1'b0}};
     end
-    else begin
+    else if(i_flush) begin
+        r_dec_info_bus_ex <= 'd0;
+    end
+    else if(!i_stall) begin
         r_dec_info_bus_ex <= i_dec_info_bus_id;
     end
 end
@@ -134,7 +142,11 @@ always @(posedge clk or negedge rst_n) begin
         r_need_rs1_exu <= 1'b0;
         r_need_rs2_exu <= 1'b0;
     end
-    else begin
+    else if(i_flush) begin
+        r_need_rs1_exu <= 1'b0;
+        r_need_rs2_exu <= 1'b0;
+    end
+    else if(!i_stall) begin
         r_need_rs1_exu <= i_need_rs1_idu;
         r_need_rs2_exu <= i_need_rs2_idu;
     end
@@ -150,7 +162,7 @@ always @(posedge clk or negedge rst_n) begin
         r_rs1idx_exu <= 'd0;
         r_rs2idx_exu <= 'd0;
     end
-    else begin
+    else if(!i_stall) begin
         r_rs1idx_exu <= i_rs1idx_idu;
         r_rs2idx_exu <= i_rs2idx_idu;
     end
@@ -161,11 +173,11 @@ assign o_rs2idx_exu = r_rs2idx_exu;
 
 // ================================================================
 // ----------------        Data Forwarding        ---------------- //
-wire [`XWIDTH-1:0] fwded_rs1, fwded_rs2;
-assign fwded_rs1 = (~i_fwding_rs1_sel[1]) ? rf_rs1_r_ex : 
-                   ( i_fwding_rs1_sel[0]) ? i_fwd_wrbk_data_mau : i_fwd_wrbk_data_wbu;
-assign fwded_rs2 = (~i_fwding_rs2_sel[1]) ? rf_rs2_r_ex : 
-                   ( i_fwding_rs2_sel[0]) ? i_fwd_wrbk_data_mau : i_fwd_wrbk_data_wbu;
+wire [`XWIDTH-1:0] rs1_fwded, rs2_fwded;
+assign rs1_fwded = (~i_fwding_rs1_sel[1]) ? rf_rs1_r_ex : 
+                   ( i_fwding_rs1_sel[0]) ? i_fwd_wrbk_data_wbu : i_fwd_wrbk_data_mau;
+assign rs2_fwded = (~i_fwding_rs2_sel[1]) ? rf_rs2_r_ex : 
+                   ( i_fwding_rs2_sel[0]) ? i_fwd_wrbk_data_wbu : i_fwd_wrbk_data_mau;
 
 
 
@@ -184,16 +196,16 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req
 
 
 // ---- rs1, rs2, imm logic-gating
-wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & fwded_rs1;
-wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & fwded_rs2;
+wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rs1_fwded;
+wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rs2_fwded;
 wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
 
-wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & fwded_rs1;
-wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & fwded_rs2;
+wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & rs1_fwded;
+wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & rs2_fwded;
 wire [`XWIDTH-1:0] lsu_imm = {`XWIDTH{req_disp_lsu}} & dec_imm_r_ex;
 
-wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & fwded_rs1;
-wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & fwded_rs2;
+wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & rs1_fwded;
+wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rs2_fwded;
 wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
 
 // ---- results wrbk

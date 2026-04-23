@@ -4,6 +4,19 @@
 `define RFIDX_WIDTH 5
 
 `define XWIDTH 32   // RV32, regfile width is 32
+// ===========================================================================
+// Stall & Flush
+`define STALL_PC        0
+`define STALL_IF_ID     1
+`define STALL_ID_EX     2
+`define STALL_EX_MEM    3
+`define STALL_MEM_WB    4
+
+`define FLUSH_IF_ID     0
+`define FLUSH_ID_EX     1
+`define FLUSH_EX_MEM    2
+`define FLUSH_MEM_WB    3
+
 
 // ===========================================================================
 // Decode relevant macro, E203v2 as a reference.

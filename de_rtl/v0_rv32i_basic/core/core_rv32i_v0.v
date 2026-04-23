@@ -62,11 +62,18 @@ wire wrbk_rdwen_idu;
 wire need_rs1_idu;
 wire need_rs2_idu;
 
-// ex_fowarding_ctrl
+// ex_hazard_ctrl
 wire need_rs1_exu;
 wire need_rs2_exu;
 wire [`RFIDX_WIDTH-1:0] rs1idx_exu;
 wire [`RFIDX_WIDTH-1:0] rs2idx_exu;
+wire [1:0] fwding_rs1_sel;
+wire [1:0] fwding_rs2_sel;
+wire is_load_req_exu;
+
+// flush & stall
+wire [4:0] stall;
+wire [3:0] flush;
 
 // ex_2_mema
 wire [31:0] mema_addr_exu;
@@ -96,9 +103,9 @@ regfile u_regfile(
     .i_read_rs2_idx     (rf_read_rs2_idx  ),
     .o_read_rs1_data    (rf_read_rs1_data ),
     .o_read_rs2_data    (rf_read_rs2_data ),
-    .i_wb_wen           (rf_wrbk_wen      ),
-    .i_wb_dest_idx      (rf_wrbk_rdidx    ),   // write back
-    .i_wb_dest_data     (rf_wrbk_data     )
+    .i_wrbk_wen         (rf_wrbk_wen      ),
+    .i_wrbk_rdidx       (rf_wrbk_rdidx    ),   // write back
+    .i_wrbk_data        (rf_wrbk_data     )
     );
 
 assign rf_wrbk_wen = wrbk_rdwen_wbu;
@@ -109,12 +116,15 @@ assign rf_wrbk_data = wrbk_data_wbu;
 ifu u_ifu(
     .clk        (clk    ),
     .rst_n      (rst_n  ),
+    .i_stall    (stall[`STALL_PC]),
     .o_pc_if    (pc_if  )
     );
 
 idu u_idu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    .i_stall            (stall[`STALL_IF_ID]),
+    .i_flush            (flush[`FLUSH_IF_ID]),
     .i_instr            (i_instr_if_data),
     .i_pc_if            (pc_if          ),
     .o_dec_rs1idx       (rf_read_rs1_idx),
@@ -133,6 +143,9 @@ idu u_idu(
 exu u_exu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    .i_stall            (stall[`STALL_ID_EX]),
+    .i_flush            (flush[`FLUSH_ID_EX]),
+    // dpath
     .i_rf_rs1_data      (rf_read_rs1_data   ),
     .i_rf_rs2_data      (rf_read_rs2_data   ),
     .i_dec_imm          (dec_imm            ),
@@ -144,8 +157,6 @@ exu u_exu(
     .i_need_rs2_idu     (need_rs2_idu       ),
     .o_need_rs1_exu     (need_rs1_exu       ),
     .o_need_rs2_exu     (need_rs2_exu       ),
-    .i_rs1idx_idu       (rf_read_rs1_idx    ),
-    .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .o_rs1idx_exu       (rs1idx_exu         ),
     .o_rs2idx_exu       (rs2idx_exu         ),
     .i_fwd_wrbk_data_mau(wrbk_data_mau      ),
@@ -167,11 +178,17 @@ exu u_exu(
     .o_wrbk_rdwen_ex    (wrbk_rdwen_exu     )
     );
 
-wire [1:0] fwding_rs1_sel;
-wire [1:0] fwding_rs2_sel;
+
 ctrl_hazard u_ctrl_hazard(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    // for load-use hazard
+    .i_need_rs1_idu     (need_rs1_idu       ),
+    .i_need_rs2_idu     (need_rs2_idu       ),
+    .i_rs1idx_idu       (rf_read_rs1_idx    ),
+    .i_rs2idx_idu       (rf_read_rs2_idx    ),
+    .i_is_load_req_exu  (is_load_req_exu    ),
+    .i_wrbk_rdidx_exu   (wrbk_rdidx_exu     ),
     // for forwarding
     .i_need_rs1_exu     (need_rs1_exu       ),
     .i_need_rs2_exu     (need_rs2_exu       ),
@@ -182,7 +199,10 @@ ctrl_hazard u_ctrl_hazard(
     .i_wrbk_rdwen_wbu   (wrbk_rdwen_wbu     ),
     .i_wrbk_rdidx_wbu   (wrbk_rdidx_wbu     ),
     .o_fwding_rs1_sel   (fwding_rs1_sel     ),
-    .o_fwding_rs2_sel   (fwding_rs2_sel     )
+    .o_fwding_rs2_sel   (fwding_rs2_sel     ),
+    // flush & stall
+    .o_stall            (stall              ),
+    .o_flush            (flush              )
     );
 
 

@@ -23,6 +23,8 @@
 module idu(
     input wire clk,
     input wire rst_n,
+    input wire i_stall,
+    input wire i_flush,
     input wire [31:0] i_instr,
     input wire [31:0] i_pc_if,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs1idx,
@@ -50,7 +52,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_instr_id <= 32'b0;
     end
-    else begin
+    else if(!i_stall) begin
         r_instr_id <= i_instr;
     end
 end
@@ -59,7 +61,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_pc_id <= 32'b0;
     end
-    else begin
+    else if(!i_stall) begin
         r_pc_id <= i_pc_if;
     end
 end

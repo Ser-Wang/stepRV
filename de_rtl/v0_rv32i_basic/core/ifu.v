@@ -23,6 +23,7 @@
 module ifu(
     input wire clk,
     input wire rst_n,
+    input wire i_stall,
     output wire [31:0] o_pc_if
     );
 
@@ -32,15 +33,13 @@ wire [31:0] pc_next;
 
 assign o_pc_if = pc_r;
 
-
-
 assign pc_next = pc_r + 3'd4;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         pc_r <= 32'd0;
     end
-    else begin
+    else if(!i_stall) begin
         pc_r <= pc_next;
     end
 end
