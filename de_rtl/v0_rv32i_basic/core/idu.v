@@ -286,8 +286,8 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
 
 wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
-wire dec_oper_dispatch_bru;
-wire dec_oper_dispatch_csr;
+wire dec_oper_dispatch_bru = dec_rv32i_branch_type; // TODO
+wire dec_oper_dispatch_csr; // TODO
 
 
 // ALU group

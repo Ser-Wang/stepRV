@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_soc_top_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_soc_top" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="463.001 ns"></ZoomEndTime>
+      <Cursor1Time time="170.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="195"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="9" />
+   <wvobject fp_name="/tb_soc_top/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/rst_n" type="logic">
+      <obj_property name="ElementShortName">rst_n</obj_property>
+      <obj_property name="ObjectShortName">rst_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/x3" type="array">
+      <obj_property name="ElementShortName">x3[31:0]</obj_property>
+      <obj_property name="ObjectShortName">x3[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/x26" type="array">
+      <obj_property name="ElementShortName">x26[31:0]</obj_property>
+      <obj_property name="ObjectShortName">x26[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/x27" type="array">
+      <obj_property name="ElementShortName">x27[31:0]</obj_property>
+      <obj_property name="ObjectShortName">x27[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/r" type="array">
+      <obj_property name="ElementShortName">r[31:0]</obj_property>
+      <obj_property name="ObjectShortName">r[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/r_regfile" type="array">
+      <obj_property name="ElementShortName">r_regfile[1:31][31:0]</obj_property>
+      <obj_property name="ObjectShortName">r_regfile[1:31][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="group74" type="group">
+      <obj_property name="label">ifu</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/i_stall" type="logic">
+         <obj_property name="ElementShortName">i_stall</obj_property>
+         <obj_property name="ObjectShortName">i_stall</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/pc_r" type="array">
+         <obj_property name="ElementShortName">pc_r[31:0]</obj_property>
+         <obj_property name="ObjectShortName">pc_r[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/pc_next" type="array">
+         <obj_property name="ElementShortName">pc_next[31:0]</obj_property>
+         <obj_property name="ObjectShortName">pc_next[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group17" type="group">
+      <obj_property name="label">idu</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/i_stall" type="logic">
+         <obj_property name="ElementShortName">i_stall</obj_property>
+         <obj_property name="ObjectShortName">i_stall</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/i_flush" type="logic">
+         <obj_property name="ElementShortName">i_flush</obj_property>
+         <obj_property name="ObjectShortName">i_flush</obj_property>
+         <obj_property name="CustomSignalColor">#FFFF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/r_pc_id" type="array">
+         <obj_property name="ElementShortName">r_pc_id[31:0]</obj_property>
+         <obj_property name="ObjectShortName">r_pc_id[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rs1idx" type="array">
+         <obj_property name="ElementShortName">o_dec_rs1idx[4:0]</obj_property>
+         <obj_property name="ObjectShortName">o_dec_rs1idx[4:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#00FF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rs2idx" type="array">
+         <obj_property name="ElementShortName">o_dec_rs2idx[4:0]</obj_property>
+         <obj_property name="ObjectShortName">o_dec_rs2idx[4:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#00FF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rdidx" type="array">
+         <obj_property name="ElementShortName">o_dec_rdidx[4:0]</obj_property>
+         <obj_property name="ObjectShortName">o_dec_rdidx[4:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#00FF00</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_need_rd" type="logic">
+         <obj_property name="ElementShortName">dec_info_need_rd</obj_property>
+         <obj_property name="ObjectShortName">dec_info_need_rd</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_need_rs1" type="logic">
+         <obj_property name="ElementShortName">dec_info_need_rs1</obj_property>
+         <obj_property name="ObjectShortName">dec_info_need_rs1</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_need_rs2" type="logic">
+         <obj_property name="ElementShortName">dec_info_need_rs2</obj_property>
+         <obj_property name="ObjectShortName">dec_info_need_rs2</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_op1pc" type="logic">
+         <obj_property name="ElementShortName">dec_info_op1pc</obj_property>
+         <obj_property name="ObjectShortName">dec_info_op1pc</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_op2imm" type="logic">
+         <obj_property name="ElementShortName">dec_info_op2imm</obj_property>
+         <obj_property name="ObjectShortName">dec_info_op2imm</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="group60" type="group">
+         <obj_property name="label">dec_info_bus</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_alu" type="logic">
+            <obj_property name="ElementShortName">dec_oper_dispatch_alu</obj_property>
+            <obj_property name="ObjectShortName">dec_oper_dispatch_alu</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_lsu" type="logic">
+            <obj_property name="ElementShortName">dec_oper_dispatch_lsu</obj_property>
+            <obj_property name="ObjectShortName">dec_oper_dispatch_lsu</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_bru" type="logic">
+            <obj_property name="ElementShortName">dec_oper_dispatch_bru</obj_property>
+            <obj_property name="ObjectShortName">dec_oper_dispatch_bru</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_csr" type="logic">
+            <obj_property name="ElementShortName">dec_oper_dispatch_csr</obj_property>
+            <obj_property name="ObjectShortName">dec_oper_dispatch_csr</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_alu" type="array">
+            <obj_property name="ElementShortName">dec_info_bus_alu[15:0]</obj_property>
+            <obj_property name="ObjectShortName">dec_info_bus_alu[15:0]</obj_property>
+            <obj_property name="Radix">BINARYRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_lsu" type="array">
+            <obj_property name="ElementShortName">dec_info_bus_lsu[8:0]</obj_property>
+            <obj_property name="ObjectShortName">dec_info_bus_lsu[8:0]</obj_property>
+            <obj_property name="Radix">BINARYRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru" type="array">
+            <obj_property name="ElementShortName">dec_info_bus_bru[13:0]</obj_property>
+            <obj_property name="ObjectShortName">dec_info_bus_bru[13:0]</obj_property>
+            <obj_property name="Radix">BINARYRADIX</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+</wave_config>

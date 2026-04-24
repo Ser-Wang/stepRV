@@ -94,8 +94,8 @@ initial begin
         $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("fail testnum = %2d", x3);
-        // for (r = 0; r < 32; r = r + 1)
-            // $display("x%2d = 0x%x", r, tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[r]);
+        for (r = 0; r < 32; r = r + 1)
+            $display("x%2d = 0x%x", r, u_soc_top_v0.u_core.u_regfile.r_regfile[r]);
     end
 `endif
 

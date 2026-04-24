@@ -172,10 +172,10 @@ exu u_exu(
     .o_mema_wr_data_exu (mema_wr_data_exu   ),
     .o_mema_ld_info     (mema_ld_info       ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     // pass by
-    .i_wrbk_rdidx_id    (wrbk_rdidx_idu     ),
-    .i_wrbk_rdwen_id    (wrbk_rdwen_idu     ),
-    .o_wrbk_rdidx_ex    (wrbk_rdidx_exu     ),
-    .o_wrbk_rdwen_ex    (wrbk_rdwen_exu     )
+    .i_wrbk_rdidx_idu   (wrbk_rdidx_idu     ),
+    .i_wrbk_rdwen_idu   (wrbk_rdwen_idu     ),
+    .o_wrbk_rdidx_exu   (wrbk_rdidx_exu     ),
+    .o_wrbk_rdwen_exu   (wrbk_rdwen_exu     )
     );
 
 
