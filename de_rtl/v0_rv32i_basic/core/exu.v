@@ -45,7 +45,7 @@ module exu(
     input wire [1:0] i_fwding_rs1_sel,
     input wire [1:0] i_fwding_rs2_sel,
     // branch
-    output wire [31:0] o_pc_bru_next,
+    output wire [31:0] o_pc_next_bru,
     output wire o_jump_flag,
     // to mem access unit
     output wire [31:0] o_mema_addr_exu,
@@ -198,7 +198,10 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req
 // ---- rs1, rs2, imm logic-gating
 wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rs1_fwded;
 wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rs2_fwded;
-wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
+wire [`XWIDTH-1:0] alu_imm = dec_imm_r_ex;
+// wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
+// alu的imm不需要立即数隔离，因为它只是adder的输入，在非alu req时mux会选rs2，而rs2已经过立即数隔离。因此可以省下立即数隔离所需的门。
+// alu的pc也不需要立即数隔离，因为它只是adder的输入，在非alu req时mux会选rs1，而rs1已经过立即数隔离。
 
 wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & rs1_fwded;
 wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & rs2_fwded;
@@ -207,6 +210,8 @@ wire [`XWIDTH-1:0] lsu_imm = {`XWIDTH{req_disp_lsu}} & dec_imm_r_ex;
 wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & rs1_fwded;
 wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rs2_fwded;
 wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
+wire [`XWIDTH-1:0] bru_pc = {`XWIDTH{req_disp_bru}} & r_pc_exu;
+
 
 // ---- results wrbk
 wire [31:0] alu_wrbk_data;
@@ -256,10 +261,10 @@ exu_bru u_exu_bru(
     .i_bru_rs1          (bru_rs1            ),
     .i_bru_rs2          (bru_rs2            ),
     .i_bru_imm          (bru_imm            ),
-    .i_bru_pc           (r_pc_exu           ),
+    .i_bru_pc           (bru_pc             ),
     .i_dec_info_bus_bru (dec_info_bus_bru   ),
     .o_bru_wrbk_data    (bru_wrbk_data      ),
-    .o_pc_bru_next      (o_pc_bru_next      ),
+    .o_pc_next_bru      (o_pc_next_bru      ),
     .o_jump_flag        (o_jump_flag        )
     );
 

@@ -24,16 +24,19 @@ module ifu(
     input wire clk,
     input wire rst_n,
     input wire i_stall,
+    input wire i_jump_flag,
+    input wire [31:0] i_pc_next_bru,
     output wire [31:0] o_pc_if
     );
 
 
 reg [31:0] pc_r;
+wire [31:0] pc_add4;
 wire [31:0] pc_next;
 
-assign o_pc_if = pc_r;
+assign pc_add4 = pc_r + 3'd4;
+assign pc_next = i_jump_flag ? i_pc_next_bru : pc_add4;
 
-assign pc_next = pc_r + 3'd4;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -44,6 +47,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+assign o_pc_if = pc_r;
 
 
 endmodule

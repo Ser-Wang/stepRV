@@ -4,6 +4,11 @@
 `define RFIDX_WIDTH 5
 
 `define XWIDTH 32   // RV32, regfile width is 32
+
+
+`define INSTR_NOP 32'h00000013
+
+
 // ===========================================================================
 // Stall & Flush
 `define STALL_PC        0
@@ -117,7 +122,7 @@
     `define DECINFO_BRU_JAL_LSB     `DECINFO_SUBDECINFO_LSB
     `define DECINFO_BRU_JAL_MSB     (`DECINFO_BRU_JAL_LSB+1-1)
 `define DECINFO_BRU_JAL     `DECINFO_BRU_JAL_MSB :`DECINFO_BRU_JAL_LSB 
-    `define DECINFO_BRU_JALR_LSB    (`DECINFO_BRU_JAL_MSB+1-1)
+    `define DECINFO_BRU_JALR_LSB    (`DECINFO_BRU_JAL_MSB+1)
     `define DECINFO_BRU_JALR_MSB    (`DECINFO_BRU_JALR_LSB+1-1)
 `define DECINFO_BRU_JALR    `DECINFO_BRU_JALR_MSB :`DECINFO_BRU_JALR_LSB 
     `define DECINFO_BRU_JUMP_LSB    (`DECINFO_BRU_JALR_MSB+1)

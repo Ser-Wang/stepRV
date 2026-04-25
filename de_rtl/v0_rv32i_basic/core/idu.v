@@ -52,6 +52,9 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_instr_id <= 32'b0;
     end
+    else if (i_flush) begin
+        r_instr_id <= `INSTR_NOP;
+    end
     else if(!i_stall) begin
         r_instr_id <= i_instr;
     end
@@ -286,7 +289,7 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
 
 wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
-wire dec_oper_dispatch_bru = dec_rv32i_branch_type; // TODO
+wire dec_oper_dispatch_bru = dec_rv32i_branch_type | dec_rv32i_jal | dec_rv32i_jalr; // TODO
 wire dec_oper_dispatch_csr; // TODO
 
 
@@ -317,19 +320,19 @@ assign dec_info_bus_lsu[`DECINFO_LSU_OP2IMM ] = dec_info_op2imm;
 
 
 // BRU, Branch Unit, handle Branch and System Instrs
-  assign dec_info_bus_bru[`DECINFO_GRP       ] = `DECINFO_GRP_BRU;
-  assign dec_info_bus_bru[`DECINFO_BRU_JAL   ] = dec_rv32i_jal;
-  assign dec_info_bus_bru[`DECINFO_BRU_JALR  ] = dec_rv32i_jalr;
-  assign dec_info_bus_bru[`DECINFO_BRU_JUMP  ] = dec_rv32i_jal | dec_rv32i_jalr;
-  assign dec_info_bus_bru[`DECINFO_BRU_BEQ   ] = dec_rv32i_beq;
-  assign dec_info_bus_bru[`DECINFO_BRU_BNE   ] = dec_rv32i_bne;
-  assign dec_info_bus_bru[`DECINFO_BRU_BLT   ] = dec_rv32i_blt; 
-  assign dec_info_bus_bru[`DECINFO_BRU_BGE   ] = dec_rv32i_bge;
-  assign dec_info_bus_bru[`DECINFO_BRU_BLTU  ] = dec_rv32i_bltu;
-  assign dec_info_bus_bru[`DECINFO_BRU_BGEU  ] = dec_rv32i_bgeu;
-  assign dec_info_bus_bru[`DECINFO_BRU_BXX   ] = dec_rv32i_branch_type;
-  assign dec_info_bus_bru[`DECINFO_BRU_FENCE ] = dec_rv32i_fence;
-  assign dec_info_bus_bru[`DECINFO_BRU_FENCEI] = dec_rv32i_fence_i;
+assign dec_info_bus_bru[`DECINFO_GRP       ] = `DECINFO_GRP_BRU;
+assign dec_info_bus_bru[`DECINFO_BRU_JAL   ] = dec_rv32i_jal;
+assign dec_info_bus_bru[`DECINFO_BRU_JALR  ] = dec_rv32i_jalr;
+assign dec_info_bus_bru[`DECINFO_BRU_JUMP  ] = dec_rv32i_jal | dec_rv32i_jalr;
+assign dec_info_bus_bru[`DECINFO_BRU_BEQ   ] = dec_rv32i_beq;
+assign dec_info_bus_bru[`DECINFO_BRU_BNE   ] = dec_rv32i_bne;
+assign dec_info_bus_bru[`DECINFO_BRU_BLT   ] = dec_rv32i_blt; 
+assign dec_info_bus_bru[`DECINFO_BRU_BGE   ] = dec_rv32i_bge;
+assign dec_info_bus_bru[`DECINFO_BRU_BLTU  ] = dec_rv32i_bltu;
+assign dec_info_bus_bru[`DECINFO_BRU_BGEU  ] = dec_rv32i_bgeu;
+assign dec_info_bus_bru[`DECINFO_BRU_BXX   ] = dec_rv32i_branch_type;
+assign dec_info_bus_bru[`DECINFO_BRU_FENCE ] = dec_rv32i_fence;
+assign dec_info_bus_bru[`DECINFO_BRU_FENCEI] = dec_rv32i_fence_i;
 //   assign dec_info_bus_bru[`DECINFO_BRU_BPRDT]  = i_prdt_taken;
 
 

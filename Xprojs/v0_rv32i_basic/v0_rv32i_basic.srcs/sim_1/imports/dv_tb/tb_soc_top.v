@@ -27,12 +27,14 @@ module tb_soc_top(
 
     );
 
+// Change this path to run different tests
+// parameter INST_DATA_PATH = "inst.data"; // when using VIVADO, copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
+parameter INST_DATA_PATH = "../../../../inst_sra.data";   // when using VIVADO, copy inst.data into {proj_name} dir.
+
 
 // select one option only
 `define TEST_PROG  1
 //`define TEST_JTAG  1
-
-
 
 reg clk;
 reg rst_n;
@@ -72,7 +74,7 @@ initial begin
     $display("test running...");
 `ifdef TEST_PROG
     wait(x26 == 32'b1)   // wait sim end, when x26 == 1
-    #100
+    #25    // wait for a period, so that x27 is written, otherwise x27 hasn't been written yet.
     if (x27 == 32'b1) begin
         $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -108,8 +110,8 @@ end
 // read mem data
 initial begin
     // $readmemh ("../sim/inst.data", u_soc_top_v0.u_p_imem.r_imem);
-    $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);  // when using VIVADO, need to copy inst.data into {proj_name} dir.
-    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // when using VIVADO, need to copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
+    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_p_imem.r_imem);   
+    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     
 end
 
 // sim timeout

@@ -72,7 +72,7 @@ initial begin
     $display("test running...");
 `ifdef TEST_PROG
     wait(x26 == 32'b1)   // wait sim end, when x26 == 1
-    #100
+    #25    // wait for a period, so that x27 is written, otherwise x27 hasn't been written yet.
     if (x27 == 32'b1) begin
         $display("~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -108,8 +108,8 @@ end
 // read mem data
 initial begin
     $readmemh ("../sim/inst.data", u_soc_top_v0.u_p_imem.r_imem);
-    // $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);  // when using VIVADO, need to copy inst.data into {proj_name} dir.
-    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // when using VIVADO, need to copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
+    // $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);  // when using VIVADO, copy inst.data into {proj_name} dir.
+    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // when using VIVADO, copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
 end
 
 // sim timeout

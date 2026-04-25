@@ -23,6 +23,8 @@
 module ctrl_hazard(
     input  wire clk,
     input  wire rst_n,
+    // branch
+    input  wire i_jump_flag,
     // for load-use hazard
     input  wire i_need_rs1_idu,
     input  wire i_need_rs2_idu,
@@ -64,28 +66,31 @@ assign o_fwding_rs2_sel = hzd_rs2_raw_mem ? 2'b10 :
 // ----------------        Load-Use Hazard        ---------------- //
 wire hzd_rs1_lduse = i_is_load_req_exu & i_need_rs1_idu & (i_wrbk_rdidx_exu == i_rs1idx_idu);
 wire hzd_rs2_lduse = i_is_load_req_exu & i_need_rs2_idu & (i_wrbk_rdidx_exu == i_rs2idx_idu);
-wire hzd_lduse = hzd_rs1_lduse | hzd_rs2_lduse;
+wire hzd_lduse_id = hzd_rs1_lduse | hzd_rs2_lduse;
 
-wire stall_req_lduse = hzd_lduse;
+wire stall_req_lduse_id = hzd_lduse_id;
 
 // ================================================================
 // ----------------        Stall & Flush        ---------------- //
 
-// assign o_stall[`STALL_PC]     = stall_req_lduse;
-// assign o_stall[`STALL_IF_ID]  = stall_req_lduse;
+// assign o_stall[`STALL_PC]     = stall_req_lduse_id;
+// assign o_stall[`STALL_IF_ID]  = stall_req_lduse_id;
 // assign o_stall[`STALL_ID_EX]  = 1'b0; // no stalling between id and ex.
 // assign o_stall[`STALL_EX_MEM] = 1'b0;
 // assign o_stall[`STALL_MEM_WB] = 1'b0;
 
 // assign o_flush[`FLUSH_IF_ID]  = 1'b0;
-// assign o_flush[`FLUSH_ID_EX]  = stall_req_lduse;
+// assign o_flush[`FLUSH_ID_EX]  = stall_req_lduse_id;
 // assign o_flush[`FLUSH_EX_MEM] = 1'b0;
 // assign o_flush[`FLUSH_MEM_WB] = 1'b0;
 
 reg [4:0] stall;
 reg [3:0] flush;
 always @(*) begin
-    if (stall_req_lduse) begin
+    if (i_jump_flag) begin
+        stall = 5'b00000;
+    end
+    else if (stall_req_lduse_id) begin
         stall = 5'b00011;   // MEM_WB | EX_MEM | ID_EX | IF_ID | PC
     end
     else begin
@@ -94,8 +99,11 @@ always @(*) begin
 end
 
 always @(*) begin
-    if (stall_req_lduse) begin
-        flush = 4'b0010;    // MEM_WB | EX_MEM | ID_EX | IF_ID
+    if (i_jump_flag) begin
+        flush = 4'b0011;    // MEM_WB | EX_MEM | ID_EX | IF_ID
+    end
+    else if (stall_req_lduse_id) begin
+        flush = 4'b0010;
     end
     else begin
         flush = 4'b0000;

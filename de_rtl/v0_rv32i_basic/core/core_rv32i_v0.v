@@ -40,7 +40,7 @@ assign o_pc_if_addr = pc_if;
 
 
 ////********    Wires    ********////
-// regfile
+//---- regfile
 wire [`RFIDX_WIDTH-1:0] rf_read_rs1_idx;
 wire [`RFIDX_WIDTH-1:0] rf_read_rs2_idx;
 wire [31:0] rf_read_rs1_data;
@@ -49,6 +49,7 @@ wire rf_wrbk_wen;
 wire [`RFIDX_WIDTH-1:0] rf_wrbk_rdidx;
 wire [31:0] rf_wrbk_data;
 
+//-------- pipe data flow
 // if_2_id
 wire [31:0] pc_if;  // this and above: reg_out
 
@@ -61,19 +62,6 @@ wire [`DECINFO_BUS_WIDTH-1:0] dec_info_bus_id;
 wire wrbk_rdwen_idu;
 wire need_rs1_idu;
 wire need_rs2_idu;
-
-// ex_hazard_ctrl
-wire need_rs1_exu;
-wire need_rs2_exu;
-wire [`RFIDX_WIDTH-1:0] rs1idx_exu;
-wire [`RFIDX_WIDTH-1:0] rs2idx_exu;
-wire [1:0] fwding_rs1_sel;
-wire [1:0] fwding_rs2_sel;
-wire is_load_req_exu;
-
-// flush & stall
-wire [4:0] stall;
-wire [3:0] flush;
 
 // ex_2_mema
 wire [31:0] mema_addr_exu;
@@ -95,6 +83,24 @@ wire [31:0] wrbk_data_wbu;
 wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_wbu;
 wire wrbk_rdwen_wbu;
 
+//-------- ctrl
+// ex_hazard_ctrl
+wire need_rs1_exu;
+wire need_rs2_exu;
+wire [`RFIDX_WIDTH-1:0] rs1idx_exu;
+wire [`RFIDX_WIDTH-1:0] rs2idx_exu;
+wire [1:0] fwding_rs1_sel;
+wire [1:0] fwding_rs2_sel;
+wire is_load_req_exu;
+
+// branch
+wire [31:0] pc_next_bru;
+wire jump_flag_bru;
+
+// flush & stall
+wire [4:0] stall;
+wire [3:0] flush;
+
 
 regfile u_regfile(
     .clk                (clk    ),
@@ -114,10 +120,12 @@ assign rf_wrbk_data = wrbk_data_wbu;
 
 
 ifu u_ifu(
-    .clk        (clk    ),
-    .rst_n      (rst_n  ),
-    .i_stall    (stall[`STALL_PC]),
-    .o_pc_if    (pc_if  )
+    .clk            (clk    ),
+    .rst_n          (rst_n  ),
+    .i_stall        (stall[`STALL_PC]),
+    .i_jump_flag    (jump_flag_bru  ),
+    .i_pc_next_bru  (pc_next_bru    ),
+    .o_pc_if        (pc_if          )
     );
 
 idu u_idu(
@@ -157,6 +165,8 @@ exu u_exu(
     .i_need_rs2_idu     (need_rs2_idu       ),
     .o_need_rs1_exu     (need_rs1_exu       ),
     .o_need_rs2_exu     (need_rs2_exu       ),
+    .i_rs1idx_idu       (rf_read_rs1_idx    ),
+    .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .o_rs1idx_exu       (rs1idx_exu         ),
     .o_rs2idx_exu       (rs2idx_exu         ),
     .i_fwd_wrbk_data_mau(wrbk_data_mau      ),
@@ -164,8 +174,8 @@ exu u_exu(
     .i_fwding_rs1_sel   (fwding_rs1_sel     ),
     .i_fwding_rs2_sel   (fwding_rs2_sel     ),
     // branch
-    .o_pc_bru_next      (o_pc_bru_next      ),
-    .o_jump_flag        (o_jump_flag        ),
+    .o_pc_next_bru      (pc_next_bru        ),
+    .o_jump_flag        (jump_flag_bru      ),
     // mem access
     .o_mema_addr_exu    (mema_addr_exu      ),
     .o_mema_wren_exu    (mema_wren_exu      ),
@@ -182,6 +192,8 @@ exu u_exu(
 ctrl_hazard u_ctrl_hazard(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    // branch
+    .i_jump_flag        (jump_flag_bru      ),
     // for load-use hazard
     .i_need_rs1_idu     (need_rs1_idu       ),
     .i_need_rs2_idu     (need_rs2_idu       ),
@@ -201,14 +213,14 @@ ctrl_hazard u_ctrl_hazard(
     .o_fwding_rs1_sel   (fwding_rs1_sel     ),
     .o_fwding_rs2_sel   (fwding_rs2_sel     ),
     // flush & stall
-    .o_stall            (stall              ),
-    .o_flush            (flush              )
+    .o_stall            (stall  ),
+    .o_flush            (flush  )
     );
 
 
 mau u_mau(
-    .clk                (clk),
-    .rst_n              (rst_n),
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
     .i_mema_addr_exu    (mema_addr_exu      ),
     .i_mema_wren_exu    (mema_wren_exu      ),
     .i_mema_wr_data_exu (mema_wr_data_exu   ),
