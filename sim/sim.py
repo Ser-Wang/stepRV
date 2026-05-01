@@ -12,23 +12,14 @@ def main():
     print(f"--- Running Test on RTL: {rtl_version} ---")
     print(f"===========================================")
     # 配置 GTKWave 是否打开
-    OPEN_GTKWAVE = False # or True
+    OPEN_GTKWAVE = True # False or True
 
     rtl_dir = f'../de_rtl/{rtl_version}'
     tb_file = r'../dv_tb/tb_soc_top.v'
     filelist_f = r'filelist.f'
 
     # 1.将bin文件转成mem文件 (输出在当前运行目录)
-    # 支持传入完整路径或仅指令名
-    if len(sys.argv) < 2:
-        print("Usage: python test_single.py <inst_name_or_bin_path>")
-        return
-        
-    bin_file = sys.argv[1]
-    if not bin_file.endswith('.bin'):
-        bin_file = r'../tests/isa/generated/rv32ui-p-' + bin_file + '.bin'
-        
-    cmd1 = r'python scripts/BinToMem_CLI.py' + ' ' + bin_file + ' ' + './inst.data'
+    cmd1 = r'python scripts/BinToMem_CLI.py' + ' ' + r'../tests/isa/generated/rv32ui-p-' + sys.argv[1] + '.bin' + ' ' + './inst.data'
     os.system(cmd1)
     # f = os.popen(cmd1)
     # f.close()
