@@ -96,8 +96,8 @@ initial begin
         $display("~~~~~~~~~~#       #    #     #    ######~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("fail testnum = %2d", x3);
-        for (r = 0; r < 32; r = r + 1)
-            $display("x%2d = 0x%x", r, u_soc_top_v0.u_core.u_regfile.r_regfile[r]);
+        // for (r = 0; r < 32; r = r + 1)
+        //     $display("x%2d = 0x%x", r, u_soc_top_v0.u_core.u_regfile.r_regfile[r]);
     end
 `endif
 
@@ -110,7 +110,8 @@ end
 // read mem data
 initial begin
     // $readmemh ("../sim/inst.data", u_soc_top_v0.u_p_imem.r_imem);
-    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_p_imem.r_imem);   
+    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);   
+    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);   
     // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     
 end
 

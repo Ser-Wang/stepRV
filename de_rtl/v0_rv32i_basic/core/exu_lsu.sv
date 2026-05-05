@@ -78,11 +78,27 @@ assign o_lsu_misaligned_exc = addr_misaligned;
 // Simulation-only error reporting
 `ifdef SIMULATION
 always @(posedge clk) begin
-    if (rst_n && o_lsu_misaligned_exc) begin
-        $display("ERROR: LSU Address Misaligned! Addr: 0x%h, Size: %b", mema_addr, lsu_req_info_size);
+    if (rst_n) begin
+        // Existing misaligned reporting
+        if (o_lsu_misaligned_exc) begin
+            $display("ERROR: LSU Address Misaligned! Addr: 0x%h, Size: %b", mema_addr, lsu_req_info_size);
+        end
     end
 end
-`endif
 
+// SystemVerilog Assertion: for any load/store request, low two bits must not be 01 or 11
+property p_mema_addr_align;
+    @(posedge clk) disable iff (!rst_n)
+        ( (lsu_req_load || lsu_req_store) |-> (mema_addr[1:0] != 2'b01 && mema_addr[1:0] != 2'b11) );
+endproperty
+
+// Assert the property and stop simulation on failure
+// Keep this assertion separate from the existing misaligned check
+assert property (p_mema_addr_align) else begin
+    $display("SVA ASSERTION FAILED: mema_addr[1:0] must not be 2'b01 or 2'b11. Addr: 0x%h, Size: %b", mema_addr, lsu_req_info_size);
+    $fatal(1);
+end
+
+`endif
 
 endmodule
