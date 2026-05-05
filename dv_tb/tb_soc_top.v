@@ -107,7 +107,8 @@ end
 
 // read mem data
 initial begin
-    $readmemh ("../sim/inst.data", u_soc_top_v0.u_p_imem.r_imem);
+    $readmemh ("../sim/inst.data", u_soc_top_v0.u_imem.r_itcm);
+    $readmemh ("../sim/inst.data", u_soc_top_v0.u_dmem.r_dtcm);
     // $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);  // when using VIVADO, copy inst.data into {proj_name} dir.
     // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // when using VIVADO, copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
 end

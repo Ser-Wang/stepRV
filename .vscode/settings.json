@@ -1,3 +1,11 @@
 {
-    "verilog.linting.iverilog.arguments": "-c ${workspaceFolder}/sim/filelist.f"
+    // [Active] Library search mode (-y): iverilog loads dependency modules on demand,
+    // avoiding duplicate compilation that would break linting.
+    // ${workspaceFolder} is expanded by the VS Code extension -> absolute path,
+    // works correctly regardless of which subdirectory the linted file is in.
+    // Regenerate lint_filelist.f (for manual sim runs) by: python .vscode/gen_lint_filelist.py
+    // "verilog.linting.iverilog.arguments": "-f ${workspaceFolder}/.vscode/lint_libs.f",
+
+    "verilog.linting.iverilog.runAtFileLocation": false
+    // "verilog.linting.iverilog.runAtFileLocation": true
 }

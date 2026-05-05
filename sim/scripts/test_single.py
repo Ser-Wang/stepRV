@@ -12,7 +12,7 @@ def main():
     print(f"--- Running Test on RTL: {rtl_version} ---")
     print(f"===========================================")
     # 配置 GTKWave 是否打开
-    OPEN_GTKWAVE = False # or True
+    OPEN_GTKWAVE = True # False or True
 
     rtl_dir = f'../de_rtl/{rtl_version}'
     tb_file = r'../dv_tb/tb_soc_top.v'
@@ -56,7 +56,8 @@ def main():
 
     # 4.查看波形
     if OPEN_GTKWAVE:
-        gtkw_cmd = r'gtkwave' + ' ' + r'tb_soc_top.vcd'
+        # gtkw_cmd = r'gtkwave' + ' ' + r'tb_soc_top.vcd'
+        gtkw_cmd = r'gtkwave' + ' ' + r'tb_soc_top.vcd' + ' ' + r'top_core_behav.gtkw'
         os.system(gtkw_cmd)
         # f = os.popen(gtkw_cmd)
         # f.close()

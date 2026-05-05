@@ -181,7 +181,7 @@ wire dec_rv32i_sb   = dec_rv32i_store_type  & dec_rv32_func3_000;
 wire dec_rv32i_sh   = dec_rv32i_store_type  & dec_rv32_func3_001;
 wire dec_rv32i_sw   = dec_rv32i_store_type  & dec_rv32_func3_010;
 
-wire dec_info_lsu_size = instr32_func3[1:0];
+wire [1:0] dec_info_lsu_size = instr32_func3[1:0];
 wire dec_info_lsu_unsigned = instr32_func3[2];
 
 

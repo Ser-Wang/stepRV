@@ -1,11 +1,14 @@
-`define IMEM_DEPTH 4096
-`define ZERO_WORD 32'b0
+`define ITCM_DEPTH 8192  // 32KB
+`define DTCM_DEPTH 4096  // 16KB
+
+
 
 `define RFIDX_WIDTH 5
 
 `define XWIDTH 32   // RV32, regfile width is 32
 
 
+`define ZERO_WORD 32'b0
 `define INSTR_NOP 32'h00000013
 
 

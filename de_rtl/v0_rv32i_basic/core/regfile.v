@@ -47,7 +47,7 @@ assign o_read_rs2_data = write_through_flag_rs2 ? i_wrbk_data : w_regfile[i_read
 // write
 genvar i;
 generate
-    for (i=0; i<32; i=i+1) begin: regfile
+    for (i=0; i<32; i=i+1) begin: gen_regfile
         if (i == 0) begin: x0
             assign wen[i] = 1'b0;
             assign w_regfile[i] = 32'b0;

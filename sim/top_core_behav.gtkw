@@ -1,0 +1,342 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Mon May 04 17:30:02 2026
+[*]
+[dumpfile] "D:\Academic\myProjects\my-RISCV-Projs\sim\tb_soc_top.vcd"
+[dumpfile_mtime] "Mon May 04 13:46:46 2026"
+[dumpfile_size] 55850
+[savefile] "D:\Academic\myProjects\my-RISCV-Projs\sim\top_core_behav.gtkw"
+[timestart] 143600
+[size] 1490 924
+[pos] -1 -1
+*-15.592882 188000 366200 450000 390400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_soc_top.
+[treeopen] tb_soc_top.u_soc_top_v0.
+[treeopen] tb_soc_top.u_soc_top_v0.u_core.
+[treeopen] tb_soc_top.u_soc_top_v0.u_core.u_exu.
+[sst_width] 197
+[signals_width] 279
+[sst_expanded] 1
+[sst_vpaned_height] 266
+@28
+tb_soc_top.clk
+tb_soc_top.rst_n
+@22
+tb_soc_top.x3[31:0]
+tb_soc_top.x26[31:0]
+tb_soc_top.x27[31:0]
+@c00200
+-ifu
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_ifu.i_stall
+tb_soc_top.u_soc_top_v0.u_core.u_ifu.i_jump_flag
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_ifu.pc_r[31:0]
+tb_soc_top.u_soc_top_v0.u_core.u_ifu.pc_next[31:0]
+@1401200
+-ifu
+@22
+tb_soc_top.u_soc_top_v0.u_core.o_mema_addr[31:0]
+@800200
+-idu
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_idu.i_stall
+tb_soc_top.u_soc_top_v0.u_core.u_idu.i_flush
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_idu.r_pc_id[31:0]
+tb_soc_top.u_soc_top_v0.u_core.u_idu.r_instr_id[31:0]
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_idu.o_dec_rs1idx[4:0]
+tb_soc_top.u_soc_top_v0.u_core.u_idu.o_dec_rs2idx[4:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_idu.o_dec_rdwen_id
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_idu.o_dec_rdidx[4:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_info_lsu_size
+@c00200
+-dec_info_bus
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_oper_dispatch_alu
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_oper_dispatch_lsu
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_oper_dispatch_bru
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_info_bus_alu[15:0]
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_info_bus_lsu[8:0]
+tb_soc_top.u_soc_top_v0.u_core.u_idu.dec_info_bus_bru[14:0]
+@1401200
+-dec_info_bus
+@1000200
+-idu
+@c00200
+-regFile
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.i_wrbk_rdidx[4:0]
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.i_wrbk_data[31:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.write_through_flag_rs1
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.i_read_rs1_idx[4:0]
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.o_read_rs1_data[31:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.write_through_flag_rs2
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.i_read_rs2_idx[4:0]
+tb_soc_top.u_soc_top_v0.u_core.u_regfile.o_read_rs2_data[31:0]
+@1401200
+-regFile
+@c00200
+-Ctrl_stall_flush_hzd
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_ctrl_hazard.i_jump_flag
+tb_soc_top.u_soc_top_v0.u_core.u_ctrl_hazard.stall[4:0]
+tb_soc_top.u_soc_top_v0.u_core.u_ctrl_hazard.flush[3:0]
+tb_soc_top.u_soc_top_v0.u_core.u_ctrl_hazard.o_fwding_rs1_sel[1:0]
+tb_soc_top.u_soc_top_v0.u_core.u_ctrl_hazard.o_fwding_rs2_sel[1:0]
+@1401200
+-Ctrl_stall_flush_hzd
+@22
+tb_soc_top.u_soc_top_v0.u_core.o_mema_addr[31:0]
+tb_soc_top.u_soc_top_v0.u_core.i_mema_rd_data[31:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.o_mema_wren
+@22
+tb_soc_top.u_soc_top_v0.u_core.o_mema_wr_data[31:0]
+tb_soc_top.u_soc_top_v0.u_dmem.i_addr[31:0]
+@29
+tb_soc_top.u_soc_top_v0.u_dmem.i_wr_en
+@22
+tb_soc_top.u_soc_top_v0.u_dmem.i_wr_data[31:0]
+tb_soc_top.u_soc_top_v0.u_dmem.o_rd_data[31:0]
+@c00022
+tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+@28
+(0)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(1)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(2)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(3)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(4)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(5)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(6)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(7)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(8)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(9)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(10)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(11)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(12)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(13)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(14)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(15)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(16)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(17)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(18)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(19)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(20)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(21)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(22)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(23)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(24)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(25)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(26)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(27)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(28)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(29)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(30)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+(31)tb_soc_top.u_soc_top_v0.u_dmem.r_rd_data[31:0]
+@1401200
+-group_end
+@800200
+-exu
+@28
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_flush
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_stall
+@22
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.r_pc_exu[31:0]
+@24
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.o_rs1idx_exu[4:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.o_rs2idx_exu[4:0]
+@28
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_mau.i_wrbk_rdwen_exu
+@24
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_mau.i_wrbk_rdidx_exu[4:0]
+@c00200
+-operand_gen
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_rf_rs1_data[31:0]
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_rf_rs2_data[31:0]
+tb_soc_top.u_soc_top_v0.u_core.u_exu.rs1_fwded[31:0]
+tb_soc_top.u_soc_top_v0.u_core.u_exu.rs2_fwded[31:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_fwding_rs1_sel[1:0]
+tb_soc_top.u_soc_top_v0.u_core.u_exu.i_fwding_rs2_sel[1:0]
+@1401200
+-operand_gen
+@c00200
+-exu_alu
+@22
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.i_alu_rs1[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.i_alu_rs2[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.i_alu_imm[31:0]
+@24
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.i_alu_imm[31:0]
+@22
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.alu_req_op1[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.alu_req_op2[31:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.comp_lessthan
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op1[32:0]
+@c00022
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+@28
+(0)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(1)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(2)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(3)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(4)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(5)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(6)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(7)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(8)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(9)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(10)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(11)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(12)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(13)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(14)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(15)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(16)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(17)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(18)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(19)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(20)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(21)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(22)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(23)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(24)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(25)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(26)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(27)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(28)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(29)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(30)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(31)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+(32)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_extend_op2[32:0]
+@1401200
+-group_end
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_in1[32:0]
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_in2[32:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_cin
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.dec_req_slttu
+@c00022
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+@28
+(0)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(1)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(2)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(3)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(4)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(5)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(6)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(7)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(8)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(9)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(10)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(11)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(12)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(13)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(14)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(15)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(16)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(17)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(18)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(19)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(20)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(21)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(22)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(23)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(24)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(25)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(26)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(27)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(28)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(29)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(30)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(31)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+(32)tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_alu.adder_result[32:0]
+@1401200
+-group_end
+-exu_alu
+@800200
+-exu_bru
+@22
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.i_bru_rs1[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.i_bru_rs2[31:0]
+@28
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.bru_req_jal
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.bru_req_bne
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.comp_res
+[color] 7
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.o_jump_flag
+@22
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.o_pc_next_bru[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.pc_add4[31:0]
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_bru.adder_jumpaddr[31:0]
+@1000200
+-exu_bru
+@22
+[color] 3
+tb_soc_top.u_soc_top_v0.u_core.u_exu.o_wrbk_data_exu[31:0]
+@28
+[color] 4
+tb_soc_top.u_soc_top_v0.u_core.u_mau.i_wrbk_rdwen_exu
+@1000200
+-exu
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_lsu.lsu_req_info_size[1:0]
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_exu.u_exu_lsu.lsu_data_tostore[31:0]
+@800200
+-mem
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_mau.r_wrbk_rdidx_mau[4:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_mau.r_wrbk_rdwen_mau
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_mau.o_wrbk_data_mau[31:0]
+@1000200
+-mem
+@c00200
+-wbu
+@24
+tb_soc_top.u_soc_top_v0.u_core.u_wbu.r_wrbk_rdidx_wbu[4:0]
+@28
+tb_soc_top.u_soc_top_v0.u_core.u_wbu.r_wrbk_rdwen_wbu
+@22
+tb_soc_top.u_soc_top_v0.u_core.u_wbu.o_wrbk_data_wbu[31:0]
+@1401200
+-wbu
+[pattern_trace] 1
+[pattern_trace] 0

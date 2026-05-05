@@ -30,9 +30,9 @@ module exu_lsu(
     output wire [31:0] o_mema_addr_exu,
     output wire [31:0] o_mema_wr_data_exu,
     output wire o_mema_wren_exu,
-    output wire [3:0] o_mema_ld_info  // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
-    // input wire [31:0] i_mema_rd_data,
-    // output wire [31:0] o_lsu_req_result
+    output wire [3:0] o_mema_wr_mask,
+    output wire [3:0] o_mema_ld_info, // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    output wire o_lsu_misaligned_exc  // Add exception signal for misaligned access
     );
 
 // ----------------        dec_info debus        ---------------- //
@@ -51,6 +51,11 @@ wire [31:0] lsu_req_ag_op2 = i_lsu_imm;
 wire [31:0] mema_addr = lsu_req_ag_op1 + lsu_req_ag_op2;
 assign o_mema_addr_exu = mema_addr;
 
+// ---- store data mask
+wire [3:0] mema_wr_mask;
+assign mema_wr_mask = (lsu_req_info_size == 2'b10) ? 4'b1111 : 
+                      (lsu_req_info_size == 2'b01) ? 4'b0011 : 4'b0001;
+
 // ---- store data
 wire [31:0] lsu_data_tostore;
 assign lsu_data_tostore[7:0] = i_lsu_rs2[7:0];
@@ -59,8 +64,25 @@ assign lsu_data_tostore[31:16] = (lsu_req_info_size == 2'b10) ? i_lsu_rs2[31:16]
 assign o_mema_wr_data_exu = lsu_data_tostore;
 
 // ---- ctrl logic
-assign o_mema_wren_exu = lsu_req_store;
-assign o_mema_ld_info = {lsu_req_load, lsu_req_info_size, lsu_req_info_usign};
+assign o_mema_wren_exu = lsu_req_store && !o_lsu_misaligned_exc; // Prevent writing if address is misaligned
+assign o_mema_ld_info = {lsu_req_load && !o_lsu_misaligned_exc, lsu_req_info_size, lsu_req_info_usign};
+
+
+// ---- Misalignment Check
+wire addr_misaligned = (lsu_req_load || lsu_req_store) && (
+                       (lsu_req_info_size == 2'b10 && mema_addr[1:0] != 2'b00) || // Word must be 4-byte aligned
+                       (lsu_req_info_size == 2'b01 && mema_addr[0]   != 1'b0 )    // Halfword must be 2-byte aligned
+                       );
+assign o_lsu_misaligned_exc = addr_misaligned;
+
+// Simulation-only error reporting
+`ifdef SIMULATION
+always @(posedge clk) begin
+    if (rst_n && o_lsu_misaligned_exc) begin
+        $display("ERROR: LSU Address Misaligned! Addr: 0x%h, Size: %b", mema_addr, lsu_req_info_size);
+    end
+end
+`endif
 
 
 endmodule

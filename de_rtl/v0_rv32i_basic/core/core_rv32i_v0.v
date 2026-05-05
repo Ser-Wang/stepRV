@@ -30,6 +30,7 @@ module core_rv32i_v0(
     // mem access
     output wire [31:0] o_mema_addr,
     output wire o_mema_wren,
+    output wire [3:0] o_mema_wr_mask,
     output wire [31:0] o_mema_wr_data,
     input  wire [31:0] i_mema_rd_data
     );
@@ -179,6 +180,7 @@ exu u_exu(
     // mem access
     .o_mema_addr_exu    (mema_addr_exu      ),
     .o_mema_wren_exu    (mema_wren_exu      ),
+    .o_mema_wr_mask     (o_mema_wr_mask     ),
     .o_mema_wr_data_exu (mema_wr_data_exu   ),
     .o_mema_ld_info     (mema_ld_info       ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     // pass by

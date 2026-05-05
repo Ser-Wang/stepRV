@@ -39,6 +39,7 @@ wire [31:0] alu_req_op1 = (i_dec_info_bus_alu[`DECINFO_ALU_OP1PC]) ? i_alu_pc : 
 wire [31:0] alu_req_op2 = (i_dec_info_bus_alu[`DECINFO_ALU_OP2IMM]) ? i_alu_imm : i_alu_rs2;
 
 // ---- dec_info debus, can also used for logic-gating ctrl
+wire dec_req_sub    = i_dec_info_bus_alu[`DECINFO_ALU_SUB];
 wire dec_req_addsub = i_dec_info_bus_alu[`DECINFO_ALU_ADD] | i_dec_info_bus_alu[`DECINFO_ALU_SUB];
 wire dec_req_xor    = i_dec_info_bus_alu[`DECINFO_ALU_XOR];
 wire dec_req_or     = i_dec_info_bus_alu[`DECINFO_ALU_OR];
@@ -55,7 +56,6 @@ wire dec_req_slttu  = dec_req_slt | dec_req_sltu;
 
 wire dec_req_lui    = i_dec_info_bus_alu[`DECINFO_ALU_LUI];
 
-wire flag_adder_sub = i_dec_info_bus_alu[`DECINFO_ALU_SUB];
 wire flag_op_unsigned = dec_req_sltu;
 
 
@@ -77,11 +77,15 @@ wire [31+1:0] adder_extend_op1, adder_extend_op2;
 wire [31+1:0] adder_in1, adder_in2; // for sub operation compatibility and logic-gating.
 wire adder_cin;
 wire [31+1:0] adder_result;
+
+wire flag_use_adder = dec_req_addsub | dec_req_slttu;
+wire flag_adder_sub = dec_req_sub | dec_req_slttu;
+
 assign adder_extend_op1 = {((~flag_op_unsigned) & alu_req_op1[31]), alu_req_op1};
 assign adder_extend_op2 = {((~flag_op_unsigned) & alu_req_op2[31]), alu_req_op2};
 
-assign adder_in1 = {33{dec_req_addsub}} & adder_extend_op1;
-assign adder_in2 = {33{dec_req_addsub}} & (adder_extend_op2 ^ {33{flag_adder_sub}});
+assign adder_in1 = {33{flag_use_adder}} & adder_extend_op1;
+assign adder_in2 = {33{flag_use_adder}} & (adder_extend_op2 ^ {33{flag_adder_sub}});
 assign adder_cin = flag_adder_sub;
 assign adder_result = adder_in1 + adder_in2 + adder_cin;
 
