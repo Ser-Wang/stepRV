@@ -3,20 +3,27 @@ import filecmp
 import subprocess
 import os
 
+# ==============================================================================
+# 全局配置参数
+# ==============================================================================
+# 配置 RTL 版本 (可通过改变此处变量，测试不同版本的核心代码)
+RTL_VERSION = 'v0_rv32i_basic'
+
+# 目录与文件路径配置
+RTL_DIR    = f'../de_rtl/{RTL_VERSION}'
+TB_FILE    = r'../dv_tb/tb_soc_top.sv'
+FILELIST_F = r'filelist.f'
+TESTS_BASE_DIR = r'../tests/isa/generated'
+
+# 配置 GTKWave 是否打开
+OPEN_GTKWAVE = False # False or True
+
 
 # 主函数
 def main():
-    # 配置 RTL 版本 (可通过改变此处变量，测试不同版本的核心代码)
-    rtl_version = 'v0_rv32i_basic'
     print(f"===========================================")
-    print(f"--- Running Test on RTL: {rtl_version} ---")
+    print(f"--- Running Test on RTL: {RTL_VERSION} ---")
     print(f"===========================================")
-    # 配置 GTKWave 是否打开
-    OPEN_GTKWAVE = False # False or True
-
-    rtl_dir = f'../de_rtl/{rtl_version}'
-    tb_file = r'../dv_tb/tb_soc_top.sv'
-    filelist_f = r'filelist.f'
 
     # 1.将bin文件转成mem文件 (输出在当前运行目录)
     # 支持传入完整路径或仅指令名
@@ -26,7 +33,7 @@ def main():
         
     bin_file = sys.argv[1]
     if not bin_file.endswith('.bin'):
-        bin_file = r'../tests/isa/generated/rv32ui-p-' + bin_file + '.bin'
+        bin_file = f"{TESTS_BASE_DIR}/rv32ui-p-{bin_file}.bin"
         
     cmd1 = r'python scripts/BinToMem_CLI.py' + ' ' + bin_file + ' ' + './inst.data'
     os.system(cmd1)
@@ -34,13 +41,13 @@ def main():
     # f.close()
 
     # 1.5 生成filelist.f
-    cmd_gen = r'python scripts/gen_filelist.py' + ' ' + rtl_dir + ' ' + tb_file + ' ' + filelist_f
+    cmd_gen = r'python scripts/gen_filelist.py' + ' ' + RTL_DIR + ' ' + TB_FILE + ' ' + FILELIST_F
     os.system(cmd_gen)
     # f = os.popen(cmd_gen)
     # f.close()
 
     # 2.编译rtl文件
-    cmd = r'python scripts/compile_rtl.py' + ' ' + filelist_f
+    cmd = r'python scripts/compile_rtl.py' + ' ' + FILELIST_F
     os.system(cmd)
     # f = os.popen(cmd)
     # f.close()

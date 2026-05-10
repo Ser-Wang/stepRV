@@ -2,32 +2,51 @@ import os
 import subprocess
 import sys
 
+# ==============================================================================
+# 全局配置参数
+# ==============================================================================
+# 在这里配置你需要批量测试的指令集前缀名称（相当于 compliance 的文件夹分类）
+# 可选的包括 'rv32ui', 'rv32um', 'rv32uc', 'rv32ua' 等
+TARGET_CATEGORIES = ['rv32ui']
+# TARGET_CATEGORIES = ['rv32ui', 'rv32um']
+
+# 基础测试目录
+BASE_DIR = r'../tests/isa/generated'
+
 
 # 找出path目录下的所有bin文件
-def list_binfiles(path):
+def list_binfiles(path, target_categories):
     files = []
     list_dir = os.walk(path)
     for maindir, subdir, all_file in list_dir:
         for filename in all_file:
             apath = os.path.join(maindir, filename)
             if apath.endswith('.bin'):
-                files.append(apath)
+                # 检查文件名是否以指定的分类前缀开头
+                if any(filename.startswith(prefix) for prefix in target_categories):
+                    files.append(apath.replace('\\', '/'))
 
     return files
 
 # 主函数
 def main():
-    bin_files = list_binfiles(r'../tests/isa/generated')
+    bin_files = list_binfiles(BASE_DIR, TARGET_CATEGORIES)
 
     anyfail = False
     fail_count = 0
     total_count = len(bin_files)
+    
+    if total_count == 0:
+        print("No test files found in the specified categories.")
+        return
+
+    print(f"Found {total_count} tests in {TARGET_CATEGORIES}. Starting batch run...")
+    print(f"===========================================")
 
     # 对每一个bin文件进行测试
     for file in bin_files:
         # print(f"Testing {file}...")
-        # 相应于 sim_new_nowave.py 在本环境中是 scripts/test_single.py
-        cmd = r'python scripts/test_single.py' + ' ' + file
+        cmd = r'python scripts/rvtests_run_single.py' + ' ' + file
         f = os.popen(cmd)
         r = f.read()
         f.close()

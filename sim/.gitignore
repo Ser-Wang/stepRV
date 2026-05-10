@@ -2,3 +2,7 @@ inst.data
 out.vvp
 tb_soc_top.vcd
 filelist.f
+
+complie.log
+run.log
+signature.output
