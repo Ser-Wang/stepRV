@@ -68,7 +68,7 @@ wire need_rs2_idu;
 wire [31:0] mema_addr_exu;
 wire mema_wren_exu;
 wire [31:0] mema_wr_data_exu;
-wire [3:0] mema_ld_info;
+wire [7:0] mema_info_bus;
 
 wire [31:0] wrbk_data_exu;
 wire [`RFIDX_WIDTH-1:0] wrbk_rdidx_exu;
@@ -180,9 +180,8 @@ exu u_exu(
     // mem access
     .o_mema_addr_exu    (mema_addr_exu      ),
     .o_mema_wren_exu    (mema_wren_exu      ),
-    .o_mema_wr_mask     (o_mema_wr_mask     ),
     .o_mema_wr_data_exu (mema_wr_data_exu   ),
-    .o_mema_ld_info     (mema_ld_info       ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    .o_mema_info_bus    (mema_info_bus      ), // {wr_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     // pass by
     .i_wrbk_rdidx_idu   (wrbk_rdidx_idu     ),
     .i_wrbk_rdwen_idu   (wrbk_rdwen_idu     ),
@@ -226,9 +225,10 @@ mau u_mau(
     .i_mema_addr_exu    (mema_addr_exu      ),
     .i_mema_wren_exu    (mema_wren_exu      ),
     .i_mema_wr_data_exu (mema_wr_data_exu   ),
-    .i_mema_ld_info     (mema_ld_info       ),
+    .i_mema_info_bus    (mema_info_bus      ),
     .o_mema_addr_mau    (o_mema_addr    ),
     .o_mema_wren_mau    (o_mema_wren    ),
+    .o_mema_wr_mask     (o_mema_wr_mask ),
     .o_mema_wr_data_mau (o_mema_wr_data ),
     .i_mema_rd_data_mau (i_mema_rd_data ),
     // pass by

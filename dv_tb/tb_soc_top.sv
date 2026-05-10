@@ -27,6 +27,11 @@ module tb_soc_top(
 
     );
 
+// Change this path to run different tests
+
+parameter INST_DATA_PATH = "./inst.data";   // when using iverilog in ./sim dir
+// parameter INST_DATA_PATH = "../../../../inst_fence_i.data";   // when using VIVADO, copy inst.data into {proj_name} dir.
+
 
 // select one option only
 `define TEST_PROG  1
@@ -95,7 +100,7 @@ initial begin
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("fail testnum = %2d", x3);
         // for (r = 0; r < 32; r = r + 1)
-            // $display("x%2d = 0x%x", r, tinyriscv_soc_top_0.u_tinyriscv.u_regs.regs[r]);
+        //     $display("x%2d = 0x%x", r, u_soc_top_v0.u_core.u_regfile.r_regfile[r]);
     end
 `endif
 
@@ -107,10 +112,8 @@ end
 
 // read mem data
 initial begin
-    $readmemh ("../sim/inst.data", u_soc_top_v0.u_imem.r_itcm);
-    $readmemh ("../sim/inst.data", u_soc_top_v0.u_dmem.r_dtcm);
-    // $readmemh ("../../../../inst.data", u_soc_top_v0.u_p_imem.r_imem);  // when using VIVADO, copy inst.data into {proj_name} dir.
-    // $readmemh ("inst.data", u_soc_top_v0.u_imem.r_imem);     // when using VIVADO, copy inst.data into {proj_name}.sim\sim_1\behav\xsim dir
+    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    $readmemh (INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
 
 // sim timeout

@@ -11,15 +11,18 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="30.267 ns"></ZoomStartTime>
-      <ZoomEndTime time="812.268 ns"></ZoomEndTime>
-      <Cursor1Time time="141.267 ns"></Cursor1Time>
+      <ZoomStartTime time="310.416 ns"></ZoomStartTime>
+      <ZoomEndTime time="843.917 ns"></ZoomEndTime>
+      <Cursor1Time time="536.416 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="191"></NameColumnWidth>
+      <NameColumnWidth column_width="223"></NameColumnWidth>
       <ValueColumnWidth column_width="58"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="13" />
+   <WVObjectSize size="14" />
+   <wave_markers>
+      <marker time="119800" label="" />
+   </wave_markers>
    <wvobject fp_name="/tb_soc_top/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -47,7 +50,6 @@
    <wvobject fp_name="group74" type="group">
       <obj_property name="label">ifu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/i_stall" type="logic">
          <obj_property name="ElementShortName">i_stall</obj_property>
          <obj_property name="ObjectShortName">i_stall</obj_property>
@@ -74,7 +76,6 @@
    <wvobject fp_name="group17" type="group">
       <obj_property name="label">idu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/i_stall" type="logic">
          <obj_property name="ElementShortName">i_stall</obj_property>
          <obj_property name="ObjectShortName">i_stall</obj_property>
@@ -127,7 +128,6 @@
       <wvobject fp_name="group60" type="group">
          <obj_property name="label">dec_info_bus</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <obj_property name="isExpanded"></obj_property>
          <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_alu" type="logic">
             <obj_property name="ElementShortName">dec_oper_dispatch_alu</obj_property>
             <obj_property name="ObjectShortName">dec_oper_dispatch_alu</obj_property>
@@ -158,73 +158,6 @@
             <obj_property name="ElementShortName">dec_info_bus_bru[14:0]</obj_property>
             <obj_property name="ObjectShortName">dec_info_bus_bru[14:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
-            <obj_property name="isExpanded"></obj_property>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[14]" type="logic">
-               <obj_property name="ElementShortName">[14]</obj_property>
-               <obj_property name="ObjectShortName">[14]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[13]" type="logic">
-               <obj_property name="ElementShortName">[13]</obj_property>
-               <obj_property name="ObjectShortName">[13]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[12]" type="logic">
-               <obj_property name="ElementShortName">[12]</obj_property>
-               <obj_property name="ObjectShortName">[12]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[11]" type="logic">
-               <obj_property name="ElementShortName">[11]</obj_property>
-               <obj_property name="ObjectShortName">[11]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[10]" type="logic">
-               <obj_property name="ElementShortName">[10]</obj_property>
-               <obj_property name="ObjectShortName">[10]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[9]" type="logic">
-               <obj_property name="ElementShortName">[9]</obj_property>
-               <obj_property name="ObjectShortName">[9]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[8]" type="logic">
-               <obj_property name="ElementShortName">[8]</obj_property>
-               <obj_property name="ObjectShortName">[8]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[7]" type="logic">
-               <obj_property name="ElementShortName">[7]</obj_property>
-               <obj_property name="ObjectShortName">[7]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[6]" type="logic">
-               <obj_property name="ElementShortName">[6]</obj_property>
-               <obj_property name="ObjectShortName">[6]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[5]" type="logic">
-               <obj_property name="DisplayName">label</obj_property>
-               <obj_property name="ElementShortName">[5]</obj_property>
-               <obj_property name="ObjectShortName">[5]</obj_property>
-               <obj_property name="label">[5] jump = jal | jalr</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[4]" type="logic">
-               <obj_property name="DisplayName">label</obj_property>
-               <obj_property name="ElementShortName">[4]</obj_property>
-               <obj_property name="ObjectShortName">[4]</obj_property>
-               <obj_property name="label">[4] jalr</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[3]" type="logic">
-               <obj_property name="DisplayName">label</obj_property>
-               <obj_property name="ElementShortName">[3]</obj_property>
-               <obj_property name="ObjectShortName">[3]</obj_property>
-               <obj_property name="label">[3] jal</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[2]" type="logic">
-               <obj_property name="ElementShortName">[2]</obj_property>
-               <obj_property name="ObjectShortName">[2]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[1]" type="logic">
-               <obj_property name="ElementShortName">[1]</obj_property>
-               <obj_property name="ObjectShortName">[1]</obj_property>
-            </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru[0]" type="logic">
-               <obj_property name="ElementShortName">[0]</obj_property>
-               <obj_property name="ObjectShortName">[0]</obj_property>
-            </wvobject>
          </wvobject>
       </wvobject>
    </wvobject>
@@ -410,6 +343,7 @@
             <obj_property name="ObjectShortName">i_alu_imm[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
          </wvobject>
          <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_imm" type="array">
             <obj_property name="ElementShortName">i_alu_imm[31:0]</obj_property>
@@ -474,10 +408,58 @@
             <obj_property name="ObjectShortName">adder_jumpaddr[31:0]</obj_property>
          </wvobject>
       </wvobject>
+      <wvobject fp_name="group124" type="group">
+         <obj_property name="label">exu_lsu</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_load" type="logic">
+            <obj_property name="ElementShortName">lsu_req_load</obj_property>
+            <obj_property name="ObjectShortName">lsu_req_load</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_store" type="logic">
+            <obj_property name="ElementShortName">lsu_req_store</obj_property>
+            <obj_property name="ObjectShortName">lsu_req_store</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs1" type="array">
+            <obj_property name="ElementShortName">i_lsu_rs1[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_lsu_rs1[31:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs2" type="array">
+            <obj_property name="ElementShortName">i_lsu_rs2[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_lsu_rs2[31:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_imm" type="array">
+            <obj_property name="ElementShortName">i_lsu_imm[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_lsu_imm[31:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wren_exu" type="logic">
+            <obj_property name="ElementShortName">o_mema_wren_exu</obj_property>
+            <obj_property name="ObjectShortName">o_mema_wren_exu</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_addr_exu" type="array">
+            <obj_property name="ElementShortName">o_mema_addr_exu[31:0]</obj_property>
+            <obj_property name="ObjectShortName">o_mema_addr_exu[31:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wr_data_exu" type="array">
+            <obj_property name="ElementShortName">o_mema_wr_data_exu[31:0]</obj_property>
+            <obj_property name="ObjectShortName">o_mema_wr_data_exu[31:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_lsu_misaligned_exc" type="logic">
+            <obj_property name="ElementShortName">o_lsu_misaligned_exc</obj_property>
+            <obj_property name="ObjectShortName">o_lsu_misaligned_exc</obj_property>
+            <obj_property name="CustomSignalColor">#FF0080</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
       <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
          <obj_property name="ElementShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
+         <obj_property name="ElementShortName">o_wrbk_data_exu[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_wrbk_data_exu[31:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
       <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_wrbk_rdwen_exu" type="logic">
          <obj_property name="ElementShortName">i_wrbk_rdwen_exu</obj_property>
@@ -487,9 +469,31 @@
       </wvobject>
    </wvobject>
    <wvobject fp_name="group109" type="group">
-      <obj_property name="label">mem</obj_property>
+      <obj_property name="label">mau</obj_property>
       <obj_property name="DisplayName">label</obj_property>
       <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_addr_mau" type="array">
+         <obj_property name="ElementShortName">o_mema_addr_mau[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_mema_addr_mau[31:0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wren_mau" type="logic">
+         <obj_property name="ElementShortName">o_mema_wren_mau</obj_property>
+         <obj_property name="ObjectShortName">o_mema_wren_mau</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wr_mask" type="array">
+         <obj_property name="ElementShortName">o_mema_wr_mask[3:0]</obj_property>
+         <obj_property name="ObjectShortName">o_mema_wr_mask[3:0]</obj_property>
+         <obj_property name="Radix">BINARYRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wr_data_mau" type="array">
+         <obj_property name="ElementShortName">o_mema_wr_data_mau[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_mema_wr_data_mau[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_mema_rd_data_mau" type="array">
+         <obj_property name="ElementShortName">i_mema_rd_data_mau[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_mema_rd_data_mau[31:0]</obj_property>
+      </wvobject>
       <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/r_wrbk_rdidx_mau" type="array">
          <obj_property name="ElementShortName">r_wrbk_rdidx_mau[4:0]</obj_property>
          <obj_property name="ObjectShortName">r_wrbk_rdidx_mau[4:0]</obj_property>
@@ -507,6 +511,195 @@
          <obj_property name="ElementShortName">o_wrbk_data_mau[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_mau[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group159" type="group">
+      <obj_property name="label">dtcm</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr" type="array">
+         <obj_property name="ElementShortName">i_addr[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_addr[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="vbus232" type="vbus">
+         <obj_property name="label">addr_31:2</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[31]" type="logic">
+            <obj_property name="ElementShortName">[31]</obj_property>
+            <obj_property name="ObjectShortName">[31]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[30]" type="logic">
+            <obj_property name="ElementShortName">[30]</obj_property>
+            <obj_property name="ObjectShortName">[30]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[29]" type="logic">
+            <obj_property name="ElementShortName">[29]</obj_property>
+            <obj_property name="ObjectShortName">[29]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[28]" type="logic">
+            <obj_property name="ElementShortName">[28]</obj_property>
+            <obj_property name="ObjectShortName">[28]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[27]" type="logic">
+            <obj_property name="ElementShortName">[27]</obj_property>
+            <obj_property name="ObjectShortName">[27]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[26]" type="logic">
+            <obj_property name="ElementShortName">[26]</obj_property>
+            <obj_property name="ObjectShortName">[26]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[25]" type="logic">
+            <obj_property name="ElementShortName">[25]</obj_property>
+            <obj_property name="ObjectShortName">[25]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[24]" type="logic">
+            <obj_property name="ElementShortName">[24]</obj_property>
+            <obj_property name="ObjectShortName">[24]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[23]" type="logic">
+            <obj_property name="ElementShortName">[23]</obj_property>
+            <obj_property name="ObjectShortName">[23]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[22]" type="logic">
+            <obj_property name="ElementShortName">[22]</obj_property>
+            <obj_property name="ObjectShortName">[22]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[21]" type="logic">
+            <obj_property name="ElementShortName">[21]</obj_property>
+            <obj_property name="ObjectShortName">[21]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[20]" type="logic">
+            <obj_property name="ElementShortName">[20]</obj_property>
+            <obj_property name="ObjectShortName">[20]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[19]" type="logic">
+            <obj_property name="ElementShortName">[19]</obj_property>
+            <obj_property name="ObjectShortName">[19]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[18]" type="logic">
+            <obj_property name="ElementShortName">[18]</obj_property>
+            <obj_property name="ObjectShortName">[18]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[17]" type="logic">
+            <obj_property name="ElementShortName">[17]</obj_property>
+            <obj_property name="ObjectShortName">[17]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[16]" type="logic">
+            <obj_property name="ElementShortName">[16]</obj_property>
+            <obj_property name="ObjectShortName">[16]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[15]" type="logic">
+            <obj_property name="ElementShortName">[15]</obj_property>
+            <obj_property name="ObjectShortName">[15]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[14]" type="logic">
+            <obj_property name="ElementShortName">[14]</obj_property>
+            <obj_property name="ObjectShortName">[14]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[13]" type="logic">
+            <obj_property name="ElementShortName">[13]</obj_property>
+            <obj_property name="ObjectShortName">[13]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[12]" type="logic">
+            <obj_property name="ElementShortName">[12]</obj_property>
+            <obj_property name="ObjectShortName">[12]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[11]" type="logic">
+            <obj_property name="ElementShortName">[11]</obj_property>
+            <obj_property name="ObjectShortName">[11]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[10]" type="logic">
+            <obj_property name="ElementShortName">[10]</obj_property>
+            <obj_property name="ObjectShortName">[10]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[9]" type="logic">
+            <obj_property name="ElementShortName">[9]</obj_property>
+            <obj_property name="ObjectShortName">[9]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[8]" type="logic">
+            <obj_property name="ElementShortName">[8]</obj_property>
+            <obj_property name="ObjectShortName">[8]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[7]" type="logic">
+            <obj_property name="ElementShortName">[7]</obj_property>
+            <obj_property name="ObjectShortName">[7]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[6]" type="logic">
+            <obj_property name="ElementShortName">[6]</obj_property>
+            <obj_property name="ObjectShortName">[6]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[5]" type="logic">
+            <obj_property name="ElementShortName">[5]</obj_property>
+            <obj_property name="ObjectShortName">[5]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[4]" type="logic">
+            <obj_property name="ElementShortName">[4]</obj_property>
+            <obj_property name="ObjectShortName">[4]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[3]" type="logic">
+            <obj_property name="ElementShortName">[3]</obj_property>
+            <obj_property name="ObjectShortName">[3]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[2]" type="logic">
+            <obj_property name="ElementShortName">[2]</obj_property>
+            <obj_property name="ObjectShortName">[2]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_en" type="logic">
+         <obj_property name="ElementShortName">i_wr_en</obj_property>
+         <obj_property name="ObjectShortName">i_wr_en</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_mask" type="array">
+         <obj_property name="ElementShortName">i_wr_mask[3:0]</obj_property>
+         <obj_property name="ObjectShortName">i_wr_mask[3:0]</obj_property>
+         <obj_property name="Radix">BINARYRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_data" type="array">
+         <obj_property name="ElementShortName">i_wr_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_wr_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/o_rd_data" type="array">
+         <obj_property name="ElementShortName">o_rd_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">o_rd_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1024]" type="array">
+         <obj_property name="ElementShortName">[1024][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1024][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1025]" type="array">
+         <obj_property name="ElementShortName">[1025][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1025][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1026]" type="array">
+         <obj_property name="ElementShortName">[1026][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1026][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1027]" type="array">
+         <obj_property name="ElementShortName">[1027][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1027][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1028]" type="array">
+         <obj_property name="ElementShortName">[1028][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1028][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1029]" type="array">
+         <obj_property name="ElementShortName">[1029][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1029][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1030]" type="array">
+         <obj_property name="ElementShortName">[1030][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1030][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1031]" type="array">
+         <obj_property name="ElementShortName">[1031][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1031][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1032]" type="array">
+         <obj_property name="ElementShortName">[1032][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1032][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1033]" type="array">
+         <obj_property name="ElementShortName">[1033][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1033][31:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject fp_name="group114" type="group">

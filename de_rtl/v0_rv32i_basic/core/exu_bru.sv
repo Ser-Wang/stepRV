@@ -91,9 +91,10 @@ wire [31:0] pc_add4 = i_bru_pc + `XWIDTH'd4;
 
 
 // ---- 
-assign o_jump_flag = bru_req_info_jump ? 1'b1 : comp_res;
+assign o_jump_flag = (bru_req_info_jump | bru_req_fence_i) ? 1'b1 : comp_res;
 assign o_bru_wrbk_data = pc_add4;   // only jal, jalr need to wrbk rd
-assign o_pc_next_bru = o_jump_flag ? adder_jumpaddr : pc_add4;
+assign o_pc_next_bru = (bru_req_fence_i) ? pc_add4 :        // Note: when req_fence_i = 1'b1, jump_flag is also 1'b1.
+                       (o_jump_flag)     ? adder_jumpaddr : pc_add4;
 
 
 

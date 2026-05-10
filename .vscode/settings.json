@@ -6,6 +6,9 @@
     // Regenerate lint_filelist.f (for manual sim runs) by: python .vscode/gen_lint_filelist.py
     // "verilog.linting.iverilog.arguments": "-f ${workspaceFolder}/.vscode/lint_libs.f",
 
-    "verilog.linting.iverilog.runAtFileLocation": false
+    "verilog.linting.iverilog.runAtFileLocation": false,
+    "verilog.linting.iverilog.includePath": [
+        "D:\\myProj_WJH\\11_myRV\\de_rtl\\v0_rv32i_basic\\defines"
+    ]
     // "verilog.linting.iverilog.runAtFileLocation": true
 }

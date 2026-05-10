@@ -12,10 +12,10 @@ def main():
     print(f"--- Running Test on RTL: {rtl_version} ---")
     print(f"===========================================")
     # 配置 GTKWave 是否打开
-    OPEN_GTKWAVE = True # False or True
+    OPEN_GTKWAVE = False # False or True
 
     rtl_dir = f'../de_rtl/{rtl_version}'
-    tb_file = r'../dv_tb/tb_soc_top.v'
+    tb_file = r'../dv_tb/tb_soc_top.sv'
     filelist_f = r'filelist.f'
 
     # 1.将bin文件转成mem文件 (输出在当前运行目录)

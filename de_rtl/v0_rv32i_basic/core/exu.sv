@@ -18,7 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-`include "../defines/config.v"
+`include "config.v"
 
 module exu(
     input  wire clk,
@@ -51,8 +51,7 @@ module exu(
     output wire [31:0] o_mema_addr_exu,
     output wire [31:0] o_mema_wr_data_exu,
     output wire o_mema_wren_exu,
-    output wire [3:0] o_mema_wr_mask,
-    output wire [3:0] o_mema_ld_info,  // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    output wire [7:0] o_mema_info_bus,  // {store_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     // input  wire [31:0] i_mema_rd_data,
     // pass by
     input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_idu,
@@ -251,8 +250,7 @@ exu_lsu u_exu_lsu(
     .o_mema_addr_exu    (o_mema_addr_exu    ),
     .o_mema_wr_data_exu (o_mema_wr_data_exu ),
     .o_mema_wren_exu    (o_mema_wren_exu    ),
-    .o_mema_wr_mask     (o_mema_wr_mask     ),
-    .o_mema_ld_info     (o_mema_ld_info     )  // {lsu_req_info_size, lsu_req_info_usign}
+    .o_mema_info_bus    (o_mema_info_bus    )
     // .i_mema_rd_data     (i_mema_rd_data     ),
     // .o_lsu_req_result   (lsu_req_result     )
     );

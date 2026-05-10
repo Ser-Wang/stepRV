@@ -58,7 +58,7 @@
     <Option Name="IPUserFilesDir" Val="$PIPUSERFILESDIR"/>
     <Option Name="IPStaticSourceDir" Val="$PIPUSERFILESDIR/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="41"/>
+    <Option Name="WTXSimLaunchSim" Val="78"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
@@ -96,100 +96,99 @@
           <Attr Name="IsVisible" Val="1"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/core_rv32i_v0.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/core_rv32i_v0.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/ctrl_hazard.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/ctrl_hazard.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_alu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_alu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_bru.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_bru.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_lsu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/exu_lsu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/idu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/idu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/ifu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/ifu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/mau.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/mau.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/periphs/p_imem_rom.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/periphs/mem_dtcm.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/regfile.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/periphs/mem_itcm.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/wbu.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/regfile.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/soc/soc_top_v0.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/core/wbu.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/defines/macro.v">
+      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/soc/soc_top_v0.sv">
         <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -209,21 +208,11 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1" RelGenDir="$PGENDIR/sim_1">
       <Filter Type="Srcs"/>
-      <File Path="$PSRCDIR/sim_1/imports/dv_tb/tb_soc_top.v">
+      <File Path="$PPRDIR/../../dv_tb/tb_soc_top.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../dv_tb/tb_soc_top.v"/>
-          <Attr Name="ImportTime" Val="1772813994"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../de_rtl/v0_rv32i_basic/defines/config.v">
-        <FileInfo SFType="VHeader">
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-          <Attr Name="IsVisible" Val="1"/>
         </FileInfo>
       </File>
       <File Path="$PPRDIR/tb_soc_top_behav.wcfg">
