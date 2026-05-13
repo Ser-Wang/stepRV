@@ -65,6 +65,11 @@ end
 ////******** wait result ********////
 
 initial begin
+    integer ref_fd;
+    reg [31:0] val_ref, val_out;
+    integer fail_count;
+    reg [8*256-1:0] ref_file_name;
+    
     $display("compliance test running...");
 
     wait(ex_end_flag == 32'h1);  // wait sim end
@@ -79,6 +84,50 @@ initial begin
         $fdisplay(fd, "%08x", u_soc_top_v0.u_imem.r_itcm[r[31:2]]);
     end
     $fclose(fd);
+
+    // Result Comparison
+    begin : comparison
+        fail_count = 0;
+        if ($value$plusargs("REF_FILE=%s", ref_file_name)) begin
+            ref_fd = $fopen(ref_file_name, "r");
+            if (ref_fd == 0) begin
+                $display("No ref file found: %s", ref_file_name);
+            end else begin
+                $display("Comparing with reference file: %s", ref_file_name);
+                for (r = begin_signature; r < end_signature; r = r + 4) begin
+                    if ($fscanf(ref_fd, "%h", val_ref) != 1) begin
+                        $display("!!! FAIL, size != (ref shorter) !!!");
+                        fail_count = fail_count + 1;
+                        break;
+                    end
+                    val_out = u_soc_top_v0.u_imem.r_itcm[r[31:2]];
+                    if (val_out !== val_ref) begin
+                        $display("!!! FAIL, content != at addr 0x%h, expect 0x%h, got 0x%h !!!", r, val_ref, val_out);
+                        fail_count = fail_count + 1;
+                    end
+                end
+                // Check if ref file has extra lines
+                if (fail_count == 0 && $fscanf(ref_fd, "%h", val_ref) == 1) begin
+                    $display("!!! FAIL, size != (ref longer) !!!");
+                    fail_count = fail_count + 1;
+                end
+                
+                if (fail_count == 0) begin
+                    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    $display("~~~~~~~~~~~ ### PASS ### ~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                end else begin
+                    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    $display("~~~~~~~~~~~ !!! FAIL !!! ~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                end
+                $fclose(ref_fd);
+            end
+        end else begin
+            $display("No REF_FILE plusarg found, skipping comparison.");
+        end
+    end
+
     $finish;
 end
 
@@ -100,5 +149,25 @@ end
 //     $dumpfile("tb_soctop_rvcompilance.vcd");
 //     $dumpvars(0, tb_soctop_rvcompilance);
 // end
+
+
+`ifdef SIMULATION
+bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
+    .clk(u_soc_top_v0.clk),
+    .rst_n(u_soc_top_v0.rst_n),
+    .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
+    .sel_itcm_bus(sel_itcm),
+    .mema_addr_bus(i_mema_addr)
+);
+
+bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
+    .clk(clk),
+    .rst_n(rst_n),
+    .lsu_req_load_lsu(lsu_req_load),
+    .lsu_req_store_lsu(lsu_req_store),
+    .mema_addr_lsu(mema_addr),
+    .lsu_req_info_size_lsu(lsu_req_info_size)
+);
+`endif
 
 endmodule

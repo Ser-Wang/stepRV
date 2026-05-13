@@ -18,15 +18,14 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-`include "../defines/config.v"
-// `include "./config.v"
+`include "./config.v"
 
 module core_rv32i_v0(
     input wire clk,
     input wire rst_n,   //
     // if
-    output wire [31:0] o_pc_if_addr,
-    input  wire [31:0] i_instr_if_data,
+    output wire [31:0] o_if_pc,
+    input  wire [31:0] i_if_instr,
     // mem access
     output wire [31:0] o_mema_addr,
     output wire o_mema_wren,
@@ -36,7 +35,7 @@ module core_rv32i_v0(
     );
 
 ////********    IO Insts    ********////
-assign o_pc_if_addr = pc_if;
+assign o_if_pc = pc_ifu;
 
 
 
@@ -52,7 +51,7 @@ wire [31:0] rf_wrbk_data;
 
 //-------- pipe data flow
 // if_2_id
-wire [31:0] pc_if;  // this and above: reg_out
+wire [31:0] pc_ifu;  // this and above: reg_out
 
 // id_2_ex
 wire [31:0] instr_id;
@@ -126,7 +125,7 @@ ifu u_ifu(
     .i_stall        (stall[`STALL_PC]),
     .i_jump_flag    (jump_flag_bru  ),
     .i_pc_next_bru  (pc_next_bru    ),
-    .o_pc_if        (pc_if          )
+    .o_pc_if        (pc_ifu         )
     );
 
 idu u_idu(
@@ -134,8 +133,8 @@ idu u_idu(
     .rst_n              (rst_n  ),
     .i_stall            (stall[`STALL_IF_ID]),
     .i_flush            (flush[`FLUSH_IF_ID]),
-    .i_instr            (i_instr_if_data),
-    .i_pc_if            (pc_if          ),
+    .i_instr            (i_if_instr     ),
+    .i_pc_if            (pc_ifu         ),
     .o_dec_rs1idx       (rf_read_rs1_idx),
     .o_dec_rs2idx       (rf_read_rs2_idx),
     .o_dec_rdidx        (wrbk_rdidx_idu ),

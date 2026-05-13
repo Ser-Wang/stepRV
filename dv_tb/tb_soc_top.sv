@@ -29,8 +29,8 @@ module tb_soc_top(
 
 // Change this path to run different tests
 
-parameter INST_DATA_PATH = "./inst.data";   // when using iverilog in ./sim dir
-// parameter INST_DATA_PATH = "../../../../inst_fence_i.data";   // when using VIVADO, copy inst.data into {proj_name} dir.
+// parameter INST_DATA_PATH = "./inst.data";   // when using iverilog in ./sim dir
+parameter INST_DATA_PATH = "../../../../inst_fence_i.data";   // when using VIVADO, copy inst.data into {proj_name} dir.
 
 
 // select one option only
@@ -131,5 +131,25 @@ initial begin
 end
 
 
+
+
+`ifdef SIMULATION
+bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
+    .clk(u_soc_top_v0.clk),
+    .rst_n(u_soc_top_v0.rst_n),
+    .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
+    .sel_itcm_bus(sel_itcm),
+    .mema_addr_bus(i_mema_addr)
+);
+
+bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
+    .clk(clk),
+    .rst_n(rst_n),
+    .lsu_req_load_lsu(lsu_req_load),
+    .lsu_req_store_lsu(lsu_req_store),
+    .mema_addr_lsu(mema_addr),
+    .lsu_req_info_size_lsu(lsu_req_info_size)
+);
+`endif
 
 endmodule

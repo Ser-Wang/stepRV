@@ -20,10 +20,6 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "config.v"
 
-
-
-// `include "../defines/config.v"
-
 module exu_lsu(
     input wire clk,
     input wire rst_n,
@@ -63,7 +59,7 @@ wire [1:0] addr_offset = mema_addr[1:0];
 wire [3:0] mema_wr_mask;
 assign mema_wr_mask = (lsu_req_info_size == 2'b10) ? 4'b1111 : 
                       (lsu_req_info_size == 2'b01) ? (addr_offset[1] ? 4'b1100 : 4'b0011) : 
-                      (lsu_req_info_size == 2'b00) ? (4'b0001 << addr_offset) : 4'b0000;
+                      (lsu_req_info_size == 2'b00) ? (4'b0001 << addr_offset) : 4'b0000;    // mask will be 4'b0001 when it isn't load/store instr
 
 
 // ---- store data
@@ -88,17 +84,8 @@ assign o_mema_wr_data_exu = (lsu_req_info_size == 2'b10) ? data_sw :
 
 
 // ---- ctrl logic
-assign o_mema_wren_exu = lsu_req_store && !o_lsu_misaligned_exc; // Prevent writing if address is misaligned
-assign o_mema_info_bus = {mema_wr_mask, lsu_req_load && !o_lsu_misaligned_exc, lsu_req_info_size, lsu_req_info_usign};
-
-
-
-
-
-
-
-
-
+assign o_mema_wren_exu = lsu_req_store && !addr_misaligned; // Prevent writing if address is misaligned
+assign o_mema_info_bus = {mema_wr_mask, lsu_req_load && !addr_misaligned, lsu_req_info_size, lsu_req_info_usign};
 
 
 //// ----------------------------------------------------------------------------------------------------------
@@ -107,64 +94,8 @@ wire addr_misaligned = (lsu_req_load || lsu_req_store) && (
                        (lsu_req_info_size == 2'b10 && mema_addr[1:0] != 2'b00) || // Word must be 4-byte aligned
                        (lsu_req_info_size == 2'b01 && mema_addr[0]   != 1'b0 )    // Halfword must be 2-byte aligned
                        );
+                       
 assign o_lsu_misaligned_exc = addr_misaligned;
-
-// Simulation-only error reporting
-`ifdef SIMULATION
-always @(posedge clk) begin
-    if (rst_n) begin
-        // Existing misaligned reporting
-        if (o_lsu_misaligned_exc) begin
-            $display("ERROR: LSU Address Misaligned! Addr: 0x%h, Size: %b", mema_addr, lsu_req_info_size);
-        end
-    end
-end
-
-// SystemVerilog Assertion: for any load/store request, low two bits must not be 01 or 11
-property p_mema_addr_align;
-    @(posedge clk) disable iff (!rst_n)
-        // ( (lsu_req_load || lsu_req_store) |-> (mema_addr[1:0] != 2'b01 && mema_addr[1:0] != 2'b11) );
-        ( (lsu_req_load || lsu_req_store) |-> (mema_addr[1:0] == 2'b00) );
-endproperty
-
-// Assert the property and stop simulation on failure
-// Keep this assertion separate from the existing misaligned check
-assert property (p_mema_addr_align) else begin
-    $display("SVA ASSERTION FAILED: mema_addr[1:0] is not 2'b00. Addr: 0x%h",  $sampled(mema_addr));
-    $fatal(1);
-end
-
-// 1. 当 mema_addr[1:0] != 2'b00 时，lsu_req_info_size 不能等于 2'b10
-property p_word_align;
-    @(posedge clk) disable iff (!rst_n)
-        ((lsu_req_load || lsu_req_store) && (mema_addr[1:0] != 2'b00)) |-> (lsu_req_info_size != 2'b10);
-endproperty
-assert property (p_word_align) else begin
-    $display("SVA ASSERTION FAILED: Word access must be 4-byte aligned. Addr: 0x%h", $sampled(mema_addr));
-    $fatal(1);
-end
-
-// 2. 半字对齐检查：当 size 为 Halfword (01) 时，地址必须 2 字节对齐
-property p_halfword_align;
-    @(posedge clk) disable iff (!rst_n)
-        ((lsu_req_load || lsu_req_store) && (lsu_req_info_size == 2'b01)) |-> (mema_addr[0] == 1'b0);
-endproperty
-assert property (p_halfword_align) else begin
-    $display("SVA ASSERTION FAILED: Halfword access must be 2-byte aligned. Addr: 0x%h", $sampled(mema_addr));
-    $fatal(1);
-end
-
-// 3. 强制最低位为 0 检查：任何 load/store 地址最低位必须为 0
-property p_addr_bit0_zero;
-    @(posedge clk) disable iff (!rst_n)
-        (lsu_req_load || lsu_req_store) |-> (mema_addr[0] == 1'b0);
-endproperty
-assert property (p_addr_bit0_zero) else begin
-    $display("SVA ASSERTION FAILED: mema_addr[0] must be 0 for any load/store. Addr: 0x%h", $sampled(mema_addr));
-    $fatal(1);
-end
-
-`endif
 
 
 endmodule

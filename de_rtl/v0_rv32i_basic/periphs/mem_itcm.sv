@@ -29,9 +29,8 @@ module mem_itcm(
     // Port B: Data Access (Read/Write)
     input wire i_wr_en,
     input wire [3:0] i_wr_mask,
-    input wire [31:0] i_addr,
-    input wire [31:0] i_wr_data,
-    output wire [31:0] o_data_rd_data
+    input wire [31:0] i_wr_addr,
+    input wire [31:0] i_wr_data
     );
 
 reg [31:0] r_itcm [0:`ITCM_DEPTH-1];    // 8192 by default
@@ -55,16 +54,16 @@ end
 always @(posedge clk) begin
     if (i_wr_en) begin
         if (i_wr_mask[0]) begin
-            r_itcm[i_addr[31:2]][7:0]   <= i_wr_data[7:0];
+            r_itcm[i_wr_addr[31:2]][7:0]   <= i_wr_data[7:0];
         end
         if (i_wr_mask[1]) begin
-            r_itcm[i_addr[31:2]][15:8]  <= i_wr_data[15:8];
+            r_itcm[i_wr_addr[31:2]][15:8]  <= i_wr_data[15:8];
         end
         if (i_wr_mask[2]) begin
-            r_itcm[i_addr[31:2]][23:16] <= i_wr_data[23:16];
+            r_itcm[i_wr_addr[31:2]][23:16] <= i_wr_data[23:16];
         end
         if (i_wr_mask[3]) begin
-            r_itcm[i_addr[31:2]][31:24] <= i_wr_data[31:24];
+            r_itcm[i_wr_addr[31:2]][31:24] <= i_wr_data[31:24];
         end
     end
 end
@@ -75,7 +74,7 @@ always @(*) begin
         r_data_rd_data = `ZERO_WORD;
     end
     else begin
-        r_data_rd_data = r_itcm[i_addr[31:2]];
+        r_data_rd_data = r_itcm[i_wr_addr[31:2]];
     end
 end
 
