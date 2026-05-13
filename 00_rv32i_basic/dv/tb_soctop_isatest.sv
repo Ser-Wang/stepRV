@@ -1,0 +1,203 @@
+`timescale 1ns / 1ps
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/05/14
+// Design Name: StepRV_v0
+// Module Name: tb_soctop_isatest
+// Description: Unified Testbench for both ISA tests and Compliance tests.
+//              Use +define+RVTEST_ISA or +define+RVTEST_COMPLIANCE to select mode.
+//--------------------------------------------------------------------------------
+
+module tb_soctop_isatest();
+
+// --- Configuration ---
+parameter INST_DATA_PATH = "./inst.data";
+parameter SIGNATURE_OUT  = "signature.output";
+
+// --- Mode Selection (For tools like Vivado, uncomment one to select mode) ---
+// `define RVTEST_ISA 1
+// `define RVTEST_COMPLIANCE 1
+
+reg clk;
+reg rst_n;
+
+// =============================================================================
+// ----------------        Shared Tasks          ----------------
+// =============================================================================
+
+
+task report_result;     // Unified result reporting task
+    input        pass;
+    input [8*32-1:0] mode_name;   // "ISA" or "COMPLIANCE"
+    begin
+        $display("\n**************************************************");
+        if (pass)
+            $display("****        %0s  [PASS]                    ****", mode_name);
+        else
+            $display("****        %0s  [FAIL]                    ****", mode_name);
+        $display("**************************************************\n");
+    end
+endtask
+
+// =============================================================================
+// ----------------        Instantiations        ----------------
+// =============================================================================
+soc_top_v0 u_soc_top_v0(
+    .clk    (clk),
+    .rst_n  (rst_n)
+);
+
+// =============================================================================
+// ----------------        Clock & Reset         ----------------
+// =============================================================================
+always #10 clk = ~clk;     // 50MHz
+
+initial begin
+    clk = 0;
+    rst_n = 0;
+    #40;
+    rst_n = 1;
+end
+
+// =============================================================================
+// ----------------        Test Execution Logic  ----------------
+// =============================================================================
+
+// --- Case A: ISA Tests ---
+`ifdef RVTEST_ISA
+wire [31:0] x3  = u_soc_top_v0.u_core.u_regfile.r_regfile[3];
+wire [31:0] x26 = u_soc_top_v0.u_core.u_regfile.r_regfile[26];
+wire [31:0] x27 = u_soc_top_v0.u_core.u_regfile.r_regfile[27];
+
+initial begin
+    $display("ISA Test: [riscv-tests] running...");
+    wait(x26 == 32'h1);
+    #25;
+    if (x27 == 32'h1) begin
+        report_result(1, "ISA");
+    end else begin
+        report_result(0, "ISA");
+        $display("  Failed at test #%0d", x3);
+    end
+    $finish;
+end
+`endif
+
+// --- Case B: Compliance Tests ---
+`ifdef RVTEST_COMPLIANCE
+reg [31:0] ex_end_flag     = 0;
+reg [31:0] begin_signature = 0;
+reg [31:0] end_signature   = 0;
+
+wire [31:0] mema_addr    = u_soc_top_v0.u_core.o_mema_addr;
+wire        mema_wren    = u_soc_top_v0.u_core.o_mema_wren;
+wire [31:0] mema_wr_data = u_soc_top_v0.u_core.o_mema_wr_data;
+
+// Bus snoop: Capture compliance test control registers
+always @(posedge clk) begin
+    if (rst_n && mema_wren) begin
+        if (mema_addr == 32'h10000008)      begin_signature <= mema_wr_data;
+        else if (mema_addr == 32'h1000000c) end_signature   <= mema_wr_data;
+        else if (mema_addr == 32'h10000010) ex_end_flag     <= mema_wr_data;
+    end
+end
+
+integer r, fd;
+
+initial begin
+    $display("ISA Test: [riscv-compilance] running...");
+    wait(ex_end_flag == 32'h1);
+
+    // 1. Dump signature file (always, for debug)
+    fd = $fopen(SIGNATURE_OUT);
+    if (fd) begin
+        for (r = begin_signature; r < end_signature; r = r + 4)
+            $fdisplay(fd, "%08x", u_soc_top_v0.u_dmem.r_dtcm[r[31:2]]);
+        $fclose(fd);
+        $display("  Signature saved to %s", SIGNATURE_OUT);
+    end
+
+    // 2. Live comparison against reference file (VCS only)
+`ifndef IVERILOG
+    begin : live_comparison
+        integer ref_fd, fail_count;
+        reg [31:0] val_ref, val_out;
+        reg [8*256-1:0] ref_file_name;
+
+        fail_count = 0;
+        if ($value$plusargs("REF_FILE=%s", ref_file_name)) begin
+            ref_fd = $fopen(ref_file_name, "r");
+            if (ref_fd == 0) begin
+                $display("  !!! Error: Ref file not found: %s", ref_file_name);
+            end else begin
+                $display("  Comparing with reference: %s", ref_file_name);
+                for (r = begin_signature; r < end_signature; r = r + 4) begin
+                    if ($fscanf(ref_fd, "%h", val_ref) != 1) begin
+                        $display("  !!! Length Mismatch (Ref too short)");
+                        fail_count = fail_count + 1;
+                        break;
+                    end
+                    val_out = u_soc_top_v0.u_dmem.r_dtcm[r[31:2]];
+                    if (val_out !== val_ref) begin
+                        $display("  !!! MISMATCH [0x%h]: Expect=0x%h, Got=0x%h", r, val_ref, val_out);
+                        fail_count = fail_count + 1;
+                    end
+                end
+
+                // Check if ref file has extra entries
+                if (fail_count == 0 && $fscanf(ref_fd, "%h", val_ref) == 1) begin
+                    $display("  !!! Length Mismatch (Ref too long)");
+                    fail_count = fail_count + 1;
+                end
+
+                report_result(fail_count == 0, "COMPLIANCE");
+                if (fail_count > 0)
+                    $display("  Total Mismatches: %0d", fail_count);
+                $fclose(ref_fd);
+            end
+        end
+    end
+`endif
+
+    $finish;
+end
+`endif
+
+// =============================================================================
+// ----------------        Memory Loading        ----------------
+// =============================================================================
+initial begin
+    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+end
+
+// Global Timeout
+initial begin
+    #1000000;
+    $display("Simulation Time Out.");
+    $finish;
+end
+
+// =============================================================================
+// ----------------        SVA Bindings          ----------------
+// =============================================================================
+`ifndef IVERILOG
+bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
+    .clk(u_soc_top_v0.clk),
+    .rst_n(u_soc_top_v0.rst_n),
+    .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
+    .sel_itcm_bus(sel_itcm),
+    .mema_addr_bus(i_mema_addr)
+);
+
+bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
+    .clk(clk),
+    .rst_n(rst_n),
+    .lsu_req_load_lsu(lsu_req_load),
+    .lsu_req_store_lsu(lsu_req_store),
+    .mema_addr_lsu(mema_addr),
+    .lsu_req_info_size_lsu(lsu_req_info_size)
+);
+`endif
+
+endmodule

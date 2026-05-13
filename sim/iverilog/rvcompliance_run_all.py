@@ -39,10 +39,10 @@ def main():
         # 运行单个 compliance 测试，该脚本会执行仿真并进行结果比对
         r = subprocess.check_output([sys.executable, 'rvcompliance_run_single.py', file], stderr=subprocess.STDOUT).decode('utf-8')
         
-        if '### PASS ###' in r:
-            print(os.path.basename(file) + '    PASS')
+        if '[PASS]' in r:
+            print(f"{os.path.basename(file):<30} [  PASS  ]")
         else:
-            print(os.path.basename(file) + '    !!!FAIL!!!')
+            print(f"{os.path.basename(file):<30} [# FAIL #]")
             fail_count += 1
 
     print(f"\n===========================================")

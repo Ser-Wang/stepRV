@@ -6,9 +6,9 @@ import subprocess
 # ==============================================================================
 # 全局配置参数
 # ==============================================================================
-RTL_VERSION = 'v0_rv32i_basic'
-RTL_DIR    = f'../../de_rtl/{RTL_VERSION}'
-TB_FILE    = r'../../dv_tb/tb_soctop_rvcompilance.sv'
+RTL_VERSION = '00_rv32i_basic'
+RTL_DIR    = f'../../{RTL_VERSION}/de'
+TB_FILE    = f'../../{RTL_VERSION}/dv/tb_soctop_isatest.sv'
 FILELIST_F = r'filelist.f'
 TESTS_BASE_DIR   = r'../../tests/rv_compilance'
 SEARCH_TARGET_FOLDERS = ['rv32i', 'rv32im', 'rv32Zicsr', 'rv32Zifencei']
@@ -56,7 +56,7 @@ def main():
         return
 
     # 1.5 生成 filelist.f
-    os.system(f'python subscripts/gen_filelist.py {RTL_DIR} {TB_FILE} {FILELIST_F}')
+    os.system(f'python subscripts/gen_filelist.py {RTL_DIR} {TB_FILE} {FILELIST_F} RVTEST_COMPLIANCE')
 
     # 2. 编译 RTL
     os.system(f'python subscripts/compile_rtl.py {FILELIST_F}')
@@ -67,14 +67,14 @@ def main():
     try:
         process.wait(timeout=20)
     except subprocess.TimeoutExpired:
-        print('!!!Fail, vvp exec timeout!!!')
+        print('[FAIL] vvp exec timeout.')
     logfile.close()
 
     # 4. 比较结果
     ref_file = get_reference_file(data_file)
     if ref_file and os.path.exists(ref_file):
         if os.path.getsize('signature.output') != os.path.getsize(ref_file):
-            print('!!! FAIL, signature size mismatch !!!')
+            print('[FAIL] Signature size mismatch.')
             return
         
         with open('signature.output', 'r') as f1, open(ref_file, 'r') as f2:
@@ -82,9 +82,9 @@ def main():
             f2_lines = f2.readlines()
             for i, line in enumerate(f2_lines):
                 if i >= len(f1_lines) or f1_lines[i] != line:
-                    print(f'!!! FAIL, mismatch at line {i+1} !!!')
+                    print(f'[FAIL] Mismatch at line {i+1}.')
                     return
-        print('### PASS ###')
+        print('[PASS]')
     else:
         print('No ref file found, please check result manually.')
 

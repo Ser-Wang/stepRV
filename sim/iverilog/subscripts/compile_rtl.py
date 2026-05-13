@@ -15,7 +15,6 @@ def main():
     iverilog_cmd += ['-g2012']
     iverilog_cmd += ['-D', 'IVERILOG']
     # iverilog_cmd += ['-I', rtl_dir + r'/sources_1/defines']
-    iverilog_cmd += ['-D', r'OUTPUT="signature.output"']
     
     # 采用 -c 读取所有源文件和 include 路径
     iverilog_cmd += ['-c', filelist_path]

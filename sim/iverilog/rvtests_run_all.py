@@ -44,10 +44,10 @@ def main():
         # 使用 check_output 或 popen 获取结果
         r = subprocess.check_output([sys.executable, 'rvtests_run_single.py', file], stderr=subprocess.STDOUT).decode('utf-8')
         
-        if 'TEST_PASS' in r:
-            print(os.path.basename(file) + '    PASS')
+        if '[PASS]' in r:
+            print(f"{os.path.basename(file):<30} [  PASS  ]")
         else:
-            print(os.path.basename(file) + '    !!!FAIL!!!')
+            print(f"{os.path.basename(file):<30} [# FAIL #]")
             anyfail = True
             fail_count += 1
 

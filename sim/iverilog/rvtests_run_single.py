@@ -6,11 +6,11 @@ import shutil
 # 全局配置参数
 # ==============================================================================
 # 配置 RTL 版本 (可通过改变此处变量，测试不同版本的核心代码)
-RTL_VERSION = 'v0_rv32i_basic'
+RTL_VERSION = '00_rv32i_basic'
 
 # 目录与文件路径配置
-RTL_DIR    = f'../../de_rtl/{RTL_VERSION}'
-TB_FILE    = r'../../dv_tb/tb_soctop_rvtests.sv'
+RTL_DIR    = f'../../{RTL_VERSION}/de'
+TB_FILE    = f'../../{RTL_VERSION}/dv/tb_soctop_isatest.sv'
 FILELIST_F = r'filelist.f'
 TESTS_BASE_DIR = r'../../tests/rv_tests_isa'
 
@@ -55,7 +55,7 @@ def main():
         return
 
     # 1.5 生成 filelist.f
-    cmd_gen = r'python subscripts/gen_filelist.py' + ' ' + RTL_DIR + ' ' + TB_FILE + ' ' + FILELIST_F
+    cmd_gen = r'python subscripts/gen_filelist.py' + ' ' + RTL_DIR + ' ' + TB_FILE + ' ' + FILELIST_F + ' RVTEST_ISA'   # 末尾这个将在filelist中出现"+define+RVTEST_ISA"
     os.system(cmd_gen)
 
     # 2. 编译 RTL 文件
@@ -75,18 +75,11 @@ def main():
 
     # 4. 检查结果
     with open('run.log', 'r') as f:
-        if 'TEST_PASS' in f.read():
-            print("\n~~~~~~~~~~~~~~~~~~~ TEST_PASS ~~~~~~~~~~~~~~~~~~~~")
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            print("~~~~~~~~~ #####     ##     ####    ####  ~~~~~~~~~")
-            print("~~~~~~~~~ #    #   #  #   #       #      ~~~~~~~~~")
-            print("~~~~~~~~~ #    #  #    #   ####    ####  ~~~~~~~~~")
-            print("~~~~~~~~~ #####   ######       #       # ~~~~~~~~~")
-            print("~~~~~~~~~ #       #    #  #    #  #    # ~~~~~~~~~")
-            print("~~~~~~~~~ #       #    #   ####    ####  ~~~~~~~~~")
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        log_content = f.read()
+        if '[PASS]' in log_content:
+            print('[PASS]')
         else:
-            print("\n!!! TEST_FAIL, check run.log for details !!!")
+            print("\n[FAIL] Check run.log for details.")
 
 if __name__ == '__main__':
     main()

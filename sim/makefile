@@ -1,7 +1,8 @@
 all: filelist com_fsdb sim verdi
 #---------------------------------------------------------------
+CORE_VERSION ?= 00_rv32i_basic
 filelist:
-	find ../de ../dv -name "*.v" -o -name "*.sv" > filelist.f
+	find ../$(CORE_VERSION)/de ../$(CORE_VERSION)/dv -name "*.v" -o -name "*.sv" > filelist.f
 #---------------------------------------------------------------
 com_vpd:
 	vcs -f filelist.f \
