@@ -1,23 +1,14 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/02/11 18:57:41
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/02/11
+// Design Name: StepRV_v0
 // Module Name: exu
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------
 `include "config.v"
 
 module exu(
@@ -200,8 +191,8 @@ wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rs1_fwded;
 wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rs2_fwded;
 wire [`XWIDTH-1:0] alu_imm = dec_imm_r_ex;
 // wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
-// alu的imm不需要立即数隔离，因为它只是adder的输入，在非alu req时mux会选rs2，而rs2已经过立即数隔离。因此可以省下立即数隔离所需的门。
-// alu的pc也不需要立即数隔离，因为它只是adder的输入，在非alu req时mux会选rs1，而rs1已经过立即数隔离。
+// ALU immediate does not need isolation as it is only an input to the adder. In non-ALU requests, the mux selects RS2 (which is already isolated). This saves logic gates.
+// ALU PC also does not need isolation; in non-ALU requests, the mux selects RS1 (already isolated).
 
 wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & rs1_fwded;
 wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & rs2_fwded;

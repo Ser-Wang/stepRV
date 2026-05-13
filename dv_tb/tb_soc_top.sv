@@ -1,26 +1,14 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/01/14 09:05:32
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/01/14
+// Design Name: StepRV_v0
 // Module Name: tb_soc_top
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-// `include "G:/myProjs/11_myRV/myProj_RV/ref_TinyRV/ref_TinyRV.srcs/sources_1/imports/core/defines.v"
-// `include "../sources_1/defines/config.v"
+//--------------------------------------------------------------------------------
 
 
 module tb_soc_top(

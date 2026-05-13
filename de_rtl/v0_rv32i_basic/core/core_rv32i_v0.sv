@@ -1,28 +1,19 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/01/22 17:00:00
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/01/22
+// Design Name: StepRV_v0
 // Module Name: core_rv32i_v0
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-`include "./config.v"
+//--------------------------------------------------------------------------------
+`include "config.v"
 
 module core_rv32i_v0(
     input wire clk,
-    input wire rst_n,   //
+    input wire rst_n,
     // if
     output wire [31:0] o_if_pc,
     input  wire [31:0] i_if_instr,
@@ -141,10 +132,10 @@ idu u_idu(
     .o_dec_imm          (dec_imm        ),
     .o_dec_info_bus_id  (dec_info_bus_id),
     .o_dec_rdwen_id     (wrbk_rdwen_idu ),
-    .o_need_rs1_idu     (need_rs1_idu   ),  // decision basis: 该信号不能直接送入forwarding_ctrl模块，一方面fwd_ctrl工作在ex级，另一方面need_rs信号须与exu状态保持一致，如果stall要同时stall住，因此最好放在exu中
+    .o_need_rs1_idu     (need_rs1_idu   ),  // Decision basis: This signal cannot be directly sent to forwarding_ctrl. fwd_ctrl operates in EX stage, and the need_rs signal must stay consistent with the EXU state; if stalled, it must be stalled together. Thus, it is best kept inside EXU.
     .o_need_rs2_idu     (need_rs2_idu   ),
     // Pipeline_reg_out
-    .o_instr_id         (instr_id       ),    // for what
+    .o_instr_id         (instr_id       ),    // for pipeline debug
     .o_pc_id            (pc_id          )
     );
 

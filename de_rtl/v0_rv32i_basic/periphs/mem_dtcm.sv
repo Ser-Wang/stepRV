@@ -1,24 +1,15 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/05/02 18:52:26
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/05/02
+// Design Name: StepRV_v0
 // Module Name: mem_dtcm
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-`include "../defines/config.v"
+//--------------------------------------------------------------------------------
+`include "config.v"
 
 module mem_dtcm(
     input  wire clk,

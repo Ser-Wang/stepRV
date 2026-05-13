@@ -1,24 +1,15 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/02/27 01:13:41
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/02/27
+// Design Name: StepRV_v0
 // Module Name: exu_bru
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-`include "../defines/config.v"
+//--------------------------------------------------------------------------------
+`include "config.v"
 
 module exu_bru(
     input wire clk,
@@ -83,7 +74,7 @@ wire comp_res = (bru_req_beq  & comp_res_eq )   // those comp_results may have m
 // ---- generate pc_addr
 
 wire [31:0] adder_jump_opr1 = i_dec_info_bus_bru[`DECINFO_BRU_JALR] ? i_bru_rs1 : i_bru_pc; // only when jalr is rs1+imm, others are all pc+imm.
-wire [31:0] adder_jump_opr2 = i_bru_imm;    // 已经在exu向exu_bru分配时操作数隔离
+wire [31:0] adder_jump_opr2 = i_bru_imm;    // Operands are already gated during dispatch from EXU to EXU_BRU
 
 wire [31:0] adder_jumpaddr = adder_jump_opr1 + adder_jump_opr2; // bxx
 

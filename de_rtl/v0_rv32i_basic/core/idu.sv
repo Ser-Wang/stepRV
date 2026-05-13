@@ -1,23 +1,14 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2026/01/24 18:43:15
-// Design Name: 
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/01/24
+// Design Name: StepRV_v0
 // Module Name: idu
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
 // Description: 
-// 
-// Dependencies: 
-// 
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------
 `include "config.v"
 
 module idu(
@@ -84,7 +75,7 @@ wire [4:0] instr32_rs1    = rv32_instr[19:15];
 wire [4:0] instr32_rs2    = rv32_instr[24:20];
 wire [6:0] instr32_func7  = rv32_instr[31:25];
 
-// opcode   opcode[1:0]=2'b11 在rv32i阶段是确定的，无需考虑
+// opcode[1:0]=2'b11 is fixed for RV32I, no need to consider other cases
 wire dec_opcode_6_5_00 = (instr_opcode[6:5] == 2'b00);
 wire dec_opcode_6_5_01 = (instr_opcode[6:5] == 2'b01);
 wire dec_opcode_6_5_10 = (instr_opcode[6:5] == 2'b10);
@@ -253,7 +244,7 @@ assign o_dec_imm = rv32_imm;
 // ----------------        EXU Datapath Ctrl Sigs        ---------------- //
 // wire dec_info_need_rd = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_load_type | dec_rv32i_csr_type | dec_rv32i_lui | dec_rv32i_auipc | dec_rv32i_jal | dec_rv32i_jalr;
 wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak);
-wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (   // TODO: Needs further consideration: 需要排除rs==x0的情况吗？
+wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (   // TODO: Needs further consideration: Do we need to exclude rs == x0?
                                               (~dec_rv32i_lui)
                                             & (~dec_rv32i_auipc) 
                                             & (~dec_rv32i_jal) 
