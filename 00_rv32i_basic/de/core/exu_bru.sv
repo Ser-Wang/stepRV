@@ -49,7 +49,7 @@ wire [31+1:0] adder_in1, adder_in2;
 wire op_usign = bru_req_bltu | bru_req_bgeu;
 wire [31+1:0] adder_result;
 // assign adder_opr1 = bru_req_info_comp ? i_bru_rs1 : i_bru_pc;
-// assign adder_opr2 = bru_req_info_comp ? i_bru_rs2 : `XWIDTH'd4;
+// assign adder_opr2 = bru_req_info_comp ? i_bru_rs2 : `XLEN'd4;
 assign adder_opr1 = i_bru_rs1;
 assign adder_opr2 = i_bru_rs2;
 assign adder_in1 = {(~op_usign & adder_opr1[31]), adder_opr1};
@@ -78,7 +78,7 @@ wire [31:0] adder_jump_opr2 = i_bru_imm;    // Operands are already gated during
 
 wire [31:0] adder_jumpaddr = adder_jump_opr1 + adder_jump_opr2; // bxx
 
-wire [31:0] pc_add4 = i_bru_pc + `XWIDTH'd4;
+wire [31:0] pc_add4 = i_bru_pc + `XLEN'd4;
 
 
 // ---- 

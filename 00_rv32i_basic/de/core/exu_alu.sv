@@ -102,7 +102,7 @@ wire [31:0] shifter_in1;
 wire [5-1:0] shifter_in2;
 wire [31:0] shifter_result;     // sll, srl, sra share one left-shifter
 wire [31:0] mask_sign_extention;
-assign shifter_in1 = {`XWIDTH{dec_req_shift}} & 
+assign shifter_in1 = {`XLEN{dec_req_shift}} & 
                                         ( dec_req_sll ? alu_req_op1 :     // convert op1 input, then the left-shifter will perform as a right-shifter.
                                                       { alu_req_op1[00], alu_req_op1[01], alu_req_op1[02], alu_req_op1[03],
                                                         alu_req_op1[04], alu_req_op1[05], alu_req_op1[06], alu_req_op1[07],
@@ -115,7 +115,7 @@ assign shifter_in1 = {`XWIDTH{dec_req_shift}} &
 assign shifter_in2 = {5{dec_req_shift}} & alu_req_op2[4:0];
 assign shifter_result = shifter_in1 << shifter_in2;
 
-assign mask_sign_extention = (~(`XWIDTH'b0)) >> shifter_in2;
+assign mask_sign_extention = (~(`XLEN'b0)) >> shifter_in2;
 
 assign alu_result_sll = shifter_result;
 assign alu_result_srl = {

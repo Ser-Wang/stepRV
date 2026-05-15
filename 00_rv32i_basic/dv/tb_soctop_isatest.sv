@@ -171,6 +171,16 @@ initial begin
     $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
 
+// =============================================================================
+// ----------------        Waveform Dump          ----------------
+// =============================================================================
+`ifdef DUMP_FSDB
+initial begin
+    $fsdbDumpfile("tb_top.fsdb");
+    $fsdbDumpvars(0, tb_soctop_isatest);
+end
+`endif
+
 // Global Timeout
 initial begin
     #1000000;

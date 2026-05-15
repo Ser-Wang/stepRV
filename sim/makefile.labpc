@@ -1,0 +1,230 @@
+# ==============================================================================
+# Makefile for RISC-V Core VCS Simulation
+# ==============================================================================
+# Usage:
+#   make sim_isa  test=add              - Run a single ISA test (riscv-tests)
+#   make sim_comp test=I-ADD-01         - Run a single Compliance test
+#   make sim_all  type=isa   group=rv32ui   - Batch run all ISA tests in a group
+#   make sim_all  type=comp  group=rv32i    - Batch run all Compliance tests in a group
+#   make verdi                          - Open Verdi with latest waveform
+#   make clean                          - Clean all generated files
+# ==============================================================================
+
+# ---- Global Config ----
+CORE_VERSION ?= 00_rv32i_basic
+DV_DIR       := ../$(CORE_VERSION)/dv
+DE_DIR       := ../$(CORE_VERSION)/de
+TESTS_DIR    := ../tests/rv_tests_isa
+COMP_DIR     := ../tests/rv_compilance
+
+# ---- ISA test search folders ----
+ISA_GROUPS   := rv32ui rv32um
+# ---- Compliance test search folders ----
+COMP_GROUPS  := rv32i rv32im rv32Zicsr rv32Zifencei
+
+# ==============================================================================
+# File List Generation
+# ==============================================================================
+filelist:
+	@find $(DE_DIR) -name "*.v" -o -name "*.sv" > filelist.f
+	@echo "$(DV_DIR)/tb_soctop_isatest.sv" >> filelist.f
+	@echo "$(DV_DIR)/exu_lsu_sva.sv"       >> filelist.f
+	@echo "$(DV_DIR)/soc_bus_sva.sv"        >> filelist.f
+
+# ==============================================================================
+# VCS Compilation
+# ==============================================================================
+# Compile for ISA test mode
+com_isa: filelist
+	vcs -f filelist.f \
+		-timescale=1ns/100ps \
+		-full64 +v2k -sverilog -Mupdate +define+DUMP_FSDB +define+RVTEST_ISA \
+		+incdir+$(DE_DIR)/defines \
+		-debug_acc+all -debug_region+cell+encrypt \
+		|tee vcs.log
+
+# Compile for Compliance test mode
+com_comp: filelist
+	vcs -f filelist.f \
+		-timescale=1ns/100ps \
+		-full64 +v2k -sverilog -Mupdate +define+DUMP_FSDB +define+RVTEST_COMPLIANCE \
+		+incdir+$(DE_DIR)/defines \
+		-debug_acc+all -debug_region+cell+encrypt \
+		|tee vcs.log
+
+# ==============================================================================
+# Single Test: ISA (riscv-tests)
+# ==============================================================================
+# Usage: make sim_isa test=add
+#   Searches for rv32ui-p-add.data / rv32um-p-add.data etc.
+sim_isa: com_isa
+ifndef test
+	$(error "Usage: make sim_isa test=<inst_name>  e.g. make sim_isa test=add")
+endif
+	@echo "=== ISA Test: $(test) ==="
+	@found=0; \
+	for grp in $(ISA_GROUPS); do \
+		data_file="$(TESTS_DIR)/$$grp/$${grp}-p-$(test).data"; \
+		if [ -f "$$data_file" ]; then \
+			cp "$$data_file" ./inst.data; \
+			echo "  Data: $$data_file"; \
+			found=1; \
+			break; \
+		fi; \
+	done; \
+	if [ "$$found" = "0" ]; then \
+		echo "Error: Cannot find .data for test '$(test)' in $(ISA_GROUPS)"; \
+		exit 1; \
+	fi
+	./simv |tee sim.log
+	@echo ""
+	@if grep -q '\[PASS\]' sim.log; then \
+		echo ">>> Result: [PASS]"; \
+	else \
+		echo ">>> Result: [FAIL] - Check sim.log for details"; \
+	fi
+
+# ==============================================================================
+# Single Test: Compliance (riscv-compliance)
+# ==============================================================================
+# Usage: make sim_comp test=I-ADD-01
+#   Searches for I-ADD-01.data in rv32i, rv32im, etc.
+sim_comp: com_comp
+ifndef test
+	$(error "Usage: make sim_comp test=<test_name>  e.g. make sim_comp test=I-ADD-01")
+endif
+	@echo "=== Compliance Test: $(test) ==="
+	@found=0; ref_arg=""; \
+	for grp in $(COMP_GROUPS); do \
+		data_file="$(COMP_DIR)/$$grp/$(test).data"; \
+		if [ -f "$$data_file" ]; then \
+			cp "$$data_file" ./inst.data; \
+			echo "  Data: $$data_file"; \
+			ref_file="$(COMP_DIR)/$$grp/$(test).ref"; \
+			if [ -f "$$ref_file" ]; then \
+				ref_arg="+REF_FILE=$$ref_file"; \
+				echo "  Ref:  $$ref_file"; \
+			fi; \
+			found=1; \
+			break; \
+		fi; \
+	done; \
+	if [ "$$found" = "0" ]; then \
+		echo "Error: Cannot find .data for test '$(test)' in $(COMP_GROUPS)"; \
+		exit 1; \
+	fi; \
+	echo "$$ref_arg" > .ref_arg.tmp
+	./simv $$(cat .ref_arg.tmp) |tee sim.log
+	@rm -f .ref_arg.tmp
+	@echo ""
+	@if grep -q '\[PASS\]' sim.log; then \
+		echo ">>> Result: [PASS]"; \
+	elif grep -q '\[FAIL\]' sim.log; then \
+		echo ">>> Result: [FAIL] - Check sim.log for details"; \
+	else \
+		echo ">>> Result: [UNKNOWN] - No ref file or no pass/fail detected"; \
+	fi
+
+# ==============================================================================
+# Batch Test: sim_all
+# ==============================================================================
+# Usage:
+#   make sim_all type=isa  group=rv32ui
+#   make sim_all type=comp group=rv32i
+sim_all:
+ifndef type
+	$(error "Usage: make sim_all type=<isa|comp> group=<group_name>")
+endif
+ifndef group
+	$(error "Usage: make sim_all type=<isa|comp> group=<group_name>")
+endif
+ifeq ($(type),isa)
+	@$(MAKE) --no-print-directory _batch_isa group=$(group)
+else ifeq ($(type),comp)
+	@$(MAKE) --no-print-directory _batch_comp group=$(group)
+else
+	$(error "Unknown type '$(type)'. Use 'isa' or 'comp'.")
+endif
+
+# --- Internal: Batch ISA ---
+_batch_isa: com_isa
+	@echo "==========================================="
+	@echo "  Batch ISA Test: group=$(group)"
+	@echo "==========================================="
+	@pass=0; fail=0; total=0; \
+	for data_file in $(TESTS_DIR)/$(group)/$(group)-p-*.data; do \
+		[ -f "$$data_file" ] || continue; \
+		test_name=$$(basename "$$data_file" .data | sed 's/$(group)-p-//'); \
+		total=$$((total + 1)); \
+		cp "$$data_file" ./inst.data; \
+		./simv > sim.log 2>&1; \
+		if grep -q '\[PASS\]' sim.log; then \
+			printf "  %-30s [  PASS  ]\n" "$$test_name"; \
+			pass=$$((pass + 1)); \
+		else \
+			printf "  %-30s [# FAIL #]\n" "$$test_name"; \
+			fail=$$((fail + 1)); \
+			cp sim.log "sim_$${test_name}.fail.log"; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "==========================================="; \
+	echo "  Summary: $$pass/$$total Passed"; \
+	echo "==========================================="; \
+	if [ "$$fail" = "0" ]; then \
+		echo "  Congratulations, All PASS!"; \
+	else \
+		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
+	fi
+
+# --- Internal: Batch Compliance ---
+_batch_comp: com_comp
+	@echo "==========================================="
+	@echo "  Batch Compliance Test: group=$(group)"
+	@echo "==========================================="
+	@pass=0; fail=0; total=0; \
+	for data_file in $(COMP_DIR)/$(group)/*.data; do \
+		[ -f "$$data_file" ] || continue; \
+		test_name=$$(basename "$$data_file" .data); \
+		total=$$((total + 1)); \
+		cp "$$data_file" ./inst.data; \
+		ref_file="$(COMP_DIR)/$(group)/$${test_name}.ref"; \
+		ref_arg=""; \
+		if [ -f "$$ref_file" ]; then \
+			ref_arg="+REF_FILE=$$ref_file"; \
+		fi; \
+		./simv $$ref_arg > sim.log 2>&1; \
+		if grep -q '\[PASS\]' sim.log; then \
+			printf "  %-30s [  PASS  ]\n" "$$test_name"; \
+			pass=$$((pass + 1)); \
+		else \
+			printf "  %-30s [# FAIL #]\n" "$$test_name"; \
+			fail=$$((fail + 1)); \
+			cp sim.log "sim_$${test_name}.fail.log"; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "==========================================="; \
+	echo "  Summary: $$pass/$$total Passed"; \
+	echo "==========================================="; \
+	if [ "$$fail" = "0" ]; then \
+		echo "  Congratulations, All PASS!"; \
+	else \
+		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
+	fi
+
+# ==============================================================================
+# Waveform Viewer
+# ==============================================================================
+verdi:
+	verdi -f filelist.f -ssf tb_top.fsdb -play ./scripts/verdi.tcl &
+
+# ==============================================================================
+# Cleanup
+# ==============================================================================
+clean:
+	rm -rf csrc novas* *.log simv* *fsdb* ucli.key verdiLog \
+		filelist.f inst.data signature.output .ref_arg.tmp
+
+.PHONY: all filelist com_isa com_comp sim_isa sim_comp sim_all \
+        _batch_isa _batch_comp verdi clean

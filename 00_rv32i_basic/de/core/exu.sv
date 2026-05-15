@@ -164,7 +164,7 @@ assign o_rs2idx_exu = r_rs2idx_exu;
 
 // ================================================================
 // ----------------        Data Forwarding        ---------------- //
-wire [`XWIDTH-1:0] rs1_fwded, rs2_fwded;
+wire [`XLEN-1:0] rs1_fwded, rs2_fwded;
 assign rs1_fwded = (~i_fwding_rs1_sel[1]) ? rf_rs1_r_ex : 
                    ( i_fwding_rs1_sel[0]) ? i_fwd_wrbk_data_wbu : i_fwd_wrbk_data_mau;
 assign rs2_fwded = (~i_fwding_rs2_sel[1]) ? rf_rs2_r_ex : 
@@ -187,30 +187,30 @@ wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req
 
 
 // ---- rs1, rs2, imm logic-gating
-wire [`XWIDTH-1:0] alu_rs1 = {`XWIDTH{req_disp_alu}} & rs1_fwded;
-wire [`XWIDTH-1:0] alu_rs2 = {`XWIDTH{req_disp_alu}} & rs2_fwded;
-wire [`XWIDTH-1:0] alu_imm = dec_imm_r_ex;
-// wire [`XWIDTH-1:0] alu_imm = {`XWIDTH{req_disp_alu}} & dec_imm_r_ex;
+wire [`XLEN-1:0] alu_rs1 = {`XLEN{req_disp_alu}} & rs1_fwded;
+wire [`XLEN-1:0] alu_rs2 = {`XLEN{req_disp_alu}} & rs2_fwded;
+wire [`XLEN-1:0] alu_imm = dec_imm_r_ex;
+// wire [`XLEN-1:0] alu_imm = {`XLEN{req_disp_alu}} & dec_imm_r_ex;
 // ALU immediate does not need isolation as it is only an input to the adder. In non-ALU requests, the mux selects RS2 (which is already isolated). This saves logic gates.
 // ALU PC also does not need isolation; in non-ALU requests, the mux selects RS1 (already isolated).
 
-wire [`XWIDTH-1:0] lsu_rs1 = {`XWIDTH{req_disp_lsu}} & rs1_fwded;
-wire [`XWIDTH-1:0] lsu_rs2 = {`XWIDTH{req_disp_lsu}} & rs2_fwded;
-wire [`XWIDTH-1:0] lsu_imm = {`XWIDTH{req_disp_lsu}} & dec_imm_r_ex;
+wire [`XLEN-1:0] lsu_rs1 = {`XLEN{req_disp_lsu}} & rs1_fwded;
+wire [`XLEN-1:0] lsu_rs2 = {`XLEN{req_disp_lsu}} & rs2_fwded;
+wire [`XLEN-1:0] lsu_imm = {`XLEN{req_disp_lsu}} & dec_imm_r_ex;
 
-wire [`XWIDTH-1:0] bru_rs1 = {`XWIDTH{req_disp_bru}} & rs1_fwded;
-wire [`XWIDTH-1:0] bru_rs2 = {`XWIDTH{req_disp_bru}} & rs2_fwded;
-wire [`XWIDTH-1:0] bru_imm = {`XWIDTH{req_disp_bru}} & dec_imm_r_ex;
-wire [`XWIDTH-1:0] bru_pc = {`XWIDTH{req_disp_bru}} & r_pc_exu;
+wire [`XLEN-1:0] bru_rs1 = {`XLEN{req_disp_bru}} & rs1_fwded;
+wire [`XLEN-1:0] bru_rs2 = {`XLEN{req_disp_bru}} & rs2_fwded;
+wire [`XLEN-1:0] bru_imm = {`XLEN{req_disp_bru}} & dec_imm_r_ex;
+wire [`XLEN-1:0] bru_pc = {`XLEN{req_disp_bru}} & r_pc_exu;
 
 
 // ---- results wrbk
 wire [31:0] alu_wrbk_data;
 wire [31:0] bru_wrbk_data;
 // wire [31:0] lsu_req_result;
-assign o_wrbk_data_exu = ({`XWIDTH{req_disp_alu}} & alu_wrbk_data)
-                      | ({`XWIDTH{req_disp_bru}} & bru_wrbk_data);
-                    //   | ({`XWIDTH{req_disp_lsu}} & lsu_req_result);
+assign o_wrbk_data_exu = ({`XLEN{req_disp_alu}} & alu_wrbk_data)
+                      | ({`XLEN{req_disp_bru}} & bru_wrbk_data);
+                    //   | ({`XLEN{req_disp_lsu}} & lsu_req_result);
 
 
 // ----------------        Instantiations        ---------------- //

@@ -66,7 +66,7 @@ end
 // =============================================================
 // ----------------        Decode        ---------------- //
 wire [31:0] rv32_instr = r_instr_id;
-wire [15:0] rv16_instr = r_instr_id[15:0]; // reserved
+// wire [15:0] rv16_instr = r_instr_id[15:0]; // reserved
 
 wire [6:0] instr_opcode   = rv32_instr[6:0];
 wire [4:0] instr32_rd     = rv32_instr[11:7];
@@ -239,6 +239,8 @@ wire [31:0] rv32_imm =
 
 assign o_dec_imm = rv32_imm;
 
+wire [11:0] csridx = rv32_instr[31:20];
+
 
 // =======================================================================
 // ----------------        EXU Datapath Ctrl Sigs        ---------------- //
@@ -276,12 +278,12 @@ assign o_need_rs2_idu = dec_info_need_rs2;
 wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu;
 wire [`DECINFO_BUS_LSU_WIDTH-1:0] dec_info_bus_lsu;
 wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
-// wire [`DECINFO_BUS_CSR_WIDTH-1:0] dec_info_bus_csr;
+wire [`DECINFO_BUS_CSR_WIDTH-1:0] dec_info_bus_csr;
 
 wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
 wire dec_oper_dispatch_bru = dec_rv32i_branch_type | dec_rv32i_jal | dec_rv32i_jalr | dec_rv32i_fence_fencei;
-wire dec_oper_dispatch_csr; // TODO
+wire dec_oper_dispatch_csr = dec_rv32i_csr_type;
 
 
 // ALU group
@@ -326,13 +328,25 @@ assign dec_info_bus_bru[`DECINFO_BRU_FENCE ] = dec_rv32i_fence;
 assign dec_info_bus_bru[`DECINFO_BRU_FENCEI] = dec_rv32i_fence_i;
 //   assign dec_info_bus_bru[`DECINFO_BRU_BPRDT]  = i_prdt_taken;
 
+assign dec_info_bus_csr[`DECINFO_GRP        ] = `DECINFO_GRP_CSR;
+assign dec_info_bus_csr[`DECINFO_CSR_CSRRW  ] = rv32_csrrw | rv32_csrrwi;
+assign dec_info_bus_csr[`DECINFO_CSR_CSRRS  ] = rv32_csrrs | rv32_csrrsi;
+assign dec_info_bus_csr[`DECINFO_CSR_CSRRC  ] = rv32_csrrc | rv32_csrrci;
+assign dec_info_bus_csr[`DECINFO_CSR_RS1IMM ] = rv32_csrrwi | rv32_csrrsi | rv32_csrrci;
+assign dec_info_bus_csr[`DECINFO_CSR_ZIMM   ] = instr32_rs1;
+assign dec_info_bus_csr[`DECINFO_CSR_RS1X0  ] = dec_rv32_rs1_x0;
+assign dec_info_bus_csr[`DECINFO_CSR_CSRIDX ] = rv32_instr[31:20];
+
+
+
+
 
 // assign o_dec_info_bus_id = dec_info_bus_alu;
 assign o_dec_info_bus_id = 
                         ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_alu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_ALU_WIDTH{1'b0}}, dec_info_bus_alu})
                       | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_lsu}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_LSU_WIDTH{1'b0}}, dec_info_bus_lsu})
-                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_bru}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_bru});
-                    //   | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_csr}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_csr});
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_bru}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_BRU_WIDTH{1'b0}}, dec_info_bus_bru})
+                      | ({`DECINFO_BUS_WIDTH{dec_oper_dispatch_csr}} & {{`DECINFO_BUS_WIDTH-`DECINFO_BUS_CSR_WIDTH{1'b0}}, dec_info_bus_csr});
 
 
 
