@@ -25,11 +25,6 @@ module core_rv32i_v0(
     input  wire [31:0] i_mema_rd_data
     );
 
-////********    IO Insts    ********////
-assign o_if_pc = pc_ifu;
-
-
-
 ////********    Wires    ********////
 //---- regfile
 wire [`RFIDX_WIDTH-1:0] rf_read_rs1_idx;
@@ -88,9 +83,21 @@ wire is_load_req_exu;
 wire [31:0] pc_next_bru;
 wire jump_flag_bru;
 
+// csr
+wire [11:0] csr_idx;
+wire        csr_wr_en;
+wire [31:0] csr_wr_data;
+wire [31:0] csr_rd_data;
+wire        csr_ill_exc;
+wire        csr_ill_exc_exu;
+
 // flush & stall
 wire [4:0] stall;
 wire [3:0] flush;
+
+
+////********    IO Insts    ********////
+assign o_if_pc = pc_ifu;
 
 
 regfile u_regfile(
@@ -172,6 +179,13 @@ exu u_exu(
     .o_mema_wren_exu    (mema_wren_exu      ),
     .o_mema_wr_data_exu (mema_wr_data_exu   ),
     .o_mema_info_bus    (mema_info_bus      ), // {wr_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    // csr
+    .o_csr_idx          (csr_idx            ),
+    .o_csr_wr_en        (csr_wr_en          ),
+    .o_csr_wr_data      (csr_wr_data        ),
+    .i_csr_rd_data      (csr_rd_data        ),
+    .i_csr_ill_exc      (csr_ill_exc        ),
+    .o_csr_ill_exc_exu  (csr_ill_exc_exu    ),
     // pass by
     .i_wrbk_rdidx_idu   (wrbk_rdidx_idu     ),
     .i_wrbk_rdwen_idu   (wrbk_rdwen_idu     ),
@@ -242,5 +256,15 @@ wbu u_wbu(
     .o_wrbk_rdwen_wbu   (wrbk_rdwen_wbu )
     );
 
+csr_regs u_csr_regs(
+    .clk            (clk            ),
+    .rst_n          (rst_n          ),
+    .i_csr_idx      (csr_idx        ),
+    .i_csr_wr_en    (csr_wr_en      ),
+    .i_csr_wr_data  (csr_wr_data    ),
+    .o_csr_rd_data  (csr_rd_data    ),
+    .o_csr_ill_exc  (csr_ill_exc    ),
+    .i_instr_ret_en (1'b0           ) // Tied to 0 for now
+    );
 
 endmodule

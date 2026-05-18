@@ -91,6 +91,16 @@ graph TD
 - When an interrupt is asserted, `clint.v` signals `ex.v` to perform a jump to the trap handler address.
 - `mstatus`, `mepc`, `mtvec` CSRs are used for state management.
 
+### CSR Support (Control and Status Registers)
+- **Supported Instructions**: Decoded in `id.v` and executed in `ex.v` (combinatorial, single-cycle).
+  - Register-operand: `csrrw`, `csrrs`, `csrrc`
+  - Immediate-operand: `csrrwi`, `csrrsi`, `csrrci`
+- **Supported CSR Registers** (`csr_reg.v`):
+  - **Performance Counters**: `cycle` (0xC00), `cycleh` (0xC80)
+  - **Machine Mode Trap Setup/Handling**: `mstatus` (0x300), `mie` (0x304), `mtvec` (0x305), `mscratch` (0x340), `mepc` (0x341), `mcause` (0x342)
+- **Dual-Port Access**: `csr_reg.v` exposes ports to both the execution unit (`ex.v`) and Core Local Interrupt Controller (`clint.v`). CPU instructions (`ex.v`) have higher write priority than `clint.v` interrupts.
+
+
 ## 5. Usage for Future Analysis
 - To analyze **data hazards**: Focus on `id.v` (operands) and `ex.v` (result). Note that since it's a 3-stage pipeline with immediate WB in EX, data hazard management might be simpler (or require forwarding from EX to ID).
 - To analyze **bus transactions**: Look at `rib.v` and how `ex.v` drives `mem_req_o`.

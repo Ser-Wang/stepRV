@@ -25,6 +25,9 @@ module exu_lsu(
     output wire o_lsu_misaligned_exc  // Add exception signal for misaligned access
     );
 
+wire addr_misaligned;
+
+
 // ----------------        dec_info debus        ---------------- //
 // ---- dec_info debus
 wire lsu_req_load       = i_dec_info_bus_lsu[`DECINFO_LSU_LOAD];
@@ -81,7 +84,7 @@ assign o_mema_info_bus = {mema_wr_mask, lsu_req_load && !addr_misaligned, lsu_re
 
 //// ----------------------------------------------------------------------------------------------------------
 // ---- Misalignment Check
-wire addr_misaligned = (lsu_req_load || lsu_req_store) && (
+assign addr_misaligned = (lsu_req_load || lsu_req_store) && (
                        (lsu_req_info_size == 2'b10 && mema_addr[1:0] != 2'b00) || // Word must be 4-byte aligned
                        (lsu_req_info_size == 2'b01 && mema_addr[0]   != 1'b0 )    // Halfword must be 2-byte aligned
                        );

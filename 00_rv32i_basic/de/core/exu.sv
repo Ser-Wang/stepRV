@@ -48,7 +48,14 @@ module exu(
     input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_idu,
     input  wire i_wrbk_rdwen_idu,
     output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_exu,
-    output wire o_wrbk_rdwen_exu
+    output wire o_wrbk_rdwen_exu,
+    // csr interface to core
+    output wire [11:0] o_csr_idx,
+    output wire        o_csr_wr_en,
+    output wire [31:0] o_csr_wr_data,
+    input  wire [31:0] i_csr_rd_data,
+    input  wire        i_csr_ill_exc,     // Illegal CSR Access Exception from csr_regs (combinational)
+    output wire        o_csr_ill_exc_exu  // Valid Illegal CSR Exception confirmed by EXU (gated by req_disp_csr)
     );
 
 // ================================================================
@@ -183,6 +190,7 @@ wire req_disp_csr = (r_dec_info_bus_ex[`DECINFO_GRP] == `DECINFO_GRP_WIDTH'd3);
 wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu = {`DECINFO_BUS_ALU_WIDTH{req_disp_alu}} & r_dec_info_bus_ex[`DECINFO_BUS_ALU_WIDTH-1:0];
 wire [`DECINFO_BUS_LSU_WIDTH-1:0] dec_info_bus_lsu = {`DECINFO_BUS_LSU_WIDTH{req_disp_lsu}} & r_dec_info_bus_ex[`DECINFO_BUS_LSU_WIDTH-1:0];
 wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru = {`DECINFO_BUS_BRU_WIDTH{req_disp_bru}} & r_dec_info_bus_ex[`DECINFO_BUS_BRU_WIDTH-1:0];
+wire [`DECINFO_BUS_CSR_WIDTH-1:0] dec_info_bus_csr = {`DECINFO_BUS_CSR_WIDTH{req_disp_csr}} & r_dec_info_bus_ex[`DECINFO_BUS_CSR_WIDTH-1:0];
 // assign dec_info_bus_alu = r_dec_info_bus_ex;
 
 
@@ -203,14 +211,24 @@ wire [`XLEN-1:0] bru_rs2 = {`XLEN{req_disp_bru}} & rs2_fwded;
 wire [`XLEN-1:0] bru_imm = {`XLEN{req_disp_bru}} & dec_imm_r_ex;
 wire [`XLEN-1:0] bru_pc = {`XLEN{req_disp_bru}} & r_pc_exu;
 
+wire [`XLEN-1:0] csr_rs1 = {`XLEN{req_disp_csr}} & rs1_fwded;
 
 // ---- results wrbk
 wire [31:0] alu_wrbk_data;
 wire [31:0] bru_wrbk_data;
+wire [31:0] csr_wrbk_data;
 // wire [31:0] lsu_req_result;
 assign o_wrbk_data_exu = ({`XLEN{req_disp_alu}} & alu_wrbk_data)
-                      | ({`XLEN{req_disp_bru}} & bru_wrbk_data);
-                    //   | ({`XLEN{req_disp_lsu}} & lsu_req_result);
+                       | ({`XLEN{req_disp_bru}} & bru_wrbk_data)
+                       | ({`XLEN{req_disp_csr}} & csr_wrbk_data);
+
+
+// ----------------        Exception        ---------------- //
+assign o_csr_ill_exc_exu = i_csr_ill_exc & req_disp_csr;
+// i_csr_ill_exc from csr_regs is purely combinational based on i_csr_idx.
+// For non-CSR instructions (e.g., ADD), i_csr_idx contains garbage bits which 
+// may falsely trigger i_csr_ill_exc. Thus, we MUST gate it with req_disp_csr
+// to guarantee a valid illegal CSR access exception.
 
 
 // ----------------        Instantiations        ---------------- //
@@ -259,6 +277,18 @@ exu_bru u_exu_bru(
     .o_jump_flag        (o_jump_flag        )
     );
 
-
+exu_csr u_exu_csr(
+    .clk                (clk    ),
+    .rst_n              (rst_n  ),
+    .i_csr_rs1          (csr_rs1            ),
+    .i_dec_info_bus_csr (dec_info_bus_csr   ),
+    .o_csr_wrbk_res     (csr_wrbk_data      ),
+    .o_csr_idx          (o_csr_idx          ),
+    .o_csr_wr_en        (o_csr_wr_en        ),
+    .o_csr_wr_data      (o_csr_wr_data      ),
+    .i_csr_rd_data      (i_csr_rd_data      ),
+    .i_stall            (i_stall            ),
+    .i_flush            (i_flush            )
+    );
 
 endmodule

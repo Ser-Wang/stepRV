@@ -208,6 +208,15 @@ bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
     .mema_addr_lsu(mema_addr),
     .lsu_req_info_size_lsu(lsu_req_info_size)
 );
+
+bind exu csr_sva u_csr_sva (
+    .clk(clk),
+    .rst_n(rst_n),
+    .i_csr_idx(o_csr_idx),
+    .i_csr_wr_en(o_csr_wr_en),
+    .o_csr_ill_exc(o_csr_ill_exc_exu),
+    .req_disp_csr(req_disp_csr)
+);
 `endif
 
 endmodule
