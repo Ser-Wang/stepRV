@@ -3,72 +3,60 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="tb_soc_top_behav.wdb" id="1">
+      <db_ref path="tb_soctop_isatest_behav.wdb" id="1">
          <top_modules>
             <top_module name="glbl" />
-            <top_module name="tb_soc_top" />
+            <top_module name="tb_soctop_isatest" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="8,018.333 ns"></ZoomStartTime>
-      <ZoomEndTime time="9,526.334 ns"></ZoomEndTime>
-      <Cursor1Time time="9,275.000 ns"></Cursor1Time>
+      <ZoomStartTime time="771.666 ns"></ZoomStartTime>
+      <ZoomEndTime time="4,561.667 ns"></ZoomEndTime>
+      <Cursor1Time time="1,311.666 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="219"></NameColumnWidth>
+      <NameColumnWidth column_width="215"></NameColumnWidth>
       <ValueColumnWidth column_width="58"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="13" />
    <wave_markers>
       <marker time="119800" label="" />
    </wave_markers>
-   <wvobject fp_name="/tb_soc_top/clk" type="logic">
+   <wvobject fp_name="/tb_soctop_isatest/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
    </wvobject>
-   <wvobject fp_name="/tb_soc_top/rst_n" type="logic">
+   <wvobject fp_name="/tb_soctop_isatest/rst_n" type="logic">
       <obj_property name="ElementShortName">rst_n</obj_property>
       <obj_property name="ObjectShortName">rst_n</obj_property>
    </wvobject>
-   <wvobject fp_name="/tb_soc_top/x3" type="array">
-      <obj_property name="ElementShortName">x3[31:0]</obj_property>
-      <obj_property name="ObjectShortName">x3[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_soc_top/x26" type="array">
-      <obj_property name="ElementShortName">x26[31:0]</obj_property>
-      <obj_property name="ObjectShortName">x26[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_soc_top/x27" type="array">
-      <obj_property name="ElementShortName">x27[31:0]</obj_property>
-      <obj_property name="ObjectShortName">x27[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/r_regfile" type="array">
+   <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/r_regfile" type="array">
       <obj_property name="ElementShortName">r_regfile[1:31][31:0]</obj_property>
       <obj_property name="ObjectShortName">r_regfile[1:31][31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="group74" type="group">
       <obj_property name="label">ifu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/i_stall" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ifu/i_stall" type="logic">
          <obj_property name="ElementShortName">i_stall</obj_property>
          <obj_property name="ObjectShortName">i_stall</obj_property>
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/i_jump_flag" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ifu/i_jump_flag" type="logic">
          <obj_property name="ElementShortName">i_jump_flag</obj_property>
          <obj_property name="ObjectShortName">i_jump_flag</obj_property>
          <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/pc_r" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ifu/pc_r" type="array">
          <obj_property name="ElementShortName">pc_r[31:0]</obj_property>
          <obj_property name="ObjectShortName">pc_r[31:0]</obj_property>
          <obj_property name="CustomSignalColor">#008000</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ifu/pc_next" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ifu/pc_next" type="array">
          <obj_property name="ElementShortName">pc_next[31:0]</obj_property>
          <obj_property name="ObjectShortName">pc_next[31:0]</obj_property>
       </wvobject>
@@ -76,49 +64,49 @@
    <wvobject fp_name="group17" type="group">
       <obj_property name="label">idu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/i_stall" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/i_stall" type="logic">
          <obj_property name="ElementShortName">i_stall</obj_property>
          <obj_property name="ObjectShortName">i_stall</obj_property>
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/i_flush" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/i_flush" type="logic">
          <obj_property name="ElementShortName">i_flush</obj_property>
          <obj_property name="ObjectShortName">i_flush</obj_property>
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/r_pc_id" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/r_pc_id" type="array">
          <obj_property name="ElementShortName">r_pc_id[31:0]</obj_property>
          <obj_property name="ObjectShortName">r_pc_id[31:0]</obj_property>
          <obj_property name="CustomSignalColor">#008000</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/r_instr_id" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/r_instr_id" type="array">
          <obj_property name="ElementShortName">r_instr_id[31:0]</obj_property>
          <obj_property name="ObjectShortName">r_instr_id[31:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rs1idx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/o_dec_rs1idx" type="array">
          <obj_property name="ElementShortName">o_dec_rs1idx[4:0]</obj_property>
          <obj_property name="ObjectShortName">o_dec_rs1idx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#DCDCDC</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rs2idx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/o_dec_rs2idx" type="array">
          <obj_property name="ElementShortName">o_dec_rs2idx[4:0]</obj_property>
          <obj_property name="ObjectShortName">o_dec_rs2idx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#DCDCDC</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rdwen_id" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/o_dec_rdwen_id" type="logic">
          <obj_property name="ElementShortName">o_dec_rdwen_id</obj_property>
          <obj_property name="ObjectShortName">o_dec_rdwen_id</obj_property>
          <obj_property name="CustomSignalColor">#DCDCDC</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/o_dec_rdidx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/o_dec_rdidx" type="array">
          <obj_property name="ElementShortName">o_dec_rdidx[4:0]</obj_property>
          <obj_property name="ObjectShortName">o_dec_rdidx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
@@ -128,33 +116,33 @@
       <wvobject fp_name="group60" type="group">
          <obj_property name="label">dec_info_bus</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_alu" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_alu" type="logic">
             <obj_property name="ElementShortName">dec_oper_dispatch_alu</obj_property>
             <obj_property name="ObjectShortName">dec_oper_dispatch_alu</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_lsu" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_lsu" type="logic">
             <obj_property name="ElementShortName">dec_oper_dispatch_lsu</obj_property>
             <obj_property name="ObjectShortName">dec_oper_dispatch_lsu</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_bru" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_bru" type="logic">
             <obj_property name="ElementShortName">dec_oper_dispatch_bru</obj_property>
             <obj_property name="ObjectShortName">dec_oper_dispatch_bru</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_csr" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_oper_dispatch_csr" type="logic">
             <obj_property name="ElementShortName">dec_oper_dispatch_csr</obj_property>
             <obj_property name="ObjectShortName">dec_oper_dispatch_csr</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_alu" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_info_bus_alu" type="array">
             <obj_property name="ElementShortName">dec_info_bus_alu[15:0]</obj_property>
             <obj_property name="ObjectShortName">dec_info_bus_alu[15:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_lsu" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_info_bus_lsu" type="array">
             <obj_property name="ElementShortName">dec_info_bus_lsu[8:0]</obj_property>
             <obj_property name="ObjectShortName">dec_info_bus_lsu[8:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_idu/dec_info_bus_bru" type="array">
             <obj_property name="ElementShortName">dec_info_bus_bru[14:0]</obj_property>
             <obj_property name="ObjectShortName">dec_info_bus_bru[14:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
@@ -164,40 +152,40 @@
    <wvobject fp_name="group126" type="group">
       <obj_property name="label">regFile</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/i_wrbk_rdidx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/i_wrbk_rdidx" type="array">
          <obj_property name="ElementShortName">i_wrbk_rdidx[4:0]</obj_property>
          <obj_property name="ObjectShortName">i_wrbk_rdidx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/i_wrbk_data" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/i_wrbk_data" type="array">
          <obj_property name="ElementShortName">i_wrbk_data[31:0]</obj_property>
          <obj_property name="ObjectShortName">i_wrbk_data[31:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/write_through_flag_rs1" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/write_through_flag_rs1" type="logic">
          <obj_property name="ElementShortName">write_through_flag_rs1</obj_property>
          <obj_property name="ObjectShortName">write_through_flag_rs1</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/i_read_rs1_idx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/i_read_rs1_idx" type="array">
          <obj_property name="ElementShortName">i_read_rs1_idx[4:0]</obj_property>
          <obj_property name="ObjectShortName">i_read_rs1_idx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/o_read_rs1_data" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/o_read_rs1_data" type="array">
          <obj_property name="ElementShortName">o_read_rs1_data[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_read_rs1_data[31:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/write_through_flag_rs2" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/write_through_flag_rs2" type="logic">
          <obj_property name="ElementShortName">write_through_flag_rs2</obj_property>
          <obj_property name="ObjectShortName">write_through_flag_rs2</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/i_read_rs2_idx" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/i_read_rs2_idx" type="array">
          <obj_property name="ElementShortName">i_read_rs2_idx[4:0]</obj_property>
          <obj_property name="ObjectShortName">i_read_rs2_idx[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_regfile/o_read_rs2_data" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_regfile/o_read_rs2_data" type="array">
          <obj_property name="ElementShortName">o_read_rs2_data[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_read_rs2_data[31:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
@@ -206,26 +194,26 @@
    <wvobject fp_name="group237" type="group">
       <obj_property name="label">Ctrl_stall_flush_hzd</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ctrl_hazard/i_jump_flag" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ctrl_hazard/i_jump_flag" type="logic">
          <obj_property name="ElementShortName">i_jump_flag</obj_property>
          <obj_property name="ObjectShortName">i_jump_flag</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ctrl_hazard/stall" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ctrl_hazard/stall" type="array">
          <obj_property name="ElementShortName">stall[4:0]</obj_property>
          <obj_property name="ObjectShortName">stall[4:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ctrl_hazard/flush" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ctrl_hazard/flush" type="array">
          <obj_property name="ElementShortName">flush[3:0]</obj_property>
          <obj_property name="ObjectShortName">flush[3:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ctrl_hazard/o_fwding_rs1_sel" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ctrl_hazard/o_fwding_rs1_sel" type="array">
          <obj_property name="ElementShortName">o_fwding_rs1_sel[1:0]</obj_property>
          <obj_property name="ObjectShortName">o_fwding_rs1_sel[1:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_ctrl_hazard/o_fwding_rs2_sel" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_ctrl_hazard/o_fwding_rs2_sel" type="array">
          <obj_property name="ElementShortName">o_fwding_rs2_sel[1:0]</obj_property>
          <obj_property name="ObjectShortName">o_fwding_rs2_sel[1:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
@@ -234,46 +222,45 @@
    <wvobject fp_name="group98" type="group">
       <obj_property name="label">exu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_flush" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_flush" type="logic">
          <obj_property name="ElementShortName">i_flush</obj_property>
          <obj_property name="ObjectShortName">i_flush</obj_property>
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_stall" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_stall" type="logic">
          <obj_property name="ElementShortName">i_stall</obj_property>
          <obj_property name="ObjectShortName">i_stall</obj_property>
          <obj_property name="CustomSignalColor">#FFFF00</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/r_pc_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/r_pc_exu" type="array">
          <obj_property name="ElementShortName">r_pc_exu[31:0]</obj_property>
          <obj_property name="ObjectShortName">r_pc_exu[31:0]</obj_property>
          <obj_property name="CustomSignalColor">#008000</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_rs1idx_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/o_rs1idx_exu" type="array">
          <obj_property name="ElementShortName">o_rs1idx_exu[4:0]</obj_property>
          <obj_property name="ObjectShortName">o_rs1idx_exu[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_rs2idx_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/o_rs2idx_exu" type="array">
          <obj_property name="ElementShortName">o_rs2idx_exu[4:0]</obj_property>
          <obj_property name="ObjectShortName">o_rs2idx_exu[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_wrbk_rdwen_exu" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/i_wrbk_rdwen_exu" type="logic">
          <obj_property name="ElementShortName">i_wrbk_rdwen_exu</obj_property>
          <obj_property name="ObjectShortName">i_wrbk_rdwen_exu</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_wrbk_rdidx_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/i_wrbk_rdidx_exu" type="array">
          <obj_property name="ElementShortName">i_wrbk_rdidx_exu[4:0]</obj_property>
          <obj_property name="ObjectShortName">i_wrbk_rdidx_exu[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
@@ -283,38 +270,38 @@
       <wvobject fp_name="group120" type="group">
          <obj_property name="label">operand_gen</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_rf_rs1_data" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_rf_rs1_data" type="array">
             <obj_property name="ElementShortName">i_rf_rs1_data[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_rf_rs1_data[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_rf_rs2_data" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_rf_rs2_data" type="array">
             <obj_property name="ElementShortName">i_rf_rs2_data[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_rf_rs2_data[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/rs1_fwded" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/rs1_fwded" type="array">
             <obj_property name="ElementShortName">rs1_fwded[31:0]</obj_property>
             <obj_property name="ObjectShortName">rs1_fwded[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/rs2_fwded" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/rs2_fwded" type="array">
             <obj_property name="ElementShortName">rs2_fwded[31:0]</obj_property>
             <obj_property name="ObjectShortName">rs2_fwded[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_fwding_rs1_sel" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_fwding_rs1_sel" type="array">
             <obj_property name="ElementShortName">i_fwding_rs1_sel[1:0]</obj_property>
             <obj_property name="ObjectShortName">i_fwding_rs1_sel[1:0]</obj_property>
             <obj_property name="CustomSignalColor">#FFD700</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/i_fwding_rs2_sel" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/i_fwding_rs2_sel" type="array">
             <obj_property name="ElementShortName">i_fwding_rs2_sel[1:0]</obj_property>
             <obj_property name="ObjectShortName">i_fwding_rs2_sel[1:0]</obj_property>
             <obj_property name="CustomSignalColor">#FFD700</obj_property>
@@ -326,37 +313,37 @@
          <obj_property name="label">exu_alu</obj_property>
          <obj_property name="DisplayName">label</obj_property>
          <obj_property name="isExpanded"></obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_rs1" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_rs1" type="array">
             <obj_property name="ElementShortName">i_alu_rs1[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_alu_rs1[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_rs2" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_rs2" type="array">
             <obj_property name="ElementShortName">i_alu_rs2[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_alu_rs2[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_imm" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_imm" type="array">
             <obj_property name="ElementShortName">i_alu_imm[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_alu_imm[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
             <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_imm" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/i_alu_imm" type="array">
             <obj_property name="ElementShortName">i_alu_imm[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_alu_imm[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#808080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
             <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/alu_req_op1" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/alu_req_op1" type="array">
             <obj_property name="ElementShortName">alu_req_op1[31:0]</obj_property>
             <obj_property name="ObjectShortName">alu_req_op1[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_alu/alu_req_op2" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_alu/alu_req_op2" type="array">
             <obj_property name="ElementShortName">alu_req_op2[31:0]</obj_property>
             <obj_property name="ObjectShortName">alu_req_op2[31:0]</obj_property>
          </wvobject>
@@ -364,45 +351,45 @@
       <wvobject fp_name="group134" type="group">
          <obj_property name="label">exu_bru</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/i_bru_rs1" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/i_bru_rs1" type="array">
             <obj_property name="ElementShortName">i_bru_rs1[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_bru_rs1[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/i_bru_rs2" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/i_bru_rs2" type="array">
             <obj_property name="ElementShortName">i_bru_rs2[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_bru_rs2[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/bru_req_jal" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/bru_req_jal" type="logic">
             <obj_property name="ElementShortName">bru_req_jal</obj_property>
             <obj_property name="ObjectShortName">bru_req_jal</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/bru_req_bne" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/bru_req_bne" type="logic">
             <obj_property name="ElementShortName">bru_req_bne</obj_property>
             <obj_property name="ObjectShortName">bru_req_bne</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/comp_res" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/comp_res" type="logic">
             <obj_property name="ElementShortName">comp_res</obj_property>
             <obj_property name="ObjectShortName">comp_res</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/o_jump_flag" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/o_jump_flag" type="logic">
             <obj_property name="ElementShortName">o_jump_flag</obj_property>
             <obj_property name="ObjectShortName">o_jump_flag</obj_property>
             <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/o_pc_next_bru" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/o_pc_next_bru" type="array">
             <obj_property name="ElementShortName">o_pc_next_bru[31:0]</obj_property>
             <obj_property name="ObjectShortName">o_pc_next_bru[31:0]</obj_property>
             <obj_property name="CustomSignalColor">#FAAFBE</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/pc_add4" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/pc_add4" type="array">
             <obj_property name="DisplayName">label</obj_property>
             <obj_property name="ElementShortName">pc_add4[31:0]</obj_property>
             <obj_property name="ObjectShortName">pc_add4[31:0]</obj_property>
-            <obj_property name="label">pc_add4[31/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/pc_add4 /tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/adder_jumpaddr:0]</obj_property>
+            <obj_property name="label">pc_add4[31/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/pc_add4 /tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/adder_jumpaddr:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_bru/adder_jumpaddr" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_bru/adder_jumpaddr" type="array">
             <obj_property name="ElementShortName">adder_jumpaddr[31:0]</obj_property>
             <obj_property name="ObjectShortName">adder_jumpaddr[31:0]</obj_property>
          </wvobject>
@@ -410,56 +397,56 @@
       <wvobject fp_name="group124" type="group">
          <obj_property name="label">exu_lsu</obj_property>
          <obj_property name="DisplayName">label</obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_load" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_load" type="logic">
             <obj_property name="ElementShortName">lsu_req_load</obj_property>
             <obj_property name="ObjectShortName">lsu_req_load</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_store" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/lsu_req_store" type="logic">
             <obj_property name="ElementShortName">lsu_req_store</obj_property>
             <obj_property name="ObjectShortName">lsu_req_store</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs1" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs1" type="array">
             <obj_property name="ElementShortName">i_lsu_rs1[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_lsu_rs1[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs2" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_rs2" type="array">
             <obj_property name="ElementShortName">i_lsu_rs2[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_lsu_rs2[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_imm" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/i_lsu_imm" type="array">
             <obj_property name="ElementShortName">i_lsu_imm[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_lsu_imm[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wren_exu" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wren_exu" type="logic">
             <obj_property name="ElementShortName">o_mema_wren_exu</obj_property>
             <obj_property name="ObjectShortName">o_mema_wren_exu</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_addr_exu" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_addr_exu" type="array">
             <obj_property name="ElementShortName">o_mema_addr_exu[31:0]</obj_property>
             <obj_property name="ObjectShortName">o_mema_addr_exu[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wr_data_exu" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_mema_wr_data_exu" type="array">
             <obj_property name="ElementShortName">o_mema_wr_data_exu[31:0]</obj_property>
             <obj_property name="ObjectShortName">o_mema_wr_data_exu[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_lsu_misaligned_exc" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/u_exu_lsu/o_lsu_misaligned_exc" type="logic">
             <obj_property name="ElementShortName">o_lsu_misaligned_exc</obj_property>
             <obj_property name="ObjectShortName">o_lsu_misaligned_exc</obj_property>
             <obj_property name="CustomSignalColor">#FF0080</obj_property>
             <obj_property name="UseCustomSignalColor">true</obj_property>
          </wvobject>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
          <obj_property name="ElementShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_exu/o_wrbk_data_exu" type="array">
          <obj_property name="ElementShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_exu[31:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_wrbk_rdwen_exu" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/i_wrbk_rdwen_exu" type="logic">
          <obj_property name="ElementShortName">i_wrbk_rdwen_exu</obj_property>
          <obj_property name="ObjectShortName">i_wrbk_rdwen_exu</obj_property>
          <obj_property name="CustomSignalColor">#00FF00</obj_property>
@@ -469,43 +456,42 @@
    <wvobject fp_name="group109" type="group">
       <obj_property name="label">mau</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_addr_mau" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/o_mema_addr_mau" type="array">
          <obj_property name="ElementShortName">o_mema_addr_mau[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_mema_addr_mau[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wren_mau" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/o_mema_wren_mau" type="logic">
          <obj_property name="ElementShortName">o_mema_wren_mau</obj_property>
          <obj_property name="ObjectShortName">o_mema_wren_mau</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wr_mask" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/o_mema_wr_mask" type="array">
          <obj_property name="ElementShortName">o_mema_wr_mask[3:0]</obj_property>
          <obj_property name="ObjectShortName">o_mema_wr_mask[3:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_mema_wr_data_mau" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/o_mema_wr_data_mau" type="array">
          <obj_property name="ElementShortName">o_mema_wr_data_mau[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_mema_wr_data_mau[31:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/i_mema_rd_data_mau" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/i_mema_rd_data_mau" type="array">
          <obj_property name="ElementShortName">i_mema_rd_data_mau[31:0]</obj_property>
          <obj_property name="ObjectShortName">i_mema_rd_data_mau[31:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/r_wrbk_rdidx_mau" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/r_wrbk_rdidx_mau" type="array">
          <obj_property name="ElementShortName">r_wrbk_rdidx_mau[4:0]</obj_property>
          <obj_property name="ObjectShortName">r_wrbk_rdidx_mau[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/r_wrbk_rdwen_mau" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/r_wrbk_rdwen_mau" type="logic">
          <obj_property name="ElementShortName">r_wrbk_rdwen_mau</obj_property>
          <obj_property name="ObjectShortName">r_wrbk_rdwen_mau</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_mau/o_wrbk_data_mau" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_mau/o_wrbk_data_mau" type="array">
          <obj_property name="ElementShortName">o_wrbk_data_mau[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_mau[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
@@ -514,31 +500,30 @@
    <wvobject fp_name="group159" type="group">
       <obj_property name="label">mem</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/i_mema_addr" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/i_mema_addr" type="array">
          <obj_property name="ElementShortName">i_mema_addr[31:0]</obj_property>
          <obj_property name="ObjectShortName">i_mema_addr[31:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/i_mema_wren" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/i_mema_wren" type="logic">
          <obj_property name="ElementShortName">i_mema_wren</obj_property>
          <obj_property name="ObjectShortName">i_mema_wren</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/i_mema_wr_mask" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/i_mema_wr_mask" type="array">
          <obj_property name="ElementShortName">i_mema_wr_mask[3:0]</obj_property>
          <obj_property name="ObjectShortName">i_mema_wr_mask[3:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/i_mema_wr_data" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/i_mema_wr_data" type="array">
          <obj_property name="ElementShortName">i_mema_wr_data[31:0]</obj_property>
          <obj_property name="ObjectShortName">i_mema_wr_data[31:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/sel_itcm" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/sel_itcm" type="logic">
          <obj_property name="ElementShortName">sel_itcm</obj_property>
          <obj_property name="ObjectShortName">sel_itcm</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_soc_bus/sel_dtcm" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_soc_bus/sel_dtcm" type="logic">
          <obj_property name="ElementShortName">sel_dtcm</obj_property>
          <obj_property name="ObjectShortName">sel_dtcm</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
@@ -548,152 +533,152 @@
          <obj_property name="label">dmem</obj_property>
          <obj_property name="DisplayName">label</obj_property>
          <obj_property name="isExpanded"></obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr" type="array">
             <obj_property name="ElementShortName">i_addr[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_addr[31:0]</obj_property>
          </wvobject>
          <wvobject fp_name="vbus232" type="vbus">
             <obj_property name="label">addr_31:2</obj_property>
             <obj_property name="DisplayName">label</obj_property>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[31]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[31]" type="logic">
                <obj_property name="ElementShortName">[31]</obj_property>
                <obj_property name="ObjectShortName">[31]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[30]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[30]" type="logic">
                <obj_property name="ElementShortName">[30]</obj_property>
                <obj_property name="ObjectShortName">[30]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[29]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[29]" type="logic">
                <obj_property name="ElementShortName">[29]</obj_property>
                <obj_property name="ObjectShortName">[29]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[28]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[28]" type="logic">
                <obj_property name="ElementShortName">[28]</obj_property>
                <obj_property name="ObjectShortName">[28]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[27]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[27]" type="logic">
                <obj_property name="ElementShortName">[27]</obj_property>
                <obj_property name="ObjectShortName">[27]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[26]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[26]" type="logic">
                <obj_property name="ElementShortName">[26]</obj_property>
                <obj_property name="ObjectShortName">[26]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[25]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[25]" type="logic">
                <obj_property name="ElementShortName">[25]</obj_property>
                <obj_property name="ObjectShortName">[25]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[24]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[24]" type="logic">
                <obj_property name="ElementShortName">[24]</obj_property>
                <obj_property name="ObjectShortName">[24]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[23]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[23]" type="logic">
                <obj_property name="ElementShortName">[23]</obj_property>
                <obj_property name="ObjectShortName">[23]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[22]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[22]" type="logic">
                <obj_property name="ElementShortName">[22]</obj_property>
                <obj_property name="ObjectShortName">[22]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[21]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[21]" type="logic">
                <obj_property name="ElementShortName">[21]</obj_property>
                <obj_property name="ObjectShortName">[21]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[20]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[20]" type="logic">
                <obj_property name="ElementShortName">[20]</obj_property>
                <obj_property name="ObjectShortName">[20]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[19]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[19]" type="logic">
                <obj_property name="ElementShortName">[19]</obj_property>
                <obj_property name="ObjectShortName">[19]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[18]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[18]" type="logic">
                <obj_property name="ElementShortName">[18]</obj_property>
                <obj_property name="ObjectShortName">[18]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[17]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[17]" type="logic">
                <obj_property name="ElementShortName">[17]</obj_property>
                <obj_property name="ObjectShortName">[17]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[16]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[16]" type="logic">
                <obj_property name="ElementShortName">[16]</obj_property>
                <obj_property name="ObjectShortName">[16]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[15]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[15]" type="logic">
                <obj_property name="ElementShortName">[15]</obj_property>
                <obj_property name="ObjectShortName">[15]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[14]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[14]" type="logic">
                <obj_property name="ElementShortName">[14]</obj_property>
                <obj_property name="ObjectShortName">[14]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[13]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[13]" type="logic">
                <obj_property name="ElementShortName">[13]</obj_property>
                <obj_property name="ObjectShortName">[13]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[12]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[12]" type="logic">
                <obj_property name="ElementShortName">[12]</obj_property>
                <obj_property name="ObjectShortName">[12]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[11]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[11]" type="logic">
                <obj_property name="ElementShortName">[11]</obj_property>
                <obj_property name="ObjectShortName">[11]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[10]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[10]" type="logic">
                <obj_property name="ElementShortName">[10]</obj_property>
                <obj_property name="ObjectShortName">[10]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[9]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[9]" type="logic">
                <obj_property name="ElementShortName">[9]</obj_property>
                <obj_property name="ObjectShortName">[9]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[8]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[8]" type="logic">
                <obj_property name="ElementShortName">[8]</obj_property>
                <obj_property name="ObjectShortName">[8]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[7]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[7]" type="logic">
                <obj_property name="ElementShortName">[7]</obj_property>
                <obj_property name="ObjectShortName">[7]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[6]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[6]" type="logic">
                <obj_property name="ElementShortName">[6]</obj_property>
                <obj_property name="ObjectShortName">[6]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[5]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[5]" type="logic">
                <obj_property name="ElementShortName">[5]</obj_property>
                <obj_property name="ObjectShortName">[5]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[4]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[4]" type="logic">
                <obj_property name="ElementShortName">[4]</obj_property>
                <obj_property name="ObjectShortName">[4]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[3]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[3]" type="logic">
                <obj_property name="ElementShortName">[3]</obj_property>
                <obj_property name="ObjectShortName">[3]</obj_property>
             </wvobject>
-            <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_addr[2]" type="logic">
+            <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_addr[2]" type="logic">
                <obj_property name="ElementShortName">[2]</obj_property>
                <obj_property name="ObjectShortName">[2]</obj_property>
             </wvobject>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_en" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_wr_en" type="logic">
             <obj_property name="ElementShortName">i_wr_en</obj_property>
             <obj_property name="ObjectShortName">i_wr_en</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_mask" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_wr_mask" type="array">
             <obj_property name="ElementShortName">i_wr_mask[3:0]</obj_property>
             <obj_property name="ObjectShortName">i_wr_mask[3:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/i_wr_data" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/i_wr_data" type="array">
             <obj_property name="ElementShortName">i_wr_data[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_wr_data[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/o_rd_data" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/o_rd_data" type="array">
             <obj_property name="ElementShortName">o_rd_data[31:0]</obj_property>
             <obj_property name="ObjectShortName">o_rd_data[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_dmem/r_dtcm[1033]" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_dmem/r_dtcm[1033]" type="array">
             <obj_property name="ElementShortName">[1033][31:0]</obj_property>
             <obj_property name="ObjectShortName">[1033][31:0]</obj_property>
          </wvobject>
@@ -702,20 +687,20 @@
          <obj_property name="label">imem</obj_property>
          <obj_property name="DisplayName">label</obj_property>
          <obj_property name="isExpanded"></obj_property>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_imem/i_wr_en" type="logic">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_imem/i_wr_en" type="logic">
             <obj_property name="ElementShortName">i_wr_en</obj_property>
             <obj_property name="ObjectShortName">i_wr_en</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_imem/i_wr_mask" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_imem/i_wr_mask" type="array">
             <obj_property name="ElementShortName">i_wr_mask[3:0]</obj_property>
             <obj_property name="ObjectShortName">i_wr_mask[3:0]</obj_property>
             <obj_property name="Radix">BINARYRADIX</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_imem/i_wr_addr" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_imem/i_wr_addr" type="array">
             <obj_property name="ElementShortName">i_wr_addr[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_wr_addr[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_imem/i_wr_data" type="array">
+         <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_imem/i_wr_data" type="array">
             <obj_property name="ElementShortName">i_wr_data[31:0]</obj_property>
             <obj_property name="ObjectShortName">i_wr_data[31:0]</obj_property>
          </wvobject>
@@ -724,23 +709,31 @@
    <wvobject fp_name="group114" type="group">
       <obj_property name="label">wbu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_wbu/r_wrbk_rdidx_wbu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_wbu/r_wrbk_rdidx_wbu" type="array">
          <obj_property name="ElementShortName">r_wrbk_rdidx_wbu[4:0]</obj_property>
          <obj_property name="ObjectShortName">r_wrbk_rdidx_wbu[4:0]</obj_property>
          <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_wbu/r_wrbk_rdwen_wbu" type="logic">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_wbu/r_wrbk_rdwen_wbu" type="logic">
          <obj_property name="ElementShortName">r_wrbk_rdwen_wbu</obj_property>
          <obj_property name="ObjectShortName">r_wrbk_rdwen_wbu</obj_property>
          <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
       </wvobject>
-      <wvobject fp_name="/tb_soc_top/u_soc_top_v0/u_core/u_wbu/o_wrbk_data_wbu" type="array">
+      <wvobject fp_name="/tb_soctop_isatest/u_soc_top_v0/u_core/u_wbu/o_wrbk_data_wbu" type="array">
          <obj_property name="ElementShortName">o_wrbk_data_wbu[31:0]</obj_property>
          <obj_property name="ObjectShortName">o_wrbk_data_wbu[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
       </wvobject>
+   </wvobject>
+   <wvobject fp_name="/tb_soctop_isatest/ex_end_flag" type="array">
+      <obj_property name="ElementShortName">ex_end_flag[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ex_end_flag[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soctop_isatest/fd" type="array">
+      <obj_property name="ElementShortName">fd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fd[31:0]</obj_property>
    </wvobject>
 </wave_config>

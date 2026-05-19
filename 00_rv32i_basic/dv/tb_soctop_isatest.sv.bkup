@@ -10,32 +10,15 @@
 
 module tb_soctop_isatest();
 
-// --- Configuration -------------------------------------------------------
-
-// --- Mode Selection (For tools like Vivado, uncomment one to select mode) ---
-
-`ifndef VCS
-  `ifndef IVERILOG
-    `define VIVADO_MANUAL 1
-  `endif
-`endif
-
-`ifdef VIVADO_MANUAL
-// `if !defined(VCS) && !defined(IVERILOG)  // iverilog cannot use this
-// `define RVTEST_ISA 1
-`define RVTEST_COMPLIANCE 1
-    parameter TEST_NAME      = "I-ADD-01";
-    parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".data"};
-    parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".ref"};
-`else
-    // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
-    parameter INST_DATA_PATH = "./inst.data";
-    parameter REF_FILE_PATH  = "./out.ref";
-`endif
-
+// --- Configuration ---
+// parameter INST_DATA_PATH = "d:\myProj_WJH\11_myRV\tests\rv_compilance\rv32i\I-ADD-01.data";
+parameter INST_DATA_PATH = "../../../../inst_data/I-ADD-01.data";
+// parameter INST_DATA_PATH = "./inst.data";
 parameter SIGNATURE_OUT  = "signature.output";
 
-
+// --- Mode Selection (For tools like Vivado, uncomment one to select mode) ---
+// `define RVTEST_ISA 1
+`define RVTEST_COMPLIANCE 1
 
 reg clk;
 reg rst_n;
@@ -136,41 +119,44 @@ initial begin
         $display("  Signature saved to %s", SIGNATURE_OUT);
     end
 
-    // 2. Live comparison against reference file (VCS/Vivado)
+    // 2. Live comparison against reference file (VCS only)
 `ifndef IVERILOG
     begin : live_comparison
         integer ref_fd, fail_count;
         reg [31:0] val_ref, val_out;
+        reg [8*256-1:0] ref_file_name;
 
         fail_count = 0;
-        ref_fd = $fopen(REF_FILE_PATH, "r");
-        if (ref_fd == 0) begin
-            $display("  !!! Error: Ref file not found: %s", REF_FILE_PATH);
-        end else begin
-            $display("  Comparing with reference: %s", REF_FILE_PATH);
-            for (r = begin_signature; r < end_signature; r = r + 4) begin
-                if ($fscanf(ref_fd, "%h", val_ref) != 1) begin
-                    $display("  !!! Length Mismatch (Ref too short)");
-                    fail_count = fail_count + 1;
-                    break;
+        if ($value$plusargs("REF_FILE=%s", ref_file_name)) begin
+            ref_fd = $fopen(ref_file_name, "r");
+            if (ref_fd == 0) begin
+                $display("  !!! Error: Ref file not found: %s", ref_file_name);
+            end else begin
+                $display("  Comparing with reference: %s", ref_file_name);
+                for (r = begin_signature; r < end_signature; r = r + 4) begin
+                    if ($fscanf(ref_fd, "%h", val_ref) != 1) begin
+                        $display("  !!! Length Mismatch (Ref too short)");
+                        fail_count = fail_count + 1;
+                        break;
+                    end
+                    val_out = u_soc_top_v0.u_dmem.r_dtcm[r[31:2]];
+                    if (val_out !== val_ref) begin
+                        $display("  !!! MISMATCH [0x%h]: Expect=0x%h, Got=0x%h", r, val_ref, val_out);
+                        fail_count = fail_count + 1;
+                    end
                 end
-                val_out = u_soc_top_v0.u_dmem.r_dtcm[r[31:2]];
-                if (val_out !== val_ref) begin
-                    $display("  !!! MISMATCH [0x%h]: Expect=0x%h, Got=0x%h", r, val_ref, val_out);
+
+                // Check if ref file has extra entries
+                if (fail_count == 0 && $fscanf(ref_fd, "%h", val_ref) == 1) begin
+                    $display("  !!! Length Mismatch (Ref too long)");
                     fail_count = fail_count + 1;
                 end
-            end
 
-            // Check if ref file has extra entries
-            if (fail_count == 0 && $fscanf(ref_fd, "%h", val_ref) == 1) begin
-                $display("  !!! Length Mismatch (Ref too long)");
-                fail_count = fail_count + 1;
+                report_result(fail_count == 0, "COMPLIANCE");
+                if (fail_count > 0)
+                    $display("  Total Mismatches: %0d", fail_count);
+                $fclose(ref_fd);
             end
-
-            report_result(fail_count == 0, "COMPLIANCE");
-            if (fail_count > 0)
-                $display("  Total Mismatches: %0d", fail_count);
-            $fclose(ref_fd);
         end
     end
 `endif

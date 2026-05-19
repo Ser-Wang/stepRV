@@ -33,14 +33,17 @@ reg [63:0] r_mcycle;
 reg [63:0] r_minstret;
 
 // Exception for unsupported CSR access
-wire is_supported_csr = (i_csr_idx == `CSR_MSTATUS)     ||
-                        (i_csr_idx == `CSR_MTVEC)       ||
-                        (i_csr_idx == `CSR_MEPC)        ||
-                        (i_csr_idx == `CSR_MCAUSE)      ||
-                        (i_csr_idx == `CSR_MCYCLE)      ||
-                        (i_csr_idx == `CSR_MCYCLEH)     ||
-                        (i_csr_idx == `CSR_MINSTRET)    ||
-                        (i_csr_idx == `CSR_MINSTRETH);
+wire csr_sel_mstatus   = (i_csr_idx == `CSR_MSTATUS)   ? 1'b1 : 1'b0;
+wire csr_sel_mtvec     = (i_csr_idx == `CSR_MTVEC)     ? 1'b1 : 1'b0;
+wire csr_sel_mepc      = (i_csr_idx == `CSR_MEPC)      ? 1'b1 : 1'b0;
+wire csr_sel_mcause    = (i_csr_idx == `CSR_MCAUSE)    ? 1'b1 : 1'b0;
+wire csr_sel_mcycle    = (i_csr_idx == `CSR_MCYCLE)    ? 1'b1 : 1'b0;
+wire csr_sel_mcycleh   = (i_csr_idx == `CSR_MCYCLEH)   ? 1'b1 : 1'b0;
+wire csr_sel_minstret  = (i_csr_idx == `CSR_MINSTRET)  ? 1'b1 : 1'b0;
+wire csr_sel_minstreth = (i_csr_idx == `CSR_MINSTRETH) ? 1'b1 : 1'b0;
+
+wire is_supported_csr = csr_sel_mstatus | csr_sel_mtvec   | csr_sel_mepc     | csr_sel_mcause | 
+                        csr_sel_mcycle  | csr_sel_mcycleh | csr_sel_minstret | csr_sel_minstreth;
 
 // Provide the signal for illegal CSR access
 assign o_csr_ill_exc = ~is_supported_csr;
@@ -53,8 +56,8 @@ always @(posedge clk or negedge rst_n) begin
     end else begin
         r_mcycle <= mcycle_nxt;
         if (i_csr_wr_en) begin
-            if (i_csr_idx == `CSR_MCYCLE)  r_mcycle[31:0]  <= i_csr_wr_data;
-            if (i_csr_idx == `CSR_MCYCLEH) r_mcycle[63:32] <= i_csr_wr_data;
+            if (csr_sel_mcycle)  r_mcycle[31:0]  <= i_csr_wr_data;
+            if (csr_sel_mcycleh) r_mcycle[63:32] <= i_csr_wr_data;
         end
     end
 end
@@ -67,8 +70,8 @@ always @(posedge clk or negedge rst_n) begin
     end else begin
         r_minstret <= minstret_nxt;
         if (i_csr_wr_en) begin
-            if (i_csr_idx == `CSR_MINSTRET)  r_minstret[31:0]  <= i_csr_wr_data;
-            if (i_csr_idx == `CSR_MINSTRETH) r_minstret[63:32] <= i_csr_wr_data;
+            if (csr_sel_minstret)  r_minstret[31:0]  <= i_csr_wr_data;
+            if (csr_sel_minstreth) r_minstret[63:32] <= i_csr_wr_data;
         end
     end
 end
@@ -81,12 +84,10 @@ always @(posedge clk or negedge rst_n) begin
         r_mepc <= 32'b0;
         r_mcause <= 32'b0;
     end else if (i_csr_wr_en) begin
-        case (i_csr_idx)
-            `CSR_MSTATUS: r_mstatus <= i_csr_wr_data;
-            `CSR_MTVEC:   r_mtvec   <= i_csr_wr_data;
-            `CSR_MEPC:    r_mepc    <= i_csr_wr_data;
-            `CSR_MCAUSE:  r_mcause  <= i_csr_wr_data;
-        endcase
+        if (csr_sel_mstatus) r_mstatus <= i_csr_wr_data;
+        if (csr_sel_mtvec)   r_mtvec   <= i_csr_wr_data;
+        if (csr_sel_mepc)    r_mepc    <= i_csr_wr_data;
+        if (csr_sel_mcause)  r_mcause  <= i_csr_wr_data;
     end
 end
 
@@ -105,5 +106,15 @@ always @(*) begin
     endcase
 end
 
+always @(*) begin
+    o_csr_rd_data = ({32{csr_sel_mstatus}}   & r_mstatus)
+                  | ({32{csr_sel_mtvec}}     & r_mtvec)
+                  | ({32{csr_sel_mepc}}      & r_mepc)
+                  | ({32{csr_sel_mcause}}    & r_mcause)
+                  | ({32{csr_sel_mcycle}}    & r_mcycle[31:0])
+                  | ({32{csr_sel_mcycleh}}   & r_mcycle[63:32])
+                  | ({32{csr_sel_minstret}}  & r_minstret[31:0])
+                  | ({32{csr_sel_minstreth}} & r_minstret[63:32]);
+end
 
 endmodule
