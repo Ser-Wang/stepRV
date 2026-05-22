@@ -5,8 +5,18 @@
 
 // ===========================================================================
 // ===========================================================================
-`define ITCM_DEPTH 8192  // 32KB
-`define DTCM_DEPTH 4096  // 16KB
+
+
+// ===========================================================================
+// Memory Map Configuration
+`define ITCM_BASE 32'h0000_0000
+`define DTCM_BASE 32'h0000_1000
+
+`define ITCM_SIZE 32'h0000_1000  // 4KB, matches link.ld .text before .data ALIGN(0x1000)
+`define DTCM_SIZE 32'h0000_F000  // Remaining address space for DTCM
+
+`define ITCM_DEPTH (`ITCM_SIZE / 4)  // Word depth derived from size (4 bytes per word)
+`define DTCM_DEPTH (`DTCM_SIZE / 4)  // Word depth derived from size (4 bytes per word)
 
 
 

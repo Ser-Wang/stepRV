@@ -179,6 +179,7 @@ exu u_exu(
     .o_mema_wren_exu    (mema_wren_exu      ),
     .o_mema_wr_data_exu (mema_wr_data_exu   ),
     .o_mema_info_bus    (mema_info_bus      ), // {wr_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    .o_is_load_req_exu  (is_load_req_exu    ),
     // csr
     .o_csr_idx          (csr_idx            ),
     .o_csr_wr_en        (csr_wr_en          ),

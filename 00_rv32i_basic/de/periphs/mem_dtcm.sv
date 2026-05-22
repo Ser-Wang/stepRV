@@ -21,7 +21,7 @@ module mem_dtcm(
     output wire [31:0] o_rd_data
     );
 
-reg [31:0] r_dtcm [0:`ITCM_DEPTH-1];    // 4096 by default
+reg [31:0] r_dtcm [0:`DTCM_DEPTH-1];    // 4096 by default
 reg [31:0] r_rd_data;
 
 // write data

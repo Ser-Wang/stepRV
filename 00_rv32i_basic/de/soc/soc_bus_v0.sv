@@ -11,12 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module soc_bus_v0 #(
-    parameter ITCM_BASE = 32'h0000_0000,
-    parameter ITCM_SIZE = 32'h0000_1000, // 4KB, matches link.ld .text before .data ALIGN(0x1000)
-    parameter DTCM_BASE = 32'h0000_1000,
-    parameter DTCM_SIZE = 32'h0000_F000  // Remaining address space for DTCM
-)(
+module soc_bus_v0 (
     // Core LSU interface
     input  wire [31:0] i_mema_addr,
     input  wire        i_mema_wren,
@@ -41,8 +36,8 @@ module soc_bus_v0 #(
 );
 
 // Address Decoding
-wire sel_itcm = (i_mema_addr >= ITCM_BASE) && (i_mema_addr < (ITCM_BASE + ITCM_SIZE));
-wire sel_dtcm = (i_mema_addr >= DTCM_BASE) && (i_mema_addr < (DTCM_BASE + DTCM_SIZE));
+wire sel_itcm = (i_mema_addr >= `ITCM_BASE) && (i_mema_addr < (`ITCM_BASE + `ITCM_SIZE));
+wire sel_dtcm = (i_mema_addr >= `DTCM_BASE) && (i_mema_addr < (`DTCM_BASE + `DTCM_SIZE));
 
 // Route to ITCM (Write Only)
 assign o_itcm_wr_addr = i_mema_addr;

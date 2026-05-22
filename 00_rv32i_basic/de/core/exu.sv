@@ -43,6 +43,7 @@ module exu(
     output wire [31:0] o_mema_wr_data_exu,
     output wire o_mema_wren_exu,
     output wire [7:0] o_mema_info_bus,  // {store_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    output wire o_is_load_req_exu,
     // input  wire [31:0] i_mema_rd_data,
     // pass by
     input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_idu,
@@ -185,6 +186,8 @@ wire req_disp_alu = (r_dec_info_bus_ex[`DECINFO_GRP] == `DECINFO_GRP_WIDTH'd0);
 wire req_disp_lsu = (r_dec_info_bus_ex[`DECINFO_GRP] == `DECINFO_GRP_WIDTH'd1);
 wire req_disp_bru = (r_dec_info_bus_ex[`DECINFO_GRP] == `DECINFO_GRP_WIDTH'd2);
 wire req_disp_csr = (r_dec_info_bus_ex[`DECINFO_GRP] == `DECINFO_GRP_WIDTH'd3);
+
+assign o_is_load_req_exu = req_disp_lsu & r_dec_info_bus_ex[`DECINFO_LSU_LOAD];
 
 // ---- dec_info_bus dispatch
 wire [`DECINFO_BUS_ALU_WIDTH-1:0] dec_info_bus_alu = {`DECINFO_BUS_ALU_WIDTH{req_disp_alu}} & r_dec_info_bus_ex[`DECINFO_BUS_ALU_WIDTH-1:0];

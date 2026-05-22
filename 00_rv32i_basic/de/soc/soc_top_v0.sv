@@ -53,12 +53,7 @@ wire [31:0] dtcm_wr_data;
 wire [31:0] dtcm_rd_data;
 
 // Memory Bus & Arbitration
-soc_bus_v0 #(
-    .ITCM_BASE(32'h0000_0000),
-    .ITCM_SIZE(32'h0000_1000), // 4KB for ITCM
-    .DTCM_BASE(32'h0000_1000),
-    .DTCM_SIZE(32'h0000_F000)  // 60KB for DTCM
-) u_soc_bus (
+soc_bus_v0 u_soc_bus (
     // Core interface
     .i_mema_addr    (mema_addr    ),
     .i_mema_wren    (mema_wren    ),
