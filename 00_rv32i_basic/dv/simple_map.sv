@@ -1,0 +1,15 @@
+if      (pc >= 32'h00000000 && pc <= 32'h00000060) return "_start";
+else if (pc == 32'h00000064)                       return "loop";
+else if (pc >= 32'h00000068 && pc <= 32'h000000e4) return "trap_entry";
+else if (pc >= 32'h000000e8 && pc <= 32'h000000f4) return "test_if_asynchronous";
+else if (pc >= 32'h000000f8 && pc <= 32'h000000fc) return "handle_synchronous";
+else if (pc >= 32'h00000100 && pc <= 32'h0000017c) return "asynchronous_return";
+else if (pc >= 32'h00000180 && pc <= 32'h00000268) return "main";
+else if (pc >= 32'h0000026c && pc <= 32'h0000029c) return "_init";
+else if (pc >= 32'h000002a0 && pc <= 32'h000002d0) return "trap_handler";
+else if (pc >= 32'h000002d4 && pc <= 32'h000002f4) return "__mulsi3";
+else if (pc >= 32'h000002f8 && pc <= 32'h000002fc) return "__divsi3";
+else if (pc >= 32'h00000300 && pc <= 32'h00000344) return "__udivsi3";
+else if (pc >= 32'h00000348 && pc <= 32'h00000378) return "__umodsi3";
+else if (pc >= 32'h0000037c && pc <= 32'h000003a8) return "__modsi3";
+else                                               return "UNKNOWN";

@@ -21,7 +21,8 @@ module mem_itcm(
     input wire i_wr_en,
     input wire [3:0] i_wr_mask,
     input wire [31:0] i_wr_addr,
-    input wire [31:0] i_wr_data
+    input wire [31:0] i_wr_data,
+    output wire [31:0] o_data_rd_data // (Temporary)
     );
 
 reg [31:0] r_itcm [0:`ITCM_DEPTH-1];    // 8192 by default

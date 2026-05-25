@@ -45,6 +45,7 @@ wire [31:0] itcm_wr_addr;
 wire        itcm_wr_en;
 wire [ 3:0] itcm_wr_mask;
 wire [31:0] itcm_wr_data;
+wire [31:0] itcm_rd_data_lsu; // (Temporary)
 
 wire [31:0] dtcm_addr;
 wire        dtcm_wr_en;
@@ -66,6 +67,7 @@ soc_bus_v0 u_soc_bus (
     .o_itcm_wr_en   (itcm_wr_en   ),
     .o_itcm_wr_mask (itcm_wr_mask ),
     .o_itcm_wr_data (itcm_wr_data ),
+    .i_itcm_rd_data (itcm_rd_data_lsu), // (Temporary)
 
     // DTCM interface
     .o_dtcm_addr    (dtcm_addr    ),
@@ -84,7 +86,8 @@ mem_itcm u_imem(
     .i_wr_en            (itcm_wr_en     ),
     .i_wr_mask          (itcm_wr_mask   ),
     .i_wr_addr          (itcm_wr_addr   ),
-    .i_wr_data          (itcm_wr_data   )
+    .i_wr_data          (itcm_wr_data   ),
+    .o_data_rd_data     (itcm_rd_data_lsu) // (Temporary)
     );
 
 mem_dtcm u_dmem(

@@ -127,6 +127,53 @@ MEMORY
 >     #define set_test_fail() do { *(volatile uint32_t *)(0x30000008) = 0x02; } while(0)
 >     ```
 
+### 4. 关键编译宏 SIMULATION 的控制机制（在 Makefile 中）
+
+在 `simple/Makefile` 中，有以下一行默认配置：
+```makefile
+CFLAGS += -DSIMULATION
+```
+这个宏不仅在编译 C 语言代码时会传给 GCC，在编译汇编文件时同样会生效。它直接改变并控制了以下三大核心代码逻辑，**使软件代码能够与您的 Verilog/SystemVerilog RTL 仿真环境（Testbench）完美协同工作**：
+
+#### (1) start.S（启动仿真环境的握手与自动退出）
+*   **上电复位阶段**（Line 13-16）：
+    ```assembly
+    #ifdef SIMULATION
+        li x26, 0x00
+        li x27, 0x00
+    #endif
+    ```
+    一旦检测到仿真宏，启动汇编会立即将寄存器 `x26`（仿真结束标志）和 `x27`（成功与否状态）清空。
+*   **正常执行完毕阶段**（Line 44-46）：
+    ```assembly
+    #ifdef SIMULATION
+        li x26, 0x01
+    #endif
+    ```
+    当主程序 `main()` 正常运行完毕并返回时，启动汇编会强行往 `x26` 写入 `0x01`。您的 Verilog Testbench 可以实时监测 CPU 的 `x26` 寄存器数值。一旦发现 `x26 == 1`，Testbench 就会知道软件跑完了，紧接着读取 `x27` 的值来判断是 `PASS` 还是 `FAIL`，然后**自动结束 RTL 仿真**，省去您手动关闭仿真终端的麻烦。
+
+#### (2) utils.h（精简的测试退出状态反馈）
+*   **状态控制宏**（Line 19-22）：
+    ```c
+    #ifdef SIMULATION
+    #define set_test_pass() asm("li x27, 0x01")
+    #define set_test_fail() asm("li x27, 0x00")
+    #endif
+    ```
+    在仿真模式下，`main.c` 调用 `set_test_pass()` 时，实际只是执行了一条极轻量的内联汇编指令：往 `x27` 寄存器里塞入 `1`。极简、不占内存、执行极快。
+
+#### (3) trap_entry.S（中断保护现场的现场优化）
+这是最显露软硬件协同设计功底的地方！在 `trap_entry.S` 中有如下条件编译分支：
+*   **中断现场保存与恢复**（Line 38-41 与 Line 86-89）：
+    ```assembly
+    #ifndef SIMULATION
+        STORE x26, 26*REGBYTES(sp)
+        STORE x27, 27*REGBYTES(sp)
+    #endif
+    ```
+    *   **在真实硬件上运行时（没有 SIMULATION 宏）**：`x26` 和 `x27` 只是两个普通寄存器，在执行中断保护现场和恢复现场时，**必须被老老实实保存和恢复**。
+    *   **在 RTL 仿真中运行时（定义了 SIMULATION 宏）**：由于 `x26` 和 `x27` 具有“与仿真环境直接通信”的特殊特权，因此**在中断发生时，绝对不能将它们保存和覆盖**！这确保了中断业务在修改 `x26/x27` 传递仿真状态时，信号不被恢复机制意外冲刷掉。
+
 ---
 
 ## 四、 增加自定义外设驱动的四个工作步骤

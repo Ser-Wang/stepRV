@@ -24,21 +24,23 @@ module mem_dtcm(
 reg [31:0] r_dtcm [0:`DTCM_DEPTH-1];    // 4096 by default
 reg [31:0] r_rd_data;
 
+localparam DTCM_ADDR_WIDTH = $clog2(`DTCM_DEPTH);
+
 // write data
 always @(posedge clk) begin
     if (i_wr_en) begin
         // r_dtcm[i_addr[31:2]] <= i_wr_data;
         if (i_wr_mask[0]) begin
-            r_dtcm[i_addr[31:2]][7:0]   <= i_wr_data[7:0];
+            r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]][7:0]   <= i_wr_data[7:0];
         end
         if (i_wr_mask[1]) begin
-            r_dtcm[i_addr[31:2]][15:8]  <= i_wr_data[15:8];
+            r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]][15:8]  <= i_wr_data[15:8];
         end
         if (i_wr_mask[2]) begin
-            r_dtcm[i_addr[31:2]][23:16] <= i_wr_data[23:16];
+            r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]][23:16] <= i_wr_data[23:16];
         end
         if (i_wr_mask[3]) begin
-            r_dtcm[i_addr[31:2]][31:24] <= i_wr_data[31:24];
+            r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]][31:24] <= i_wr_data[31:24];
         end
     end
 end
@@ -49,7 +51,7 @@ always @(*) begin
         r_rd_data = `ZERO_WORD;
     end
     else begin
-        r_rd_data = r_dtcm[i_addr[31:2]];
+        r_rd_data = r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]];
     end
 end
 

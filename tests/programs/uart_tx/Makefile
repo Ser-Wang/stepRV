@@ -4,10 +4,10 @@ RISCV_ABI := ilp32
 RISCV_MCMODEL := medlow
 
 
-TARGET = simple
+TARGET = uart_tx
 
 
-CFLAGS += -DSIMULATION
+#CFLAGS += -DSIMULATION
 #CFLAGS += -O2
 #ASM_SRCS +=
 #LDFLAGS +=

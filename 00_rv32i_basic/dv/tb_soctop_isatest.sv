@@ -20,13 +20,15 @@ module tb_soctop_isatest();
   `endif
 `endif
 
-`ifdef VIVADO_MANUAL
 // `if !defined(VCS) && !defined(IVERILOG)  // iverilog cannot use this
-// `define RVTEST_ISA 1
-`define RVTEST_COMPLIANCE 1
+`ifdef VIVADO_MANUAL
+`define RVTEST_ISA 1
+// `define RVTEST_COMPLIANCE 1
+
+    parameter INST_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data";
     parameter TEST_NAME      = "I-ADD-01";
-    parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".data"};
-    parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".ref"};
+    // parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".data"};
+    // parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".ref"};
 `else
     // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
     parameter INST_DATA_PATH = "./inst.data";
@@ -49,12 +51,12 @@ task report_result;     // Unified result reporting task
     input        pass;
     input [8*32-1:0] mode_name;   // "ISA" or "COMPLIANCE"
     begin
-        $display("\n**************************************************");
+        $display("\n*************************************************");
         if (pass)
-            $display("****        %0s  [PASS]                    ****", mode_name);
+            $display("****               %0s  [PASS]               ****", mode_name);
         else
-            $display("****        %0s  [FAIL]                    ****", mode_name);
-        $display("**************************************************\n");
+            $display("****               %0s  [FAIL]               ****", mode_name);
+        $display("*************************************************\n");
     end
 endtask
 
@@ -184,7 +186,7 @@ end
 // =============================================================================
 initial begin
     $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
-    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
 
 // =============================================================================
