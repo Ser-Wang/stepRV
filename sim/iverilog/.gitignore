@@ -1,5 +1,5 @@
 inst.data
-out.vvp
+*.vvp
 *.vcd
 filelist.f
 

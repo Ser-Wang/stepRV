@@ -10,12 +10,12 @@ RTL_VERSION = '00_rv32i_basic'
 RTL_DIR    = f'../../{RTL_VERSION}/de'
 TB_FILE    = f'../../{RTL_VERSION}/dv/tb_soctop_isatest.sv'
 FILELIST_F = r'filelist.f'
-TESTS_BASE_DIR   = r'../../tests/rv_compilance'
+TESTS_BASE_DIR   = r'../../tests/rv_compliance'
 SEARCH_TARGET_FOLDERS = ['rv32i', 'rv32im', 'rv32Zicsr', 'rv32Zifencei']
 
 def get_reference_file(data_file):
-    # data_file 示例: ../rvcompilance/rv32i/I-ADD-01.data
-    # ref_file 预期: ../rvcompilance/rv32i/I-ADD-01.ref
+    # data_file 示例: ../rv_compliance/rv32i/I-ADD-01.data
+    # ref_file 预期: ../rv_compliance/rv32i/I-ADD-01.ref
     prefix, _ = os.path.splitext(data_file)
     ref_file = prefix + ".ref"
     if os.path.exists(ref_file):

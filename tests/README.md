@@ -13,7 +13,7 @@
     - `.dump`: 对应的反汇编文件，方便调试时定位指令。
 - **要求**：DMEM地址要从0x1000开始，这是由于当前的.bin编译时link.ld是这样设定的，若想更data段起始地址，需修改link.ld重新处。
 
-### 2. [rv_compilance](./rv_compilance) (仿真资产)
+### 2. [rv_compliance](./rv_compliance) (仿真资产)
 - **来源**：源自 [riscv-compliance](https://github.com/riscv/riscv-compliance) 编译后的文件。
 - **说明**：用于验证处理器是否符合 RISC-V 指令集规范的标准测试。
 - **文件后缀**：

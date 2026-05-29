@@ -7,7 +7,7 @@ import subprocess
 # ==============================================================================
 TARGET_FOLDERS = ['rv32i']
 # TARGET_FOLDERS = ['rv32i', 'rv32im', 'rv32Zicsr', 'rv32Zifencei']
-BASE_DIR = r'../../tests/rv_compilance'
+BASE_DIR = r'../../tests/rv_compliance'
 
 def list_datafiles(path):
     files = []

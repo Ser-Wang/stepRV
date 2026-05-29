@@ -4,11 +4,11 @@ import glob
 
 def main():
     # 使用前需要修改源目录！！！
-    # 脚本位置: tests/rv_compilance/update_compliance.py
+    # 脚本位置: tests/rv_compliance/update_compliance.py
     # 目标根目录: 当前目录 (.)
     dst_root = "."
     
-    # 基础源目录路径 (相对于 tests/rv_compilance)
+    # 基础源目录路径 (相对于 tests/rv_compliance)
     # 1. 编译生成的 bin 和 dump 路径
     build_base = os.path.join("..", "riscv-compliance", "build_generated")
     # 2. 官方提供的 reference 路径

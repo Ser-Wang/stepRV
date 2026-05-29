@@ -27,8 +27,8 @@ module tb_soctop_isatest();
 
     parameter INST_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data";
     parameter TEST_NAME      = "I-ADD-01";
-    // parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".data"};
-    // parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compilance/rv32i/", TEST_NAME, ".ref"};
+    // parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compliance/rv32i/", TEST_NAME, ".data"};
+    // parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compliance/rv32i/", TEST_NAME, ".ref"};
 `else
     // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
     parameter INST_DATA_PATH = "./inst.data";
@@ -126,7 +126,7 @@ end
 integer r, fd;
 
 initial begin
-    $display("ISA Test: [riscv-compilance] running...");
+    $display("ISA Test: [riscv-compliance] running...");
     wait(ex_end_flag == 32'h1);
 
     // 1. Dump signature file (always, for debug)

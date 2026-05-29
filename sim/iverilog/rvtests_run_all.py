@@ -11,7 +11,7 @@ TARGET_CATEGORIES = ['rv32ui']
 
 # 基础测试目录
 BASE_DIR = r'../../tests/rv_tests_isa'
-COMPLIANCE_DIR = r'../../tests/rv_compilance'
+COMPLIANCE_DIR = r'../../tests/rv_compliance'
 
 # 找出 path 目录下的所有 .data 文件
 def list_datafiles(path, target_categories):
