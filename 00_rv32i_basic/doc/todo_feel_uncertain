@@ -1,0 +1,4 @@
+# todo_feel_uncertain
+
+1. 运行compliance测试时，tb中没有给dtcm初始化数据时，就会全fail，包括add，addi那些case。这是为啥呢？？？
+2. 若tb中给dtcm初始化数据了，但dtcm的base和size（包括itcmsize）修改后也会全fail，为啥呢？add指令那些case也涉及到什么访存吗？

@@ -4,6 +4,11 @@
 
 ---
 
+## 0. 快捷使用
+1. 配置好各处makefile等后，make，将生成.bin程序与.dump反汇编文件，分别用于核的运行与作为debug参考
+2. 调用../../tools/scripts/BinToMem_CLI.py将.bin文件转为.data文件，供tb中读入（如果tb有初始化tcm）
+3. 为便于debug，将.dump反汇编中的寄存器名改为x0~x31，调用../../tools/scripts/rename_regs.py可实现
+
 ## 一、 目录结构与文件角色
 
 为实现与原参考项目解耦，本目录已重构为非常规整的**对称结构**。所有的通用底层文件均作为 `common` 的子目录管理：
