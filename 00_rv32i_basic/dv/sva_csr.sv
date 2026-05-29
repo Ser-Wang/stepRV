@@ -3,7 +3,7 @@
 // Engineer: Wang Jianghao
 // Create Date: 2026/05/18
 // Design Name: StepRV_v0
-// Module Name: csr_sva
+// Module Name: sva_csr
 // Description:
 // Revision:
 // Revision 0.01 - File Created
@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module csr_sva(
+module sva_csr(
     input clk,
     input rst_n,
     input [11:0] i_csr_idx,
@@ -36,6 +36,6 @@ property p_csr_illegal_flag;
     (req_disp_csr && !is_supported) |-> o_csr_ill_exc;
 endproperty
 
-assert property(p_csr_illegal_flag) else $error("SVA ERROR: Unsupported CSR access did not raise illegal exception flag.");
+assert property(p_csr_illegal_flag) else $error("[SVA Error] Unsupported CSR access did not raise illegal exception flag.");
 
 endmodule

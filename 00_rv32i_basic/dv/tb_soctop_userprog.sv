@@ -153,7 +153,7 @@ end
 
 // ---------------- SVA Bindings ----------------
 `ifndef IVERILOG
-bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
+bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
     .clk(u_soc_top_v0.clk),
     .rst_n(u_soc_top_v0.rst_n),
     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
@@ -161,7 +161,7 @@ bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
     .mema_addr_bus(i_mema_addr)
 );
 
-bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
+bind exu_lsu sva_exu_lsu u_sva_exu_lsu (
     .clk(clk),
     .rst_n(rst_n),
     .lsu_req_load_lsu(lsu_req_load),
@@ -170,7 +170,7 @@ bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
     .lsu_req_info_size_lsu(lsu_req_info_size)
 );
 
-bind exu csr_sva u_csr_sva (
+bind exu sva_csr u_sva_csr (
     .clk(clk),
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),

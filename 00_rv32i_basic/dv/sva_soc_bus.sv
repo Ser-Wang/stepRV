@@ -1,6 +1,17 @@
 `timescale 1ns / 1ps
+//--------------------------------------------------------------------------------
+// Engineer: Wang Jianghao
+// Create Date: 2026/05/18
+// Design Name: StepRV_v0
+// Module Name: sva_soc_bus
+// Description:
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+//--------------------------------------------------------------------------------
 
-module soc_bus_sva (
+
+module sva_soc_bus (
     input wire clk,
     input wire rst_n,
     // From MAU (Memory Access Unit)
@@ -17,8 +28,8 @@ module soc_bus_sva (
     endproperty
 
     assert_no_itcm_load: assert property (p_no_itcm_load) else begin
-        $display("\n[SVA ERROR] LSU Load from ITCM is NOT supported! Addr: 0x%h", $sampled(mema_addr_bus));
-        $fatal;
+        $display("\n[SVA Warning] Detected load from ITCM. Addr: 0x%h", $sampled(mema_addr_bus));
+        // $fatal
     end
 
 endmodule

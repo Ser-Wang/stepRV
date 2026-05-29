@@ -7,6 +7,7 @@
 // Description: Unified Testbench for both ISA tests and Compliance tests.
 //              Use +define+RVTEST_ISA or +define+RVTEST_COMPLIANCE to select mode.
 //--------------------------------------------------------------------------------
+`include "config.v"
 
 module tb_soctop_isatest();
 
@@ -114,6 +115,18 @@ wire [31:0] mema_addr    = u_soc_top_v0.u_core.o_mema_addr;
 wire        mema_wren    = u_soc_top_v0.u_core.o_mema_wren;
 wire [31:0] mema_wr_data = u_soc_top_v0.u_core.o_mema_wr_data;
 
+function automatic [31:0] read_signature_word;
+    input [31:0] addr;
+    begin
+        if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE)))
+            read_signature_word = u_soc_top_v0.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
+        else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
+            read_signature_word = u_soc_top_v0.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
+        else
+            read_signature_word = 32'hxxxx_xxxx;
+    end
+endfunction
+
 // Bus snoop: Capture compliance test control registers
 always @(posedge clk) begin
     if (rst_n && mema_wren) begin
@@ -133,7 +146,7 @@ initial begin
     fd = $fopen(SIGNATURE_OUT);
     if (fd) begin
         for (r = begin_signature; r < end_signature; r = r + 4)
-            $fdisplay(fd, "%08x", u_soc_top_v0.u_dmem.r_dtcm[r[31:2]]);
+            $fdisplay(fd, "%08x", read_signature_word(r));
         $fclose(fd);
         $display("  Signature saved to %s", SIGNATURE_OUT);
     end
@@ -156,7 +169,7 @@ initial begin
                     fail_count = fail_count + 1;
                     break;
                 end
-                val_out = u_soc_top_v0.u_dmem.r_dtcm[r[31:2]];
+                val_out = read_signature_word(r);
                 if (val_out !== val_ref) begin
                     $display("  !!! MISMATCH [0x%h]: Expect=0x%h, Got=0x%h", r, val_ref, val_out);
                     fail_count = fail_count + 1;
@@ -210,7 +223,7 @@ end
 // ----------------        SVA Bindings          ----------------
 // =============================================================================
 `ifndef IVERILOG
-bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
+bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
     .clk(u_soc_top_v0.clk),
     .rst_n(u_soc_top_v0.rst_n),
     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
@@ -218,7 +231,7 @@ bind soc_bus_v0 soc_bus_sva u_soc_bus_sva (
     .mema_addr_bus(i_mema_addr)
 );
 
-bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
+bind exu_lsu sva_exu_lsu u_sva_exu_lsu (
     .clk(clk),
     .rst_n(rst_n),
     .lsu_req_load_lsu(lsu_req_load),
@@ -227,7 +240,7 @@ bind exu_lsu exu_lsu_sva u_exu_lsu_sva (
     .lsu_req_info_size_lsu(lsu_req_info_size)
 );
 
-bind exu csr_sva u_csr_sva (
+bind exu sva_csr u_sva_csr (
     .clk(clk),
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),

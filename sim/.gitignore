@@ -1,0 +1,22 @@
+/csrc/
+/simv
+/simv.daidir/
+/ucli.key
+filelist.f
+*.log
+*.fsdb
+
+# Verdi generated logs and runtime data
+/verdiLog/*
+/novas_dump.log
+/novas.conf
+/novas.rc
+/verdiLog/
+
+# Local/editor noise
+*.tmp
+*~
+
+inst.data
+out.ref
+signature.output
