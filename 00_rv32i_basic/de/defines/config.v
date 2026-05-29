@@ -18,9 +18,11 @@
 
 `define ITCM_BASE 32'h0000_0000
 `define DTCM_BASE 32'h1000_0000
+`define UART_BASE 32'h3000_0000
 
 `define ITCM_SIZE 32'h0000_4000  // 16KB, matching link.lds flash section length (16K)
 `define DTCM_SIZE 32'h0000_4000  // 16KB, matching link.lds ram section length (16K)
+`define UART_SIZE 32'h0000_1000  // 4KB UART MMIO window
 
 `define ITCM_DEPTH (`ITCM_SIZE / 4)  // Word depth derived from size (4 bytes per word)
 `define DTCM_DEPTH (`DTCM_SIZE / 4)  // Word depth derived from size (4 bytes per word)

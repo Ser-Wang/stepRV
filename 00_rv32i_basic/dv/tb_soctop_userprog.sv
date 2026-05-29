@@ -34,11 +34,15 @@ module tb_soctop_userprog();
 
 reg clk;
 reg rst_n;
+wire uart_tx;
+reg uart_rx;
 
 // ---------------- Instantiations ----------------
 soc_top_v0 u_soc_top_v0(
-    .clk    (clk),
-    .rst_n  (rst_n)
+    .clk       (clk),
+    .rst_n     (rst_n),
+    .o_uart_tx (uart_tx),
+    .i_uart_rx (uart_rx)
 );
 
 // ---------------- Memory Loading ----------------
@@ -53,6 +57,7 @@ always #10 clk = ~clk;     // 50MHz
 initial begin
     clk = 0;
     rst_n = 0;
+    uart_rx = 1'b1;
     #40;
     rst_n = 1;
 end
@@ -63,6 +68,7 @@ initial begin
     fork
         check_x26_x27();
         monitor_pc();
+        uart_tx_monitor();
     join_none
 end
 
@@ -112,6 +118,35 @@ task automatic monitor_pc();
     end
 endtask
 
+// UART TX monitor. Decodes 8-N-1 output and prints received characters.
+task automatic uart_tx_monitor();
+    integer baud_cycle_cnt;
+    integer bit_period_ns;
+    integer i;
+    reg [7:0] rx_char;
+    begin
+        @(posedge rst_n);
+        repeat (2) @(posedge clk);
+        $display("[UART TX Monitor] Started monitoring UART TX output...");
+
+        forever begin
+            @(negedge uart_tx);
+            baud_cycle_cnt = u_soc_top_v0.u_uart.uart_baud[15:0];
+            bit_period_ns = 20 * (baud_cycle_cnt + 1);
+
+            #(bit_period_ns + (bit_period_ns / 2));
+            rx_char = 8'h00;
+
+            for (i = 0; i < 8; i = i + 1) begin
+                rx_char[i] = uart_tx;
+                #(bit_period_ns);
+            end
+
+            $write("%c", rx_char);
+        end
+    end
+endtask
+
 // --- Wires for User Program x26/x27 ISA checking ---
 `ifdef CHECK_X26_X27
 wire [31:0] x3  = u_soc_top_v0.u_core.u_regfile.r_regfile[3];
@@ -146,7 +181,7 @@ end
 
 // Global Watchdog Timeout
 initial begin
-    #1000000;
+    #5000000;
     $display("Simulation Time Out.");
     $finish;
 end

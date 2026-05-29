@@ -31,14 +31,19 @@ module soc_bus_v0 (
     output wire        o_dtcm_wr_en,
     output wire [ 3:0] o_dtcm_wr_mask,
     output wire [31:0] o_dtcm_wr_data,
-    input  wire [31:0] i_dtcm_rd_data
+    input  wire [31:0] i_dtcm_rd_data,
 
-    // Future peripherals (e.g. UART) can be added here
+    // UART interface (32-bit MMIO access only in this first integration)
+    output wire [31:0] o_uart_addr,
+    output wire        o_uart_wr_en,
+    output wire [31:0] o_uart_wr_data,
+    input  wire [31:0] i_uart_rd_data
 );
 
 // Address Decoding
 wire sel_itcm = (i_mema_addr >= `ITCM_BASE) && (i_mema_addr < (`ITCM_BASE + `ITCM_SIZE));
 wire sel_dtcm = (i_mema_addr >= `DTCM_BASE) && (i_mema_addr < (`DTCM_BASE + `DTCM_SIZE));
+wire sel_uart = (i_mema_addr >= `UART_BASE) && (i_mema_addr < (`UART_BASE + `UART_SIZE));
 
 // Route to ITCM
 assign o_itcm_wr_addr = i_mema_addr;
@@ -52,10 +57,15 @@ assign o_dtcm_wr_en   = i_mema_wren & sel_dtcm;
 assign o_dtcm_wr_mask = i_mema_wr_mask;
 assign o_dtcm_wr_data = i_mema_wr_data;
 
+// Route to UART
+assign o_uart_addr    = i_mema_addr;
+assign o_uart_wr_en   = i_mema_wren & sel_uart;
+assign o_uart_wr_data = i_mema_wr_data;
+
 // Read Data Mux
-// If future peripherals are added, expand this mux
 assign o_mema_rd_data = sel_dtcm ? i_dtcm_rd_data :
                         sel_itcm ? i_itcm_rd_data : // (Temporary)
+                        sel_uart ? i_uart_rd_data :
                         32'b0;
 
 

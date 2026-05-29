@@ -13,7 +13,9 @@
 
 module soc_top_v0(
     input wire clk,
-    input wire rst_n
+    input wire rst_n,
+    output wire o_uart_tx,
+    input wire i_uart_rx
     );
 
 wire [31:0] if_pc;
@@ -53,6 +55,11 @@ wire [ 3:0] dtcm_wr_mask;
 wire [31:0] dtcm_wr_data;
 wire [31:0] dtcm_rd_data;
 
+wire [31:0] uart_addr;
+wire        uart_wr_en;
+wire [31:0] uart_wr_data;
+wire [31:0] uart_rd_data;
+
 // Memory Bus & Arbitration
 soc_bus_v0 u_soc_bus (
     // Core interface
@@ -74,7 +81,13 @@ soc_bus_v0 u_soc_bus (
     .o_dtcm_wr_en   (dtcm_wr_en   ),
     .o_dtcm_wr_mask (dtcm_wr_mask ),
     .o_dtcm_wr_data (dtcm_wr_data ),
-    .i_dtcm_rd_data (dtcm_rd_data )
+    .i_dtcm_rd_data (dtcm_rd_data ),
+
+    // UART interface
+    .o_uart_addr    (uart_addr    ),
+    .o_uart_wr_en   (uart_wr_en   ),
+    .o_uart_wr_data (uart_wr_data ),
+    .i_uart_rd_data (uart_rd_data )
 );
 
 mem_itcm u_imem(
@@ -100,5 +113,15 @@ mem_dtcm u_dmem(
     .o_rd_data  (dtcm_rd_data   )
     );
 
+uart u_uart(
+    .clk        (clk         ),
+    .rst_n      (rst_n       ),
+    .we_i       (uart_wr_en  ),
+    .addr_i     (uart_addr   ),
+    .data_i     (uart_wr_data),
+    .data_o     (uart_rd_data),
+    .tx_pin     (o_uart_tx   ),
+    .rx_pin     (i_uart_rx   )
+    );
 
 endmodule
