@@ -37,6 +37,9 @@ reg rst_n;
 wire uart_tx;
 reg uart_rx;
 
+// Buffer for UART TX Monitor
+string uart_buffer = "";
+
 // ---------------- Instantiations ----------------
 soc_top_v0 u_soc_top_v0(
     .clk       (clk),
@@ -73,6 +76,14 @@ initial begin
 end
 
 // ---------------- Helper Tasks & Functions ----------------
+
+task automatic print_uart_buffer();
+    if (uart_buffer != "") begin
+        $display("\n--- UART TX Buffered Output ---");
+        $display("%s", uart_buffer);
+        $display("-------------------------------\n");
+    end
+endtask
 
 // Unified result reporting task
 task report_result;
@@ -143,6 +154,7 @@ task automatic uart_tx_monitor();
             end
 
             $write("%c", rx_char);
+            uart_buffer = $sformatf("%s%c", uart_buffer, rx_char);
         end
     end
 endtask
@@ -165,6 +177,7 @@ task automatic check_x26_x27();
         report_result(0, "USERPROG");
         $display("  Failed at test #%0d", x3);
     end
+    print_uart_buffer();
     $finish;
 `endif
 endtask
@@ -179,10 +192,18 @@ initial begin
 end
 `endif
 
+`ifdef IVERILOG
+initial begin
+    $dumpfile("tb_soc_top.vcd");
+    $dumpvars(0, tb_soctop_userprog);
+end
+`endif
+
 // Global Watchdog Timeout
 initial begin
-    #5000000;
-    $display("Simulation Time Out.");
+    #1000000;   // 1ms, for "hello world" is just enough.
+    $display("\nSimulation Time Out.");
+    print_uart_buffer();
     $finish;
 end
 
