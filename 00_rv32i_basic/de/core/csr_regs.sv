@@ -92,19 +92,19 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 // Read logic
-always @(*) begin
-    case (i_csr_idx)
-        `CSR_MSTATUS:   o_csr_rd_data = r_mstatus;
-        `CSR_MTVEC:     o_csr_rd_data = r_mtvec;
-        `CSR_MEPC:      o_csr_rd_data = r_mepc;
-        `CSR_MCAUSE:    o_csr_rd_data = r_mcause;
-        `CSR_MCYCLE:    o_csr_rd_data = r_mcycle[31:0];
-        `CSR_MCYCLEH:   o_csr_rd_data = r_mcycle[63:32];
-        `CSR_MINSTRET:  o_csr_rd_data = r_minstret[31:0];
-        `CSR_MINSTRETH: o_csr_rd_data = r_minstret[63:32];
-        default:        o_csr_rd_data = 32'b0;
-    endcase
-end
+// always @(*) begin
+//     case (i_csr_idx)
+//         `CSR_MSTATUS:   o_csr_rd_data = r_mstatus;
+//         `CSR_MTVEC:     o_csr_rd_data = r_mtvec;
+//         `CSR_MEPC:      o_csr_rd_data = r_mepc;
+//         `CSR_MCAUSE:    o_csr_rd_data = r_mcause;
+//         `CSR_MCYCLE:    o_csr_rd_data = r_mcycle[31:0];
+//         `CSR_MCYCLEH:   o_csr_rd_data = r_mcycle[63:32];
+//         `CSR_MINSTRET:  o_csr_rd_data = r_minstret[31:0];
+//         `CSR_MINSTRETH: o_csr_rd_data = r_minstret[63:32];
+//         default:        o_csr_rd_data = 32'b0;
+//     endcase
+// end
 
 always @(*) begin
     o_csr_rd_data = ({32{csr_sel_mstatus}}   & r_mstatus)

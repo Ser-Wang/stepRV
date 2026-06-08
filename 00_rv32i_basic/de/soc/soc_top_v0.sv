@@ -124,4 +124,12 @@ uart u_uart(
     .rx_pin     (i_uart_rx   )
     );
 
+
+// ila_0 your_instance_name (
+// 	.clk(clk), // input wire clk
+// 	.probe0(o_uart_tx), // input wire [0:0]  probe0  
+// 	.probe1(u_core.u_exu.r_pc_exu) // input wire [7:0]  probe1
+// );
+
+
 endmodule

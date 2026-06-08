@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_soctop_userprog_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_soctop_userprog" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="42,868.500 ns"></ZoomStartTime>
+      <ZoomEndTime time="43,203.001 ns"></ZoomEndTime>
+      <Cursor1Time time="43,050.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="196"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="3" />
+   <wvobject fp_name="/tb_soctop_userprog/u_soc_top_v0/u_core/o_if_pc" type="array">
+      <obj_property name="ElementShortName">o_if_pc[31:0]</obj_property>
+      <obj_property name="ObjectShortName">o_if_pc[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soctop_userprog/u_soc_top_v0/u_core/i_if_instr" type="array">
+      <obj_property name="ElementShortName">i_if_instr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">i_if_instr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_soctop_userprog/u_soc_top_v0/o_uart_tx" type="logic">
+      <obj_property name="ElementShortName">o_uart_tx</obj_property>
+      <obj_property name="ObjectShortName">o_uart_tx</obj_property>
+   </wvobject>
+</wave_config>
