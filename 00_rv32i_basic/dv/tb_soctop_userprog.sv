@@ -50,7 +50,8 @@ soc_top_v0 u_soc_top_v0(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    
     // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
 
@@ -201,7 +202,7 @@ end
 
 // Global Watchdog Timeout
 initial begin
-    #1000000;   // 1ms, for "hello world" is just enough.
+    // #1000000;   // 1ms, for "hello world" is just enough.
     $display("\nSimulation Time Out.");
     print_uart_buffer();
     $finish;

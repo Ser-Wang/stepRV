@@ -22,15 +22,15 @@ module sva_exu_lsu (
 );
 
     // SystemVerilog Assertion: for any load/store request, low two bits must be 00 (Word alignment enforced for now)
-    property p_mema_addr_align;
-        @(posedge clk) disable iff (!rst_n)
-            ( (lsu_req_load_lsu || lsu_req_store_lsu) |-> (mema_addr_lsu[1:0] == 2'b00) );
-    endproperty
+    // property p_mema_addr_align;
+    //     @(posedge clk) disable iff (!rst_n)
+    //         ( (lsu_req_load_lsu || lsu_req_store_lsu) |-> (mema_addr_lsu[1:0] == 2'b00) );
+    // endproperty
 
-    assert_mema_addr_align: assert property (p_mema_addr_align) else begin
-        $display("[SVA Warning] mema_addr[1:0] is not 2'b00. Addr: 0x%h",  $sampled(mema_addr_lsu));
-        // $fatal(1);
-    end
+    // assert_mema_addr_align: assert property (p_mema_addr_align) else begin
+    //     $display("[SVA Warning] mema_addr[1:0] is not 2'b00. Addr: 0x%h",  $sampled(mema_addr_lsu));
+    //     // $fatal(1);
+    // end
 
     // 1. Word alignment check: if size is Word (10), address must be 4-byte aligned
     property p_word_align;
@@ -58,7 +58,7 @@ module sva_exu_lsu (
             (lsu_req_load_lsu || lsu_req_store_lsu) |-> (mema_addr_lsu[0] == 1'b0);
     endproperty
     assert_addr_bit0_zero: assert property (p_addr_bit0_zero) else begin
-        $display("[SVA Warning] mema_addr[0] happend to be 1'b0. Addr: 0x%h", $sampled(mema_addr_lsu));
+        $display("[SVA Warning] mema_addr[0] happend to be 1'b1. Addr: 0x%h", $sampled(mema_addr_lsu));
         // $fatal(1);
     end
 
