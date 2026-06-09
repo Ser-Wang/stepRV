@@ -68,6 +68,18 @@ iterate(void *pres)
         res->crc = crcu16(crc, res->crc);
         if (i == 0)
             res->crclist = res->crc;
+// changed begin: debug-only iteration progress; remove this whole block for an official run.
+#ifdef COREMARK_PROGRESS_INTERVAL
+        /* Debug-only UART output; enabling it changes the measured run time. */
+        if ((((i + 1) % COREMARK_PROGRESS_INTERVAL) == 0)
+            || ((i + 1) == iterations))
+        {
+            ee_printf("[CoreMark Progress] Iteration %lu / %lu completed\n",
+                      (long unsigned)(i + 1),
+                      (long unsigned)iterations);
+        }
+#endif
+// changed end
     }
     return NULL;
 }
@@ -370,14 +382,18 @@ for (i = 0; i < MULTITHREAD; i++)
                   default_num_contexts * results[0].iterations
                       / time_in_secs(total_time));
 #endif
+// changed begin: remove only this conditional wrapper for an official run.
 #ifndef COREMARK_QUICK_RUN
+// changed end
     if (time_in_secs(total_time) < 10)
     {
         ee_printf(
             "ERROR! Must execute for at least 10 secs for a valid result!\n");
         total_errors++;
     }
+// changed begin: remove only this conditional wrapper for an official run.
 #endif
+// changed end
 
     ee_printf("Iterations       : %lu\n",
               (long unsigned)default_num_contexts * results[0].iterations);

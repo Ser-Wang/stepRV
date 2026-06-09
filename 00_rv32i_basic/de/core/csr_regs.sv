@@ -32,7 +32,7 @@ reg [31:0] r_mcause;
 reg [63:0] r_mcycle;
 reg [63:0] r_minstret;
 
-// Exception for unsupported CSR access
+// Machine-level privileged CSRs
 wire csr_sel_mstatus   = (i_csr_idx == `CSR_MSTATUS)   ? 1'b1 : 1'b0;
 wire csr_sel_mtvec     = (i_csr_idx == `CSR_MTVEC)     ? 1'b1 : 1'b0;
 wire csr_sel_mepc      = (i_csr_idx == `CSR_MEPC)      ? 1'b1 : 1'b0;
@@ -42,11 +42,26 @@ wire csr_sel_mcycleh   = (i_csr_idx == `CSR_MCYCLEH)   ? 1'b1 : 1'b0;
 wire csr_sel_minstret  = (i_csr_idx == `CSR_MINSTRET)  ? 1'b1 : 1'b0;
 wire csr_sel_minstreth = (i_csr_idx == `CSR_MINSTRETH) ? 1'b1 : 1'b0;
 
-wire is_supported_csr = csr_sel_mstatus | csr_sel_mtvec   | csr_sel_mepc     | csr_sel_mcause | 
-                        csr_sel_mcycle  | csr_sel_mcycleh | csr_sel_minstret | csr_sel_minstreth;
+// Unprivileged read-only counter CSRs
+// cycle/cycleh are shadow views of the physical mcycle counter. They do not
+// have independent storage: reads return r_mcycle, while writes are illegal.
+// mcycle/mcycleh are the machine-mode writable views of the same counter.
+wire csr_sel_cycle     = (i_csr_idx == `CSR_CYCLE)     ? 1'b1 : 1'b0;
+wire csr_sel_cycleh    = (i_csr_idx == `CSR_CYCLEH)    ? 1'b1 : 1'b0;
+
+
+wire is_supported_machine_csr = csr_sel_mstatus  | csr_sel_mtvec    |
+                                csr_sel_mepc     | csr_sel_mcause   |
+                                csr_sel_mcycle   | csr_sel_mcycleh  |
+                                csr_sel_minstret | csr_sel_minstreth;
+
+wire is_supported_unpriv_csr = csr_sel_cycle | csr_sel_cycleh;
+
+wire is_supported_csr = is_supported_machine_csr | is_supported_unpriv_csr;
 
 // Provide the signal for illegal CSR access
-assign o_csr_ill_exc = ~is_supported_csr;
+assign o_csr_ill_exc = (~is_supported_csr)
+                     | (i_csr_wr_en & (csr_sel_cycle | csr_sel_cycleh));
 
 // mcycle increment
 wire [63:0] mcycle_nxt = r_mcycle + 1'b1;
@@ -107,6 +122,7 @@ end
 // end
 
 always @(*) begin
+    // Machine-level privileged CSRs
     o_csr_rd_data = ({32{csr_sel_mstatus}}   & r_mstatus)
                   | ({32{csr_sel_mtvec}}     & r_mtvec)
                   | ({32{csr_sel_mepc}}      & r_mepc)
@@ -114,7 +130,10 @@ always @(*) begin
                   | ({32{csr_sel_mcycle}}    & r_mcycle[31:0])
                   | ({32{csr_sel_mcycleh}}   & r_mcycle[63:32])
                   | ({32{csr_sel_minstret}}  & r_minstret[31:0])
-                  | ({32{csr_sel_minstreth}} & r_minstret[63:32]);
+                  | ({32{csr_sel_minstreth}} & r_minstret[63:32])
+    // Unprivileged shadow views of mcycle
+                  | ({32{csr_sel_cycle}}     & r_mcycle[31:0])
+                  | ({32{csr_sel_cycleh}}    & r_mcycle[63:32]);
 end
 
 endmodule
