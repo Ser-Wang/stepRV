@@ -2,6 +2,8 @@
 *.o
 *.ko
 *.obj
-simple.bin
-simple.dump
 simple
+simple.bin
+simple.data
+simple.dump
+simple.dump.rename

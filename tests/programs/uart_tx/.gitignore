@@ -2,7 +2,8 @@
 *.o
 *.ko
 *.obj
+uart_tx
 uart_tx.bin
 uart_tx.data
 uart_tx.dump
-uart_tx
+uart_tx.dump.rename

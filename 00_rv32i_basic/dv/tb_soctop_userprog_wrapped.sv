@@ -148,13 +148,14 @@ bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
     .mema_addr_bus(i_mema_addr)
 );
 
-bind exu_lsu sva_exu_lsu u_sva_exu_lsu (
+bind exu sva_exu_lsu u_sva_exu_lsu (
     .clk(clk),
     .rst_n(rst_n),
-    .lsu_req_load_lsu(lsu_req_load),
-    .lsu_req_store_lsu(lsu_req_store),
-    .mema_addr_lsu(mema_addr),
-    .lsu_req_info_size_lsu(lsu_req_info_size)
+    .pc_exu(r_pc_exu),
+    .lsu_req_load_lsu(u_exu_lsu.lsu_req_load),
+    .lsu_req_store_lsu(u_exu_lsu.lsu_req_store),
+    .mema_addr_lsu(u_exu_lsu.mema_addr),
+    .lsu_req_info_size_lsu(u_exu_lsu.lsu_req_info_size)
 );
 
 bind exu sva_csr u_sva_csr (

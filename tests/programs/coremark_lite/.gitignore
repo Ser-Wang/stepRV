@@ -4,5 +4,6 @@
 *.obj
 coremark_lite
 coremark_lite.bin
-coremark_lite.dump
 coremark_lite.data
+coremark_lite.dump
+coremark_lite.dump.rename

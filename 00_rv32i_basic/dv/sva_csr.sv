@@ -24,6 +24,8 @@ wire is_supported = (i_csr_idx == `CSR_MSTATUS)     ||
                     (i_csr_idx == `CSR_MTVEC)       ||
                     (i_csr_idx == `CSR_MEPC)        ||
                     (i_csr_idx == `CSR_MCAUSE)      ||
+                    (i_csr_idx == `CSR_CYCLE)       ||
+                    (i_csr_idx == `CSR_CYCLEH)      ||
                     (i_csr_idx == `CSR_MCYCLE)      ||
                     (i_csr_idx == `CSR_MCYCLEH)     ||
                     (i_csr_idx == `CSR_MINSTRET)    ||
@@ -37,5 +39,16 @@ property p_csr_illegal_flag;
 endproperty
 
 assert property(p_csr_illegal_flag) else $error("[SVA Error] Unsupported CSR access did not raise illegal exception flag.");
+
+// Check that writes to the read-only cycle/cycleh shadow CSRs are rejected.
+property p_read_only_csr_write_illegal;
+    @(posedge clk) disable iff(!rst_n)
+    (req_disp_csr && i_csr_wr_en
+     && ((i_csr_idx == `CSR_CYCLE) || (i_csr_idx == `CSR_CYCLEH)))
+    |-> o_csr_ill_exc;
+endproperty
+
+assert property(p_read_only_csr_write_illegal)
+    else $error("[SVA Error] Write to read-only cycle CSR did not raise illegal exception flag.");
 
 endmodule

@@ -5,9 +5,10 @@
 ---
 
 ## 0. 快捷使用
-1. 配置好各处makefile等后，make，将生成.bin程序与.dump反汇编文件，分别用于核的运行与作为debug参考
-2. 调用../../tools/scripts/BinToMem_CLI.py将.bin文件转为.data文件，供tb中读入（如果tb有初始化tcm）
-3. 为便于debug，将.dump反汇编中的寄存器名改为x0~x31，调用../../tools/scripts/rename_regs.py可实现
+1. 配置好各处 Makefile 后执行 `make`，生成用于处理器运行的 `.bin` 和用于调试参考的 `.dump`。
+2. 执行 `make data`，调用 `tools/scripts/BinToMem_CLI.py` 将 `.bin` 转换为 testbench 可读取的 `.data`。
+3. 执行 `make rename`，调用 `tools/scripts/rename_regs.py` 将 `.dump` 中的 ABI 寄存器名转换为 `x0`~`x31`，输出 `.dump.rename`。
+4. 执行 `make clean` 只删除 ELF 和中间目标文件，保留 `.bin`、`.dump`、`.data` 和 `.dump.rename`；执行 `make clean_all` 删除全部构建产物。
 
 ## 一、 目录结构与文件角色
 

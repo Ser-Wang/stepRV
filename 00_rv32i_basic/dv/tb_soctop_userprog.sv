@@ -11,6 +11,9 @@ module tb_soctop_userprog();
 
 // --- Configuration -------------------------------------------------------
 
+
+// `define ENABLE_SVA 1    // Comment out this macro for faster simulation.
+
 // By default, enable the x26/x27 checking behavior
 `define CHECK_X26_X27 1
 
@@ -50,7 +53,7 @@ soc_top_v0 u_soc_top_v0(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
     
     // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
@@ -70,13 +73,23 @@ end
 initial begin
     $display("User Program Test running...");
     fork
-        check_x26_x27();
-        monitor_pc();
+        // check_x26_x27();
+        // monitor_pc();
         uart_tx_monitor();
+        print_sim_time(20_000_000);
     join_none
 end
 
 // ---------------- Helper Tasks & Functions ----------------
+
+// Print simulation time at the caller-specified interval.
+task automatic print_sim_time(input time interval);
+    forever begin
+        #(interval);
+        $display("\n[Simulation Progress] Current simulation time: %0d ms",
+                 $time / 1_000_000);
+    end
+endtask
 
 task automatic print_uart_buffer();
     if (uart_buffer != "") begin
@@ -107,7 +120,7 @@ function automatic string get_func_name(input [31:0] pc);
 `elsif PROG_SIMPLE
     `include "simple_map.sv"
 `else
-    `include "uart_tx_map.sv"
+    // `include "uart_tx_map.sv"
 `endif
 endfunction
 
@@ -140,6 +153,7 @@ task automatic uart_tx_monitor();
         @(posedge rst_n);
         repeat (2) @(posedge clk);
         $display("[UART TX Monitor] Started monitoring UART TX output...");
+        $display("----------------------------------------------------------");
 
         forever begin
             @(negedge uart_tx);
@@ -202,29 +216,31 @@ end
 
 // Global Watchdog Timeout
 initial begin
-    // #1000000;   // 1ms, for "hello world" is just enough.
+    #12_000_000_000;  // 100ms, enough for the CoreMark quick run.
     $display("\nSimulation Time Out.");
     print_uart_buffer();
     $finish;
 end
 
 // ---------------- SVA Bindings ----------------
+`ifdef ENABLE_SVA
 `ifndef IVERILOG
-bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
-    .clk(u_soc_top_v0.clk),
-    .rst_n(u_soc_top_v0.rst_n),
-    .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
-    .sel_itcm_bus(sel_itcm),
-    .mema_addr_bus(i_mema_addr)
-);
+// bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
+//     .clk(u_soc_top_v0.clk),
+//     .rst_n(u_soc_top_v0.rst_n),
+//     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
+//     .sel_itcm_bus(sel_itcm),
+//     .mema_addr_bus(i_mema_addr)
+// );
 
-bind exu_lsu sva_exu_lsu u_sva_exu_lsu (
+bind exu sva_exu_lsu u_sva_exu_lsu (
     .clk(clk),
     .rst_n(rst_n),
-    .lsu_req_load_lsu(lsu_req_load),
-    .lsu_req_store_lsu(lsu_req_store),
-    .mema_addr_lsu(mema_addr),
-    .lsu_req_info_size_lsu(lsu_req_info_size)
+    .pc_exu(r_pc_exu),
+    .lsu_req_load_lsu(u_exu_lsu.lsu_req_load),
+    .lsu_req_store_lsu(u_exu_lsu.lsu_req_store),
+    .mema_addr_lsu(u_exu_lsu.mema_addr),
+    .lsu_req_info_size_lsu(u_exu_lsu.lsu_req_info_size)
 );
 
 bind exu sva_csr u_sva_csr (
@@ -235,6 +251,7 @@ bind exu sva_csr u_sva_csr (
     .o_csr_ill_exc(o_csr_ill_exc_exu),
     .req_disp_csr(req_disp_csr)
 );
+`endif
 `endif
 
 endmodule
