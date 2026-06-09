@@ -20,8 +20,8 @@
 `define DTCM_BASE 32'h1000_0000
 `define UART_BASE 32'h3000_0000
 
-`define ITCM_SIZE 32'h0000_8000  // 32KB, matching link.lds flash section length (32K)
-// `define ITCM_SIZE 32'h0000_4000  // 16KB, matching link.lds flash section length (16K)
+// `define ITCM_SIZE 32'h0000_8000  // 32KB, matching link.lds flash section length (32K)
+`define ITCM_SIZE 32'h0000_4000  // 16KB, matching link.lds flash section length (16K)
 `define DTCM_SIZE 32'h0000_4000  // 16KB, matching link.lds ram section length (16K)
 `define UART_SIZE 32'h0000_1000  // 4KB UART MMIO window
 

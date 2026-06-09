@@ -73,7 +73,8 @@ end
 initial begin
     // $readmemh("d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data", r_itcm);
     // $readmemh("g:/myProjs/11_myRV/tests/programs/uart_tx/uart_tx.data", r_itcm);
-    $readmemh("g:/myProjs/11_myRV/tests/programs/coremark/coremark.data", r_itcm);
+    // $readmemh("g:/myProjs/11_myRV/tests/programs/coremark/coremark.data", r_itcm);
+    $readmemh("g:/myProjs/11_myRV/tests/programs/coremark_lite/coremark_lite.data", r_itcm);
 end
 
 
