@@ -2,6 +2,7 @@
 *.o
 *.ko
 *.obj
+coremark
 coremark.bin
 coremark.dump
-coremark
+coremark.data

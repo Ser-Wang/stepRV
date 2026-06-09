@@ -36,8 +36,8 @@ volatile ee_s32 seed2_volatile = 0x8;
 volatile ee_s32 seed3_volatile = 0x8;
 #endif
 volatile ee_s32 seed4_volatile = ITERATIONS;
-volatile ee_s32 seed5_volatile = 0;
-// volatile ee_s32 seed5_volatile = ID_LIST;
+// volatile ee_s32 seed5_volatile = 0;
+volatile ee_s32 seed5_volatile = ID_LIST;
 
 static CORE_TICKS start_time_val;
 static CORE_TICKS stop_time_val;

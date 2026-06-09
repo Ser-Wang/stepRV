@@ -1,0 +1,8 @@
+# Object files
+*.o
+*.ko
+*.obj
+coremark_lite
+coremark_lite.bin
+coremark_lite.dump
+coremark_lite.data

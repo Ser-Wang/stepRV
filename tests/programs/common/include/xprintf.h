@@ -5,7 +5,7 @@
 #ifndef _XPRINTF_H_
 #define _XPRINTF_H_
 
-#define	_CR_CRLF		0	/* 1: Convert \n ==> \r\n in the output char */
+#define	_CR_CRLF		1	/* 1: Convert \n ==> \r\n in the output char */
 
 #define xdev_out(func) xfunc_out = (void(*)(unsigned char))(func)
 extern void (*xfunc_out)(unsigned char);
