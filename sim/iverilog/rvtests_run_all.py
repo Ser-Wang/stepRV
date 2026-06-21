@@ -10,7 +10,8 @@ TARGET_CATEGORIES = ['rv32ui']
 # TARGET_CATEGORIES = ['rv32ui', 'rv32um']
 
 # 基础测试目录
-BASE_DIR = r'../../tests/rv_tests_isa'
+# BASE_DIR = r'../../tests/rv_tests_isa'
+BASE_DIR = r'../../tests/rv_tests_isa_new'
 COMPLIANCE_DIR = r'../../tests/rv_compliance'
 
 # 找出 path 目录下的所有 .data 文件
@@ -18,7 +19,7 @@ def list_datafiles(path, target_categories):
     files = []
     for maindir, subdir, all_file in os.walk(path):
         for filename in all_file:
-            if filename.endswith('.data'):
+            if filename.endswith('.data') and not filename.endswith('.dmem.data'):
                 # 检查文件名是否以指定的分类前缀开头
                 if any(filename.startswith(prefix) for prefix in target_categories):
                     apath = os.path.join(maindir, filename).replace('\\', '/')
@@ -26,7 +27,8 @@ def list_datafiles(path, target_categories):
     return files
 
 def main():
-    data_files = list_datafiles(BASE_DIR, TARGET_CATEGORIES)
+    base_dir = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('RVTESTS_BASE_DIR', BASE_DIR)
+    data_files = list_datafiles(base_dir, TARGET_CATEGORIES)
 
     anyfail = False
     fail_count = 0
@@ -36,13 +38,13 @@ def main():
         print(f"No .data files found in categories {TARGET_CATEGORIES}.")
         return
 
-    print(f"Found {total_count} tests in {TARGET_CATEGORIES}. Starting batch run...")
+    print(f"Found {total_count} tests in {TARGET_CATEGORIES} under {base_dir}. Starting batch run...")
     print(f"===========================================")
 
     for file in data_files:
         cmd = r'python rvtests_run_single.py' + ' ' + file
         # 使用 check_output 或 popen 获取结果
-        r = subprocess.check_output([sys.executable, 'rvtests_run_single.py', file], stderr=subprocess.STDOUT).decode('utf-8')
+        r = subprocess.check_output([sys.executable, 'rvtests_run_single.py', file, base_dir], stderr=subprocess.STDOUT).decode('utf-8')
         
         if '[PASS]' in r:
             print(f"{os.path.basename(file):<30} [  PASS  ]")

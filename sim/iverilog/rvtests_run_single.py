@@ -12,7 +12,14 @@ RTL_VERSION = '00_rv32i_basic'
 RTL_DIR    = f'../../{RTL_VERSION}/de'
 TB_FILE    = f'../../{RTL_VERSION}/dv/tb_soctop_isatest.sv'
 FILELIST_F = r'filelist.f'
-TESTS_BASE_DIR = r'../../tests/rv_tests_isa'
+# TESTS_BASE_DIR = r'../../tests/rv_tests_isa'
+TESTS_BASE_DIR = r'../../tests/rv_tests_isa_new'
+DUMMY_DMEM_WORDS = 4096
+
+def make_dummy_dmem(path):
+    with open(path, 'w') as f:
+        for _ in range(DUMMY_DMEM_WORDS):
+            f.write('00000000\n')
 
 # 主函数
 def main():
@@ -22,11 +29,13 @@ def main():
 
     # 支持传入完整路径或仅指令名
     if len(sys.argv) < 2:
-        print("Usage: python rvtests_run_single.py <inst_name_or_data_path>")
+        print("Usage: python rvtests_run_single.py <inst_name_or_data_path> [tests_base_dir]")
         return
         
     test_input = sys.argv[1]
+    tests_base_dir = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('RVTESTS_BASE_DIR', TESTS_BASE_DIR)
     data_file = ""
+    dmem_data_file = ""
     
     # 如果仅传入指令名 (如 "add")，则在子目录下检索 .data 文件
     if not test_input.endswith('.data'):
@@ -34,9 +43,10 @@ def main():
         SEARCH_FOLDERS = ['rv32ui', 'rv32um']
         for folder in SEARCH_FOLDERS:
             # 文件名固定结构: {isa}-p-{inst}.data
-            possible_data = f"{TESTS_BASE_DIR}/{folder}/{folder}-p-{test_input}.data"
+            possible_data = f"{tests_base_dir}/{folder}/{folder}-p-{test_input}.data"
             if os.path.exists(possible_data):
                 data_file = possible_data
+                dmem_data_file = possible_data[:-5] + ".dmem.data"
                 found = True
                 break
         
@@ -46,6 +56,7 @@ def main():
     else:
         # 如果输入的是完整路径
         data_file = test_input
+        dmem_data_file = data_file[:-5] + ".dmem.data"
 
     # 1. 获取指令存储数据 (直接复制预转化的 .data 文件)
     if os.path.exists(data_file):
@@ -53,6 +64,12 @@ def main():
     else:
         print(f"Error: Data file '{data_file}' does not exist.")
         return
+
+    if os.path.exists(dmem_data_file):
+        shutil.copy(dmem_data_file, './dmem.data')
+    else:
+        print(f"Warning: DMEM data file '{dmem_data_file}' does not exist. Using zero-filled dmem.data.")
+        make_dummy_dmem('./dmem.data')
 
     # 1.5 生成 filelist.f
     cmd_gen = r'python subscripts/gen_filelist.py' + ' ' + RTL_DIR + ' ' + TB_FILE + ' ' + FILELIST_F + ' RVTEST_ISA'   # 末尾这个将在filelist中出现"+define+RVTEST_ISA"

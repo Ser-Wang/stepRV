@@ -1,4 +1,4 @@
-inst.data
+*.data
 *.vvp
 *.vcd
 filelist.f

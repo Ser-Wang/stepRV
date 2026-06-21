@@ -27,12 +27,14 @@ module tb_soctop_isatest();
 // `define RVTEST_COMPLIANCE 1
 
     parameter INST_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data";
+    parameter DMEM_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.dmem.data";
     parameter TEST_NAME      = "I-ADD-01";
     // parameter INST_DATA_PATH = {"d:/myProj_WJH/11_myRV/tests/rv_compliance/rv32i/", TEST_NAME, ".data"};
     // parameter REF_FILE_PATH  = {"d:/myProj_WJH/11_myRV/tests/rv_compliance/rv32i/", TEST_NAME, ".ref"};
 `else
     // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
     parameter INST_DATA_PATH = "./inst.data";
+    parameter DMEM_DATA_PATH = "./dmem.data";
     parameter REF_FILE_PATH  = "./out.ref";
 `endif
 
@@ -199,7 +201,7 @@ end
 // =============================================================================
 initial begin
     $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
-    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+    $readmemh(DMEM_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
 end
 
 // =============================================================================
