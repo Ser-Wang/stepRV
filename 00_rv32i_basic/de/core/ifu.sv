@@ -27,13 +27,14 @@ wire [31:0] pc_next;
 
 assign pc_add4 = pc_r + 3'd4;
 assign pc_next = i_jump_flag ? i_pc_next_bru : pc_add4;
+//TODO consider when reset, if pc_next is the addr itcm take, then pc_r should be 'd0-'d4 so that pc+4 is 'd0
 
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         pc_r <= 32'd0;
     end
-    else if(!i_stall) begin
+    else if(!i_stall) begin // TODO: this should add into pc_next logic, especially when changed into normal sram, pc_next will be the addr send to itcm.
         pc_r <= pc_next;
     end
 end

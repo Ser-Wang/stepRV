@@ -114,16 +114,24 @@ EX 阶段内部按照指令类型拆分为多个执行单元：
 
 ## 存储系统与外设
 
-当前 SoC 侧包含两个片上存储器：
+当前 SoC 侧包含 ITCM、DTCM 和一个 UART MMIO 外设。取指通路固定从 ITCM 读取指令；数据访存通路经过 `soc_bus_v0` 做地址译码，再转发到 ITCM、DTCM 或 UART。
 
-| 存储器 | 用途 | 当前访问方式 |
+| 地址范围 | 目标 | 当前用途 |
 | --- | --- | --- |
-| ITCM | 指令存储器 | 取指读；数据侧可写 |
-| DTCM | 数据存储器 | 数据侧可读写 |
+| `0x0000_0000` - `0x0000_7FFF` | ITCM | 指令存储；取指端只读，数据侧可读写 |
+| `0x1000_0000` - `0x1000_3FFF` | DTCM | 普通数据存储器 |
+| `0x3000_0000` - `0x3000_0FFF` | UART | 串口 MMIO 窗口 |
 
-地址空间当前按 ITCM 和 DTCM 两段划分。SoC bus 负责根据访问地址选择目标存储器。
+ITCM 当前大小为 32KB，DTCM 为 16KB，UART 窗口为 4KB，基地址和大小集中定义在 `de/defines/config.v`。SoC bus 对 core 的 load/store 地址进行范围匹配，读数据通过多路选择返回；未命中的地址当前返回 `0`。
 
-当前版本还没有 UART、GPIO、Timer MMIO、中断控制器等通用外设模块。后续如果需要接入外设，可以在 SoC bus 中继续扩展地址译码和读写通路。
+ITCM/DTCM 都是 32-bit word 数组，支持按 byte mask 写入。当前实现采用组合读、同步写的简单存储器模型，便于仿真和教学；后续若替换为 FPGA BRAM 或 SRAM macro，需要同步调整取指/访存时序。
+
+需要注意的是，当前部分 `rv_tests` / `rv_compliance` 生成物的链接地址与 SoC 正式内存图并不完全一致：测试中的 `.data`、signature、`tohost/fromhost` 等区域常被放在 `0x0000_1000` 或 `0x0000_2000` 附近，仍处于 ITCM 地址窗口内，而不是 DTCM 的 `0x1000_0000` 段。测试能够通过，主要是因为当前 ITCM 除取指读端口外，还额外提供了数据侧读写端口，SoC bus 也会把命中 ITCM 范围的数据访存转发给 ITCM。
+其中，ITCM 数据侧写主要用于支持 `fence.i` 相关自修改代码测试；ITCM 数据侧读则主要用于兼容这些测试把 `.data/signature` 放在 ITCM 窗口内的链接布局。这属于当前测试兼容路径，不代表软件链接脚本已经完全匹配正式的 ITCM/DTCM 分区。
+
+UART 已接入 SoC 顶层，当前保证 32-bit MMIO 访问。寄存器定义和访问约定见 `doc/readme_peripherals.md`。
+
+当前还没有 GPIO、Timer MMIO 和中断控制器。后续接入新外设时，主要扩展 `soc_bus_v0` 的地址译码、读写通路和顶层实例化。
 
 ## CSR 支持
 
