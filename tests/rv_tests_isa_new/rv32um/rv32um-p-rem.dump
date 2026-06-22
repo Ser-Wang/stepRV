@@ -1,0 +1,142 @@
+
+../../isa/generated/rv32um-p-rem.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text.init:
+
+00000000 <_start>:
+   0:	00000d13          	li	s10,0
+   4:	00000d93          	li	s11,0
+
+00000008 <test_2>:
+   8:	00200193          	li	gp,2
+   c:	01400593          	li	a1,20
+  10:	00600613          	li	a2,6
+  14:	02c5e733          	rem	a4,a1,a2
+  18:	00200393          	li	t2,2
+  1c:	0c771463          	bne	a4,t2,e4 <fail>
+
+00000020 <test_3>:
+  20:	00300193          	li	gp,3
+  24:	fec00593          	li	a1,-20
+  28:	00600613          	li	a2,6
+  2c:	02c5e733          	rem	a4,a1,a2
+  30:	ffe00393          	li	t2,-2
+  34:	0a771863          	bne	a4,t2,e4 <fail>
+
+00000038 <test_4>:
+  38:	00400193          	li	gp,4
+  3c:	01400593          	li	a1,20
+  40:	ffa00613          	li	a2,-6
+  44:	02c5e733          	rem	a4,a1,a2
+  48:	00200393          	li	t2,2
+  4c:	08771c63          	bne	a4,t2,e4 <fail>
+
+00000050 <test_5>:
+  50:	00500193          	li	gp,5
+  54:	fec00593          	li	a1,-20
+  58:	ffa00613          	li	a2,-6
+  5c:	02c5e733          	rem	a4,a1,a2
+  60:	ffe00393          	li	t2,-2
+  64:	08771063          	bne	a4,t2,e4 <fail>
+
+00000068 <test_6>:
+  68:	00600193          	li	gp,6
+  6c:	800005b7          	lui	a1,0x80000
+  70:	00100613          	li	a2,1
+  74:	02c5e733          	rem	a4,a1,a2
+  78:	00000393          	li	t2,0
+  7c:	06771463          	bne	a4,t2,e4 <fail>
+
+00000080 <test_7>:
+  80:	00700193          	li	gp,7
+  84:	800005b7          	lui	a1,0x80000
+  88:	fff00613          	li	a2,-1
+  8c:	02c5e733          	rem	a4,a1,a2
+  90:	00000393          	li	t2,0
+  94:	04771863          	bne	a4,t2,e4 <fail>
+
+00000098 <test_8>:
+  98:	00800193          	li	gp,8
+  9c:	800005b7          	lui	a1,0x80000
+  a0:	00000613          	li	a2,0
+  a4:	02c5e733          	rem	a4,a1,a2
+  a8:	800003b7          	lui	t2,0x80000
+  ac:	02771c63          	bne	a4,t2,e4 <fail>
+
+000000b0 <test_9>:
+  b0:	00900193          	li	gp,9
+  b4:	00100593          	li	a1,1
+  b8:	00000613          	li	a2,0
+  bc:	02c5e733          	rem	a4,a1,a2
+  c0:	00100393          	li	t2,1
+  c4:	02771063          	bne	a4,t2,e4 <fail>
+
+000000c8 <test_10>:
+  c8:	00a00193          	li	gp,10
+  cc:	00000593          	li	a1,0
+  d0:	00000613          	li	a2,0
+  d4:	02c5e733          	rem	a4,a1,a2
+  d8:	00000393          	li	t2,0
+  dc:	00771463          	bne	a4,t2,e4 <fail>
+  e0:	00301863          	bne	zero,gp,f0 <pass>
+
+000000e4 <fail>:
+  e4:	00100d13          	li	s10,1
+  e8:	00000d93          	li	s11,0
+
+000000ec <loop_fail>:
+  ec:	0000006f          	j	ec <loop_fail>
+
+000000f0 <pass>:
+  f0:	00100d13          	li	s10,1
+  f4:	00100d93          	li	s11,1
+
+000000f8 <loop_pass>:
+  f8:	0000006f          	j	f8 <loop_pass>
+  fc:	0000                	unimp
+  fe:	0000                	unimp
+ 100:	0000                	unimp
+ 102:	0000                	unimp
+
+Disassembly of section .tohost:
+
+10000000 <tohost>:
+10000000:	0000                	unimp
+10000002:	0000                	unimp
+10000004:	0000                	unimp
+10000006:	0000                	unimp
+10000008:	0000                	unimp
+1000000a:	0000                	unimp
+1000000c:	0000                	unimp
+1000000e:	0000                	unimp
+10000010:	0000                	unimp
+10000012:	0000                	unimp
+10000014:	0000                	unimp
+10000016:	0000                	unimp
+10000018:	0000                	unimp
+1000001a:	0000                	unimp
+1000001c:	0000                	unimp
+1000001e:	0000                	unimp
+10000020:	0000                	unimp
+10000022:	0000                	unimp
+10000024:	0000                	unimp
+10000026:	0000                	unimp
+10000028:	0000                	unimp
+1000002a:	0000                	unimp
+1000002c:	0000                	unimp
+1000002e:	0000                	unimp
+10000030:	0000                	unimp
+10000032:	0000                	unimp
+10000034:	0000                	unimp
+10000036:	0000                	unimp
+10000038:	0000                	unimp
+1000003a:	0000                	unimp
+1000003c:	0000                	unimp
+1000003e:	0000                	unimp
+
+10000040 <fromhost>:
+10000040:	0000                	unimp
+10000042:	0000                	unimp
+10000044:	0000                	unimp
+10000046:	0000                	unimp

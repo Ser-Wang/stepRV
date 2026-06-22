@@ -1,0 +1,141 @@
+
+../../isa/generated/rv32ui-p-fence_i.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text.init:
+
+00000000 <_start>:
+   0:	00000d13          	li	s10,0
+   4:	00000d93          	li	s11,0
+   8:	06f00693          	li	a3,111
+   c:	0e001503          	lh	a0,224(zero) # e0 <begin_signature>
+  10:	0e201583          	lh	a1,226(zero) # e2 <begin_signature+0x2>
+  14:	00000013          	nop
+  18:	00000013          	nop
+  1c:	00000013          	nop
+  20:	00000013          	nop
+  24:	00000013          	nop
+  28:	00000013          	nop
+  2c:	00000013          	nop
+  30:	00000013          	nop
+  34:	00000013          	nop
+  38:	00000013          	nop
+  3c:	00000013          	nop
+  40:	0ea01223          	sh	a0,228(zero) # e4 <begin_signature+0x4>
+  44:	0eb01323          	sh	a1,230(zero) # e6 <begin_signature+0x6>
+  48:	0000100f          	fence.i
+  4c:	0e400793          	li	a5,228
+  50:	00078367          	jalr	t1,a5
+
+00000054 <test_2>:
+  54:	00200193          	li	gp,2
+  58:	00000013          	nop
+  5c:	1bc00393          	li	t2,444
+  60:	02769e63          	bne	a3,t2,9c <fail>
+  64:	06400713          	li	a4,100
+  68:	fff70713          	addi	a4,a4,-1
+  6c:	fe071ee3          	bnez	a4,68 <test_2+0x14>
+  70:	0ea01623          	sh	a0,236(zero) # ec <begin_signature+0xc>
+  74:	0eb01723          	sh	a1,238(zero) # ee <begin_signature+0xe>
+  78:	0000100f          	fence.i
+  7c:	00000013          	nop
+  80:	0ec00793          	li	a5,236
+  84:	00078367          	jalr	t1,a5
+
+00000088 <test_3>:
+  88:	00300193          	li	gp,3
+  8c:	00000013          	nop
+  90:	30900393          	li	t2,777
+  94:	00769463          	bne	a3,t2,9c <fail>
+  98:	00301863          	bne	zero,gp,a8 <pass>
+
+0000009c <fail>:
+  9c:	00100d13          	li	s10,1
+  a0:	00000d93          	li	s11,0
+
+000000a4 <loop_fail>:
+  a4:	0000006f          	j	a4 <loop_fail>
+
+000000a8 <pass>:
+  a8:	00100d13          	li	s10,1
+  ac:	00100d93          	li	s11,1
+
+000000b0 <loop_pass>:
+  b0:	0000006f          	j	b0 <loop_pass>
+  b4:	0000                	unimp
+  b6:	0000                	unimp
+  b8:	0000                	unimp
+  ba:	0000                	unimp
+  bc:	0000                	unimp
+  be:	0000                	unimp
+  c0:	0000                	unimp
+  c2:	0000                	unimp
+  c4:	0000                	unimp
+  c6:	0000                	unimp
+  c8:	0000                	unimp
+  ca:	0000                	unimp
+  cc:	0000                	unimp
+  ce:	0000                	unimp
+  d0:	0000                	unimp
+  d2:	0000                	unimp
+  d4:	0000                	unimp
+  d6:	0000                	unimp
+  d8:	0000                	unimp
+  da:	0000                	unimp
+
+Disassembly of section .data:
+
+000000e0 <begin_signature>:
+  e0:	14d68693          	addi	a3,a3,333
+  e4:	0de68693          	addi	a3,a3,222
+  e8:	000307e7          	jalr	a5,t1
+  ec:	22b68693          	addi	a3,a3,555
+  f0:	000307e7          	jalr	a5,t1
+  f4:	0000                	unimp
+  f6:	0000                	unimp
+  f8:	0000                	unimp
+  fa:	0000                	unimp
+  fc:	0000                	unimp
+  fe:	0000                	unimp
+
+Disassembly of section .tohost:
+
+10000000 <tohost>:
+10000000:	0000                	unimp
+10000002:	0000                	unimp
+10000004:	0000                	unimp
+10000006:	0000                	unimp
+10000008:	0000                	unimp
+1000000a:	0000                	unimp
+1000000c:	0000                	unimp
+1000000e:	0000                	unimp
+10000010:	0000                	unimp
+10000012:	0000                	unimp
+10000014:	0000                	unimp
+10000016:	0000                	unimp
+10000018:	0000                	unimp
+1000001a:	0000                	unimp
+1000001c:	0000                	unimp
+1000001e:	0000                	unimp
+10000020:	0000                	unimp
+10000022:	0000                	unimp
+10000024:	0000                	unimp
+10000026:	0000                	unimp
+10000028:	0000                	unimp
+1000002a:	0000                	unimp
+1000002c:	0000                	unimp
+1000002e:	0000                	unimp
+10000030:	0000                	unimp
+10000032:	0000                	unimp
+10000034:	0000                	unimp
+10000036:	0000                	unimp
+10000038:	0000                	unimp
+1000003a:	0000                	unimp
+1000003c:	0000                	unimp
+1000003e:	0000                	unimp
+
+10000040 <fromhost>:
+10000040:	0000                	unimp
+10000042:	0000                	unimp
+10000044:	0000                	unimp
+10000046:	0000                	unimp

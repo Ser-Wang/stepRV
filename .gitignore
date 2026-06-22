@@ -16,3 +16,4 @@ ref/tinyriscv-master.zip
 /ref_TinyRV
 /Xprojs/v0_rv32i_basic/v0_rv32i_basic.sim
 /refProj_tinyriscv
+tests/rv_tests_gen/
