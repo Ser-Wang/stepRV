@@ -28,7 +28,7 @@ DUMP         ?= 0
 VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
 VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
 
-TESTS_DIR    := ../tests/rv_tests_isa
+TESTS_DIR    ?= ../tests/rv_tests_isa_new
 COMP_DIR     := ../tests/rv_compliance
 USERPROG_DIR := ../tests/programs
 
@@ -69,7 +69,7 @@ verdi:
 
 clean:
 	rm -rf csrc novas* *.log simv* *fsdb* ucli.key verdiLog \
-		inst.data out.ref signature.output
+		inst.data dmem.data out.ref signature.output
 
 # ------------------------------------------------------------------------------
 # ISA / Compliance Test Flow
@@ -98,8 +98,15 @@ endif
 	for grp in $(ISA_GROUPS); do \
 		data_file="$(TESTS_DIR)/$$grp/$${grp}-p-$(test).data"; \
 		if [ -f "$$data_file" ]; then \
+			dmem_file="$${data_file%.data}.dmem.data"; \
+			if [ ! -f "$$dmem_file" ]; then \
+				echo "Error: Cannot find DMEM data for test '$(test)': $$dmem_file"; \
+				exit 1; \
+			fi; \
 			cp "$$data_file" ./inst.data; \
+			cp "$$dmem_file" ./dmem.data; \
 			echo "  Data: $$data_file"; \
+			echo "  DMem: $$dmem_file"; \
 			found=1; \
 			break; \
 		fi; \
@@ -214,9 +221,17 @@ _batch_isa: com_isa
 	@pass=0; fail=0; total=0; \
 	for data_file in $(TESTS_DIR)/$(group)/$(group)-p-*.data; do \
 		[ -f "$$data_file" ] || continue; \
+		[[ "$$data_file" != *.dmem.data ]] || continue; \
 		test_name=$$(basename "$$data_file" .data | sed 's/$(group)-p-//'); \
+		dmem_file="$${data_file%.data}.dmem.data"; \
 		total=$$((total + 1)); \
+		if [ ! -f "$$dmem_file" ]; then \
+			printf "  %-30s [# FAIL #] missing dmem\n" "$$test_name"; \
+			fail=$$((fail + 1)); \
+			continue; \
+		fi; \
 		cp "$$data_file" ./inst.data; \
+		cp "$$dmem_file" ./dmem.data; \
 		./simv > sim.log 2>&1; \
 		if grep -q '\[PASS\]' sim.log; then \
 			printf "  %-30s [  PASS  ]\n" "$$test_name"; \

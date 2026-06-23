@@ -4,6 +4,7 @@
 # Usage:
 #   make sim_isa  test=add              - Run a single ISA test (riscv-tests)
 #   make sim_compli test=I-ADD-01       - Run a single Compliance test
+#   make sim_userprog name=simple       - Run tests/programs/<name>/<name>.data with tb_soctop_userprog
 #   make sim_isa_all type=isa    group=rv32ui   - Batch run all ISA tests in a group
 #   make sim_isa_all type=compli group=rv32i    - Batch run all Compliance tests in a group
 #   make sim_run_all                    - Run normal filelist, compile, sim, and Verdi flow
@@ -19,15 +20,17 @@ CORE_VERSION ?= ../00_rv32i_basic
 DE_DIR       := $(CORE_VERSION)/de
 DV_DIR       := $(CORE_VERSION)/dv
 DEFINES_DIR  ?= $(DE_DIR)/defines
+TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
 # DEFINES_DIR  :=
 # No define files: change the line above to `DEFINES_DIR :=`, or run `make <target> DEFINES_DIR=`.
 
 DUMP         ?= 0
-VCS_DEFINES  := $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
+VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
 VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
 
 TESTS_DIR    := ../tests/rv_tests_isa
 COMP_DIR     := ../tests/rv_compliance
+USERPROG_DIR := ../tests/programs
 
 # ---- ISA test search folders ----
 ISA_GROUPS   := rv32ui rv32um
@@ -45,7 +48,7 @@ VCS_FLAGS := \
 # ------------------------------------------------------------------------------
 filelist:
 	@find $(DE_DIR) -path "$(DEFINES_DIR)" -prune -o \( -name "*.v" -o -name "*.sv" \) -print > filelist.f
-	@echo "$(DV_DIR)/tb_soctop_isatest.sv" >> filelist.f
+	@echo "$(TB_FILE)" >> filelist.f
 	@echo "$(DV_DIR)/sva_exu_lsu.sv"       >> filelist.f
 	@echo "$(DV_DIR)/sva_soc_bus.sv"       >> filelist.f
 	@echo "$(DV_DIR)/sva_csr.sv"           >> filelist.f
@@ -79,6 +82,10 @@ com_isa: filelist com
 # Compile for Compliance test mode
 com_compli: VCS_DEFINES += +define+RVTEST_COMPLIANCE
 com_compli: filelist com
+
+# Compile for user program mode
+com_userprog: TB_FILE := $(DV_DIR)/tb_soctop_userprog.sv
+com_userprog: filelist com
 
 # Usage: make sim_isa test=add
 #   Searches for rv32ui-p-add.data / rv32um-p-add.data etc.
@@ -148,6 +155,37 @@ endif
 	else \
 		echo ">>> Result: [UNKNOWN] - No ref file or no pass/fail detected"; \
 	fi
+
+# Single User Program
+# Usage: make sim_userprog name=simple
+#   Copies ../tests/programs/simple/simple.data to ./inst.data, then runs
+#   tb_soctop_userprog.sv. Alias: make sim_user name=simple
+sim_userprog:
+ifndef name
+	$(error "Usage: make sim_userprog name=<program_name>  e.g. make sim_userprog name=simple")
+endif
+	@data_file="$(USERPROG_DIR)/$(name)/$(name).data"; \
+	if [ ! -f "$$data_file" ]; then \
+		echo "Error: Cannot find user program data: $$data_file"; \
+		exit 1; \
+	fi; \
+	cp "$$data_file" ./inst.data; \
+	echo "=== User Program: $(name) ==="; \
+	echo "  Data: $$data_file"; \
+	echo "  TB:   $(DV_DIR)/tb_soctop_userprog.sv"; \
+	echo "  RTL:  $(CORE_VERSION)"
+	@$(MAKE) --no-print-directory com_userprog
+	./simv |tee sim.log
+	@echo ""
+	@if grep -q '\[PASS\]' sim.log; then \
+		echo ">>> Result: [PASS]"; \
+	elif grep -q '\[FAIL\]' sim.log; then \
+		echo ">>> Result: [FAIL] - Check sim.log for details"; \
+	else \
+		echo ">>> Result: [DONE] - Check sim.log for UART/user-program output"; \
+	fi
+
+sim_user: sim_userprog
 
 # Batch Test: sim_isa_all
 # Usage:
@@ -238,5 +276,6 @@ _batch_compli: com_compli
 		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
 	fi
 
-.PHONY: all filelist com com_isa com_compli sim sim_run_all sim_isa sim_compli \
-        sim_isa_all _batch_isa _batch_compli verdi clean
+.PHONY: all filelist com com_isa com_compli com_userprog sim sim_run_all \
+        sim_isa sim_compli sim_userprog sim_user sim_isa_all _batch_isa \
+        _batch_compli verdi clean

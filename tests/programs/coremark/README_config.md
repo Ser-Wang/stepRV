@@ -219,11 +219,37 @@ ee_printf("CoreMark 1.0 : %f / %s %s", ...);
 
 ```text
 CoreMark = ITERATIONS * CPU_FREQ_HZ / Total ticks
-CoreMark/MHz = ITERATIONS * 1,000,000 / Total ticks
+CoreMark/MHz = CoreMark / CPU frequency (MHz)
 ```
 
 单核配置下公式中的 `ITERATIONS` 就是打印的迭代次数；若以后启用多 context，
 应使用程序打印的总迭代次数。计算时 `CPU_FREQ_HZ` 必须等于实际处理器时钟频率。
+例如当前频率为 50 MHz，得到 CoreMark 后直接除以 50 即可。等价公式中出现的
+`1,000,000` 仅用于将 Hz 换算为 MHz，不是 CoreMark 的额外参数。
+
+## 打印字段含义
+
+| 字段 | 含义 |
+| --- | --- |
+| `2K performance/validation run parameters` | 当前种子与数据区被识别为标准 performance 或 validation 配置 |
+| `CoreMark Size` | 总数据区平均分给当前启用算法后，每个算法得到的字节数 |
+| `Total ticks` | CoreMark 计时区间消耗的 cycle 数，是计算精确时间和成绩的依据 |
+| `Total time (secs)` | `Total ticks / CPU_FREQ_HZ`；当前为整数计算，小数部分会被截断 |
+| `Iterations/Sec` | 当前为整数秒基础上的整数结果，也会截断，不应用作精确成绩 |
+| `Iterations` | 所有运行 context 合计完成的 benchmark iteration 数 |
+| `Compiler version/flags` | 本次程序使用的编译器版本和优化参数 |
+| `Memory location` | benchmark 数据区的分配方式；当前为静态内存 |
+| `seedcrc` | 用于识别种子和单算法数据区大小组合 |
+| `crclist/crcmatrix/crcstate` | 三个算法首次运行结果的 CRC，用于与官方已知值校验 |
+| `crcfinal` | 所有 iteration 累积后的最终 CRC，会受迭代次数影响 |
+| `Correct operation validated` | 当前种子可识别且各算法 CRC 校验通过 |
+| `Errors detected` | 时间规则、数据类型或 CRC 检查至少有一项失败 |
+| `Cannot validate operation` | 当前种子或数据区组合没有匹配到内置已知 CRC |
+
+`CPU_FREQ_HZ` 并非 CoreMark 自动检测，而是在
+`tests/programs/common/include/utils.h` 中手动定义。程序输出中的
+`See README.md` 是官方 `core_main.c` 固定文案；本工程的使用说明见
+`README_config.md`，官方规则见只读的 `README_official.md`。
 
 ## 正式结果检查
 
@@ -238,43 +264,3 @@ CoreMark/MHz = ITERATIONS * 1,000,000 / Total ticks
 `QUICK_RUN=1` 或非零的 `PROGRESS_INTERVAL`。正式提交前还应移除
 `core_main.c` 中由 `COREMARK_PROGRESS_INTERVAL` 控制的调试打印代码，以通过
 官方核心源码一致性检查。
-
-## 输出示例
-
-``` without quick_run
-2K validation run parameters for coremark.
-CoreMark Size    : 666
-Total ticks      : 1095308
-Total time (secs): 0
-ERROR! Must execute for at least 10 secs for a valid result!
-Iterations       : 1
-Compiler version : GCC8.3.0
-Compiler flags   : -O2 -fno-common -funroll-loops -finline-functions --param max-inline-insns-auto=20 -falign-functions=4 -falign-jumps=4 -falign-loops=4
-Memory location  : STATIC
-seedcrc          : 0x18f2
-[0]crclist       : 0xe3c1
-[0]crcmatrix     : 0x0747
-[0]crcstate      : 0x8d84
-[0]crcfinal      : 0xe3c1
-Errors detected
-```
-```
-2K validation run parameters for coremark.
-CoreMark Size    : 666
-Total ticks      : 1095308
-Total time (secs): 0
-Iterations       : 1
-Compiler version : GCC8.3.0
-Compiler flags   : -O2 -fno-common -funroll-loops -finline-functions --param max-inline-insns-auto=20 -falign-functions=4 -falign-jumps=4 -falign-loops=4
-Memory location  : STATIC
-seedcrc          : 0x18f2
-[0]crclist       : 0xe3c1
-[0]crcmatrix     : 0x0747
-[0]crcstate      : 0x8d84
-[0]crcfinal      : 0xe3c1
-Correct operation validated. See README.md for run and reporting rules.
-```
-
-最后一行中的 `README.md` 是官方 `core_main.c` 固定输出的通用文件名。为避免继续
-修改 benchmark 核心源码，本移植保留该字符串；在当前工程中，运行配置应查阅
-`README_config.md`，官方报告规则应查阅 `README_official.md`。

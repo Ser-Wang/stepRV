@@ -17,6 +17,6 @@ filelist.f
 *.tmp
 *~
 
-inst.data
+*.data
 out.ref
 signature.output
