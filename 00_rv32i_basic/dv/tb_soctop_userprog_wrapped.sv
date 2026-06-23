@@ -162,7 +162,7 @@ bind exu sva_csr u_sva_csr (
     .clk(clk),
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),
-    .i_csr_wr_en(o_csr_wr_en),
+    .i_csr_wr_req(o_csr_wr_req),
     .exc_raw_illegal_csr_access(i_exc_raw_illegal_csr_access),
     .req_disp_csr(req_disp_csr)
 );

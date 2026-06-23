@@ -23,12 +23,9 @@ module exu_csr(
     output wire        o_trap_ret_req_mret,
     // Interface to csr_regs
     output wire [11:0] o_csr_idx,
-    output wire        o_csr_wr_en,
+    output wire        o_csr_wr_req,
     output wire [31:0] o_csr_wr_data,
-    input  wire [31:0] i_csr_rd_data,
-    // Stall and Flush
-    input  wire        i_stall,
-    input  wire        i_flush
+    input  wire [31:0] i_csr_rd_data
 );
 
 wire csr_req_csrrw  = i_dec_info_bus_csr[`DECINFO_CSR_CSRRW];
@@ -55,16 +52,13 @@ wire [31:0] operand = csr_req_rs1imm ? {27'b0, zimm} : i_csr_rs1;
 wire rs1_is_zero = csr_req_rs1imm ? (zimm == 5'b0) : rs1_is_x0;
 wire csr_req_pure_read = (csr_req_csrrs | csr_req_csrrc) & rs1_is_zero;
     
-// Write enable
+// Write request
 // EXU dispatch already gates i_dec_info_bus_csr to zero for non-CSR/SYSTEM ops.
 assign o_csr_op_req = csr_req_csrrw | csr_req_csrrs | csr_req_csrrc;
 assign o_exc_req_ecall  = sys_req_ecall;
 assign o_exc_req_ebreak = sys_req_ebreak;
 assign o_trap_ret_req_mret = sys_req_mret;
-wire csr_write_intent = (csr_req_csrrw | csr_req_csrrs | csr_req_csrrc) & (~csr_req_pure_read);
-    
-// Gate with stall and flush to prevent multiple writes and flushed writes
-assign o_csr_wr_en = csr_write_intent & (~i_stall) & (~i_flush);
+assign o_csr_wr_req = (csr_req_csrrw | csr_req_csrrs | csr_req_csrrc) & (~csr_req_pure_read);
     
 // Write data calculation
 wire [31:0] wr_data_csrrw = operand;

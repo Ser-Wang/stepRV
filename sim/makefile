@@ -25,9 +25,8 @@ TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
 # No define files: change the line above to `DEFINES_DIR :=`, or run `make <target> DEFINES_DIR=`.
 
 DUMP         ?= 0
-VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
-VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
 
+# ---- Test Dirs ----
 TESTS_DIR    ?= ../tests/rv_tests_isa_new
 COMP_DIR     := ../tests/rv_compliance
 USERPROG_DIR := ../tests/programs
@@ -36,6 +35,10 @@ USERPROG_DIR := ../tests/programs
 ISA_GROUPS   := rv32ui rv32um
 COMP_GROUPS  := rv32i rv32im rv32Zicsr rv32Zifencei
 
+
+SVA_LOG      ?= sva.log
+VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
+VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
 # Common VCS compile options
 VCS_FLAGS := \
 	-timescale=1ns/100ps \
@@ -61,6 +64,7 @@ com:
 
 sim: filelist com
 	./simv |tee sim.log
+	@$(MAKE) --no-print-directory sva_log
 
 sim_run_all: sim verdi
 
@@ -116,6 +120,7 @@ endif
 		exit 1; \
 	fi
 	./simv |tee sim.log
+	@$(MAKE) --no-print-directory sva_log
 	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
@@ -154,6 +159,7 @@ endif
 		exit 1; \
 	fi
 	./simv |tee sim.log
+	@$(MAKE) --no-print-directory sva_log
 	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
@@ -183,6 +189,7 @@ endif
 	echo "  RTL:  $(CORE_VERSION)"
 	@$(MAKE) --no-print-directory com_userprog
 	./simv |tee sim.log
+	@$(MAKE) --no-print-directory sva_log
 	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
@@ -291,6 +298,24 @@ _batch_compli: com_compli
 		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
 	fi
 
+.PHONY: sva_log
+sva_log:
+	@{ \
+		echo "SVA log summary"; \
+		echo "Generated from sim.log"; \
+		echo "----------------------------------------"; \
+		if [ -f sim.log ]; then \
+			grep -n -E '\[SVA Error\]|SVA Error|assert|Assertion|cover_|u_sva' sim.log 2>/dev/null || true; \
+		else \
+			echo "No sim.log found."; \
+		fi; \
+	} > $(SVA_LOG)
+	@if grep -q -E '\[SVA Error\]|SVA Error|assert|Assertion|cover_|u_sva' $(SVA_LOG); then \
+		echo "SVA summary written to $(SVA_LOG)"; \
+	else \
+		echo "No SVA messages found. Empty summary written to $(SVA_LOG)"; \
+	fi
+
 .PHONY: all filelist com com_isa com_compli com_userprog sim sim_run_all \
         sim_isa sim_compli sim_userprog sim_user sim_isa_all _batch_isa \
-        _batch_compli verdi clean
+        _batch_compli verdi clean sva_log

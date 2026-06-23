@@ -14,9 +14,11 @@
 module csr_regs(
     input  wire clk,
     input  wire rst_n,
+    input  wire [4:0]  i_stall, // Pipeline control for committing CSR side effects
+    input  wire [3:0]  i_flush,
     // Interface with EXU
     input  wire [11:0] i_csr_idx,
-    input  wire        i_csr_wr_en,
+    input  wire        i_csr_wr_req,
     input  wire [31:0] i_csr_wr_data,
     output reg  [31:0] o_csr_rd_data,
     output wire        o_exc_raw_illegal_csr_access,
@@ -73,9 +75,12 @@ wire is_supported_csr = is_supported_machine_csr | is_supported_unpriv_csr;
 
 // Raw illegal CSR access indication. EXU gates it with a real CSR op request.
 assign o_exc_raw_illegal_csr_access = (~is_supported_csr)
-                                    | (i_csr_wr_en & (csr_sel_cycle | csr_sel_cycleh));
+                                    | (i_csr_wr_req & (csr_sel_cycle | csr_sel_cycleh));
 assign o_mtvec = r_mtvec;
 assign o_mepc = r_mepc;
+
+wire csr_commit_en = (~i_stall[`STALL_ID_EX]) & (~i_flush[`FLUSH_ID_EX]);
+wire csr_wr_en = i_csr_wr_req & csr_commit_en;
 
 // mcycle increment
 wire [63:0] mcycle_nxt = r_mcycle + 1'b1;
@@ -84,7 +89,7 @@ always @(posedge clk or negedge rst_n) begin
         r_mcycle <= 64'b0;
     end else begin
         r_mcycle <= mcycle_nxt;
-        if (i_csr_wr_en) begin
+        if (csr_wr_en) begin
             if (csr_sel_mcycle)  r_mcycle[31:0]  <= i_csr_wr_data;
             if (csr_sel_mcycleh) r_mcycle[63:32] <= i_csr_wr_data;
         end
@@ -98,7 +103,7 @@ always @(posedge clk or negedge rst_n) begin
         r_minstret <= 64'b0;
     end else begin
         r_minstret <= minstret_nxt;
-        if (i_csr_wr_en) begin
+        if (csr_wr_en) begin
             if (csr_sel_minstret)  r_minstret[31:0]  <= i_csr_wr_data;
             if (csr_sel_minstreth) r_minstret[63:32] <= i_csr_wr_data;
         end
@@ -124,7 +129,7 @@ always @(posedge clk or negedge rst_n) begin
         r_mstatus[3] <= r_mstatus[7]; // MIE  <= MPIE
         r_mstatus[7] <= 1'b1;         // MPIE <= 1
         r_mstatus[12:11] <= 2'b00;    // MPP  <= U-mode per spec
-    end else if (i_csr_wr_en) begin
+    end else if (csr_wr_en) begin
         if (csr_sel_mstatus) r_mstatus <= i_csr_wr_data;
         if (csr_sel_mtvec)   r_mtvec   <= i_csr_wr_data;
         if (csr_sel_mepc)    r_mepc    <= i_csr_wr_data;

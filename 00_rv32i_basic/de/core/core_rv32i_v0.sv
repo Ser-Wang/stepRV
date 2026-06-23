@@ -90,7 +90,7 @@ wire [31:0] exc_tval_exu;
 
 // csr
 wire [11:0] csr_idx;
-wire        csr_wr_en;
+wire        csr_wr_req;
 wire [31:0] csr_wr_data;
 wire [31:0] csr_rd_data;
 wire        exc_raw_illegal_csr_access;
@@ -188,7 +188,7 @@ exu u_exu(
     .o_is_load_req_exu  (is_load_req_exu    ),
     // csr
     .o_csr_idx          (csr_idx            ),
-    .o_csr_wr_en        (csr_wr_en          ),
+    .o_csr_wr_req       (csr_wr_req         ),
     .o_csr_wr_data      (csr_wr_data        ),
     .i_csr_rd_data      (csr_rd_data        ),
     .i_exc_raw_illegal_csr_access (exc_raw_illegal_csr_access),
@@ -205,7 +205,6 @@ exu u_exu(
     .o_wrbk_rdidx_exu   (wrbk_rdidx_exu     ),
     .o_wrbk_rdwen_exu   (wrbk_rdwen_exu     )
     );
-
 
 ctrl_hazard u_ctrl_hazard(
     .clk                (clk    ),
@@ -272,8 +271,10 @@ wbu u_wbu(
 csr_regs u_csr_regs(
     .clk            (clk            ),
     .rst_n          (rst_n          ),
+    .i_stall        (stall          ),
+    .i_flush        (flush          ),
     .i_csr_idx      (csr_idx        ),
-    .i_csr_wr_en    (csr_wr_en      ),
+    .i_csr_wr_req   (csr_wr_req     ),
     .i_csr_wr_data  (csr_wr_data    ),
     .o_csr_rd_data  (csr_rd_data    ),
     .o_exc_raw_illegal_csr_access (exc_raw_illegal_csr_access),

@@ -52,7 +52,7 @@ module exu(
     output wire o_wrbk_rdwen_exu,
     // csr interface to core
     output wire [11:0] o_csr_idx,
-    output wire        o_csr_wr_en,
+    output wire        o_csr_wr_req,
     output wire [31:0] o_csr_wr_data,
     input  wire [31:0] i_csr_rd_data,
     input  wire        i_exc_raw_illegal_csr_access, // Raw illegal CSR indication from csr_regs (combinational)
@@ -336,11 +336,9 @@ exu_csr u_exu_csr(
     .o_exc_req_ebreak   (exc_req_ebreak     ),
     .o_trap_ret_req_mret(trap_ret_req_mret  ),
     .o_csr_idx          (o_csr_idx          ),
-    .o_csr_wr_en        (o_csr_wr_en        ),
+    .o_csr_wr_req       (o_csr_wr_req       ),
     .o_csr_wr_data      (o_csr_wr_data      ),
-    .i_csr_rd_data      (i_csr_rd_data      ),
-    .i_stall            (i_stall            ),
-    .i_flush            (i_flush            )
+    .i_csr_rd_data      (i_csr_rd_data      )
     );
 
 endmodule
