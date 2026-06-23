@@ -14,8 +14,8 @@
 module ctrl_hazard(
     input  wire clk,
     input  wire rst_n,
-    // branch
-    input  wire i_jump_flag,
+    // redirect
+    input  wire i_redirect_req,
     // for load-use hazard
     input  wire i_need_rs1_idu,
     input  wire i_need_rs2_idu,
@@ -78,7 +78,7 @@ wire stall_req_lduse_id = hzd_lduse_id;
 reg [4:0] stall;
 reg [3:0] flush;
 always @(*) begin
-    if (i_jump_flag) begin
+    if (i_redirect_req) begin
         stall = 5'b00000;
     end
     else if (stall_req_lduse_id) begin
@@ -90,7 +90,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    if (i_jump_flag) begin
+    if (i_redirect_req) begin
         flush = 4'b0011;    // MEM_WB | EX_MEM | ID_EX | IF_ID
     end
     else if (stall_req_lduse_id) begin

@@ -22,7 +22,9 @@ module exu_lsu(
     output wire [31:0] o_mema_wr_data_exu,
     output wire o_mema_wren_exu,
     output wire [7:0] o_mema_info_bus, // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
-    output wire o_lsu_misaligned_exc  // Add exception signal for misaligned access
+    output wire o_exc_req_load_addr_misaligned_lsu,
+    output wire o_exc_req_store_addr_misaligned_lsu,
+    output wire [31:0] o_exc_tval_addr_misaligned_lsu
     );
 
 wire addr_misaligned;
@@ -45,14 +47,14 @@ wire [31:0] mema_addr = lsu_req_ag_op1 + lsu_req_ag_op2;
 assign o_mema_addr_exu = mema_addr;
 
 // ---- store data mask
-// support addr not aligned by 4 bytes. 
+// support addr not aligned by 4 bytes.
 // For Byte instructions (00), support any 2-bit offset.
 // For Halfword (01) and Word (10), maintain existing alignment support.
 wire [1:0] addr_offset = mema_addr[1:0];
 
 wire [3:0] mema_wr_mask;
-assign mema_wr_mask = (lsu_req_info_size == 2'b10) ? 4'b1111 : 
-                      (lsu_req_info_size == 2'b01) ? (addr_offset[1] ? 4'b1100 : 4'b0011) : 
+assign mema_wr_mask = (lsu_req_info_size == 2'b10) ? 4'b1111 :
+                      (lsu_req_info_size == 2'b01) ? (addr_offset[1] ? 4'b1100 : 4'b0011) :
                       (lsu_req_info_size == 2'b00) ? (4'b0001 << addr_offset) : 4'b0000;    // mask will be 4'b0001 when it isn't load/store instr
 
 
@@ -88,8 +90,11 @@ assign addr_misaligned = (lsu_req_load || lsu_req_store) && (
                        (lsu_req_info_size == 2'b10 && mema_addr[1:0] != 2'b00) || // Word must be 4-byte aligned
                        (lsu_req_info_size == 2'b01 && mema_addr[0]   != 1'b0 )    // Halfword must be 2-byte aligned
                        );
-                       
-assign o_lsu_misaligned_exc = addr_misaligned;
+
+assign o_exc_req_load_addr_misaligned_lsu = addr_misaligned & lsu_req_load;
+// Store address misaligned is RV32I store-only today. When A extension is added, this path may expand to store/AMO address misaligned.
+assign o_exc_req_store_addr_misaligned_lsu = addr_misaligned & lsu_req_store;
+assign o_exc_tval_addr_misaligned_lsu = mema_addr;
 
 
 endmodule

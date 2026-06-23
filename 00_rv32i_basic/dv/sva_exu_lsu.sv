@@ -38,22 +38,24 @@ module sva_exu_lsu (
         @(posedge clk) disable iff (!rst_n)
             ((lsu_req_load_lsu || lsu_req_store_lsu) && (mema_addr_lsu[1:0] != 2'b00)) |-> (lsu_req_info_size_lsu != 2'b10);
     endproperty
-    assert_word_align: assert property (p_word_align) else begin
-        $display("[SVA Error] Word access must be 4-byte aligned. PC: 0x%08h, Addr: 0x%08h",
-                 $sampled(pc_exu), $sampled(mema_addr_lsu));
-        $fatal(1);
-    end
+    cover_word_misalign: cover property (
+        @(posedge clk) disable iff (!rst_n)
+            (lsu_req_load_lsu || lsu_req_store_lsu) &&
+            (lsu_req_info_size_lsu == 2'b10) &&
+            (mema_addr_lsu[1:0] != 2'b00)
+    );
 
     // 2. Halfword alignment check: if size is Halfword (01), address must be 2-byte aligned
     property p_halfword_align;
         @(posedge clk) disable iff (!rst_n)
             ((lsu_req_load_lsu || lsu_req_store_lsu) && (lsu_req_info_size_lsu == 2'b01)) |-> (mema_addr_lsu[0] == 1'b0);
     endproperty
-    assert_halfword_align: assert property (p_halfword_align) else begin
-        $display("[SVA Error] Halfword access must be 2-byte aligned. PC: 0x%08h, Addr: 0x%08h",
-                 $sampled(pc_exu), $sampled(mema_addr_lsu));
-        $fatal(1);
-    end
+    cover_halfword_misalign: cover property (
+        @(posedge clk) disable iff (!rst_n)
+            (lsu_req_load_lsu || lsu_req_store_lsu) &&
+            (lsu_req_info_size_lsu == 2'b01) &&
+            (mema_addr_lsu[0] != 1'b0)
+    );
 
     // // 3. Mandatory Bit 0 Zero: any load/store address bit 0 must be 0
     // property p_addr_bit0_zero;

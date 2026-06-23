@@ -79,17 +79,23 @@ wire [1:0] fwding_rs1_sel;
 wire [1:0] fwding_rs2_sel;
 wire is_load_req_exu;
 
-// branch
-wire [31:0] pc_next_bru;
-wire jump_flag_bru;
+// redirect / exception
+wire        redirect_req_exu;
+wire [31:0] redirect_pcnext_exu;
+wire        trap_ret_req_exu;
+wire        exc_req_exu;
+wire [31:0] exc_epc_exu;
+wire [31:0] exc_cause_exu;
+wire [31:0] exc_tval_exu;
 
 // csr
 wire [11:0] csr_idx;
 wire        csr_wr_en;
 wire [31:0] csr_wr_data;
 wire [31:0] csr_rd_data;
-wire        csr_ill_exc;
-wire        csr_ill_exc_exu;
+wire        exc_raw_illegal_csr_access;
+wire [31:0] csr_mtvec;
+wire [31:0] csr_mepc;
 
 // flush & stall
 wire [4:0] stall;
@@ -121,8 +127,8 @@ ifu u_ifu(
     .clk            (clk    ),
     .rst_n          (rst_n  ),
     .i_stall        (stall[`STALL_PC]),
-    .i_jump_flag    (jump_flag_bru  ),
-    .i_pc_next_bru  (pc_next_bru    ),
+    .i_redirect_req (redirect_req_exu),
+    .i_redirect_pcnext  (redirect_pcnext_exu ),
     .o_pc_if        (pc_ifu         )
     );
 
@@ -171,9 +177,9 @@ exu u_exu(
     .i_fwd_wrbk_data_wbu(wrbk_data_wbu      ),
     .i_fwding_rs1_sel   (fwding_rs1_sel     ),
     .i_fwding_rs2_sel   (fwding_rs2_sel     ),
-    // branch
-    .o_pc_next_bru      (pc_next_bru        ),
-    .o_jump_flag        (jump_flag_bru      ),
+    // redirect / exception
+    .o_redirect_req     (redirect_req_exu   ),
+    .o_redirect_pcnext  (redirect_pcnext_exu),
     // mem access
     .o_mema_addr_exu    (mema_addr_exu      ),
     .o_mema_wren_exu    (mema_wren_exu      ),
@@ -185,8 +191,14 @@ exu u_exu(
     .o_csr_wr_en        (csr_wr_en          ),
     .o_csr_wr_data      (csr_wr_data        ),
     .i_csr_rd_data      (csr_rd_data        ),
-    .i_csr_ill_exc      (csr_ill_exc        ),
-    .o_csr_ill_exc_exu  (csr_ill_exc_exu    ),
+    .i_exc_raw_illegal_csr_access (exc_raw_illegal_csr_access),
+    .i_csr_mtvec        (csr_mtvec          ),
+    .i_csr_mepc         (csr_mepc           ),
+    .o_exc_req          (exc_req_exu        ),
+    .o_exc_epc          (exc_epc_exu        ),
+    .o_exc_cause        (exc_cause_exu      ),
+    .o_exc_tval         (exc_tval_exu       ),
+    .o_trap_ret_req     (trap_ret_req_exu   ),
     // pass by
     .i_wrbk_rdidx_idu   (wrbk_rdidx_idu     ),
     .i_wrbk_rdwen_idu   (wrbk_rdwen_idu     ),
@@ -198,8 +210,8 @@ exu u_exu(
 ctrl_hazard u_ctrl_hazard(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
-    // branch
-    .i_jump_flag        (jump_flag_bru      ),
+    // redirect
+    .i_redirect_req     (redirect_req_exu   ),
     // for load-use hazard
     .i_need_rs1_idu     (need_rs1_idu       ),
     .i_need_rs2_idu     (need_rs2_idu       ),
@@ -264,7 +276,14 @@ csr_regs u_csr_regs(
     .i_csr_wr_en    (csr_wr_en      ),
     .i_csr_wr_data  (csr_wr_data    ),
     .o_csr_rd_data  (csr_rd_data    ),
-    .o_csr_ill_exc  (csr_ill_exc    ),
+    .o_exc_raw_illegal_csr_access (exc_raw_illegal_csr_access),
+    .o_mtvec        (csr_mtvec      ),
+    .o_mepc         (csr_mepc       ),
+    .i_exc_req      (exc_req_exu      ),
+    .i_exc_epc      (exc_epc_exu      ),
+    .i_exc_cause    (exc_cause_exu    ),
+    .i_exc_tval     (exc_tval_exu     ),
+    .i_trap_ret_req (trap_ret_req_exu ),
     .i_instr_ret_en (1'b0           ) // Tied to 0 for now
     );
 

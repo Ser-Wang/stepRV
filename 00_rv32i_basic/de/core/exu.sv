@@ -35,9 +35,9 @@ module exu(
     input wire [31:0] i_fwd_wrbk_data_wbu,
     input wire [1:0] i_fwding_rs1_sel,
     input wire [1:0] i_fwding_rs2_sel,
-    // branch
-    output wire [31:0] o_pc_next_bru,
-    output wire o_jump_flag,
+    // redirect
+    output wire        o_redirect_req,
+    output wire [31:0] o_redirect_pcnext,
     // to mem access unit
     output wire [31:0] o_mema_addr_exu,
     output wire [31:0] o_mema_wr_data_exu,
@@ -55,8 +55,14 @@ module exu(
     output wire        o_csr_wr_en,
     output wire [31:0] o_csr_wr_data,
     input  wire [31:0] i_csr_rd_data,
-    input  wire        i_csr_ill_exc,     // Illegal CSR Access Exception from csr_regs (combinational)
-    output wire        o_csr_ill_exc_exu  // Valid Illegal CSR Exception confirmed by EXU (gated by req_disp_csr)
+    input  wire        i_exc_raw_illegal_csr_access, // Raw illegal CSR indication from csr_regs (combinational)
+    input  wire [31:0] i_csr_mtvec,
+    input  wire [31:0] i_csr_mepc,
+    output wire        o_exc_req,
+    output wire [31:0] o_exc_epc,
+    output wire [31:0] o_exc_cause,
+    output wire [31:0] o_exc_tval,
+    output wire        o_trap_ret_req
     );
 
 // ================================================================
@@ -85,7 +91,7 @@ always @(posedge clk or negedge rst_n) begin
         r_wrbk_wen_exu <= i_wrbk_rdwen_idu;
     end
 end
-assign o_wrbk_rdwen_exu = r_wrbk_wen_exu;
+assign o_wrbk_rdwen_exu = r_wrbk_wen_exu & (~o_exc_req) & (~o_trap_ret_req);
 
 
 // Comb in, reg 
@@ -226,12 +232,46 @@ assign o_wrbk_data_exu = ({`XLEN{req_disp_alu}} & alu_wrbk_data)
                        | ({`XLEN{req_disp_csr}} & csr_wrbk_data);
 
 
+wire redirect_req_bru;
+wire [31:0] redirect_pcnext_bru;
 // ----------------        Exception        ---------------- //
-assign o_csr_ill_exc_exu = i_csr_ill_exc & req_disp_csr;
-// i_csr_ill_exc from csr_regs is purely combinational based on i_csr_idx.
-// For non-CSR instructions (e.g., ADD), i_csr_idx contains garbage bits which 
-// may falsely trigger i_csr_ill_exc. Thus, we MUST gate it with req_disp_csr
-// to guarantee a valid illegal CSR access exception.
+wire csr_op_req;
+wire exc_req_ecall;
+wire exc_req_ebreak;
+wire trap_ret_req_mret;
+
+wire exc_req_illegal_csr_access;
+wire exc_req_instr_addr_misaligned_bru;
+wire [31:0] exc_tval_instr_addr_misaligned_bru;
+wire exc_req_load_addr_misaligned_lsu;
+wire exc_req_store_addr_misaligned_lsu;
+wire [31:0] exc_tval_addr_misaligned_lsu;
+
+assign exc_req_illegal_csr_access = i_exc_raw_illegal_csr_access & csr_op_req;
+// i_exc_raw_illegal_csr_access is combinational by CSR index; only trust it for real CSR accesses
+assign o_trap_ret_req = trap_ret_req_mret;
+assign o_exc_req = exc_req_ebreak | exc_req_ecall
+                 | exc_req_illegal_csr_access
+                 | exc_req_instr_addr_misaligned_bru
+                 | exc_req_load_addr_misaligned_lsu
+                 | exc_req_store_addr_misaligned_lsu;
+assign o_exc_epc = r_pc_exu;
+assign o_exc_cause = ({32{exc_req_ebreak}} & 32'd3)
+                   | ({32{exc_req_ecall}} & 32'd11)
+                   | ({32{exc_req_instr_addr_misaligned_bru}} & 32'd0)
+                   | ({32{exc_req_load_addr_misaligned_lsu}} & 32'd4)
+                   | ({32{exc_req_store_addr_misaligned_lsu}} & 32'd6)
+                   | ({32{exc_req_illegal_csr_access}} & 32'd2);
+assign o_exc_tval = ({32{exc_req_instr_addr_misaligned_bru}} & exc_tval_instr_addr_misaligned_bru)
+                  | ({32{exc_req_load_addr_misaligned_lsu | exc_req_store_addr_misaligned_lsu}} & exc_tval_addr_misaligned_lsu);
+
+// All EX-stage redirect sources are arbitrated here. This keeps the core top
+// level source-agnostic and leaves one expandable redirect port for future cache,
+// debug, interrupt, or prediction-recovery flows.
+assign o_redirect_req = o_exc_req | o_trap_ret_req | redirect_req_bru;
+assign o_redirect_pcnext = o_exc_req       ? i_csr_mtvec         :
+                           o_trap_ret_req  ? i_csr_mepc          :
+                                             redirect_pcnext_bru;
 
 
 // ----------------        Instantiations        ---------------- //
@@ -262,7 +302,10 @@ exu_lsu u_exu_lsu(
     .o_mema_addr_exu    (o_mema_addr_exu    ),
     .o_mema_wr_data_exu (o_mema_wr_data_exu ),
     .o_mema_wren_exu    (o_mema_wren_exu    ),
-    .o_mema_info_bus    (o_mema_info_bus    )
+    .o_mema_info_bus    (o_mema_info_bus    ),
+    .o_exc_req_load_addr_misaligned_lsu  (exc_req_load_addr_misaligned_lsu ),
+    .o_exc_req_store_addr_misaligned_lsu (exc_req_store_addr_misaligned_lsu),
+    .o_exc_tval_addr_misaligned_lsu      (exc_tval_addr_misaligned_lsu     )
     // .i_mema_rd_data     (i_mema_rd_data     ),
     // .o_lsu_req_result   (lsu_req_result     )
     );
@@ -276,8 +319,10 @@ exu_bru u_exu_bru(
     .i_bru_pc           (bru_pc             ),
     .i_dec_info_bus_bru (dec_info_bus_bru   ),
     .o_bru_wrbk_data    (bru_wrbk_data      ),
-    .o_pc_next_bru      (o_pc_next_bru      ),
-    .o_jump_flag        (o_jump_flag        )
+    .o_redirect_pcnext_bru (redirect_pcnext_bru),
+    .o_redirect_req_bru (redirect_req_bru   ),
+    .o_exc_req_instr_addr_misaligned_bru  (exc_req_instr_addr_misaligned_bru),
+    .o_exc_tval_instr_addr_misaligned_bru (exc_tval_instr_addr_misaligned_bru)
     );
 
 exu_csr u_exu_csr(
@@ -286,6 +331,10 @@ exu_csr u_exu_csr(
     .i_csr_rs1          (csr_rs1            ),
     .i_dec_info_bus_csr (dec_info_bus_csr   ),
     .o_csr_wrbk_res     (csr_wrbk_data      ),
+    .o_csr_op_req       (csr_op_req         ),
+    .o_exc_req_ecall    (exc_req_ecall      ),
+    .o_exc_req_ebreak   (exc_req_ebreak     ),
+    .o_trap_ret_req_mret(trap_ret_req_mret  ),
     .o_csr_idx          (o_csr_idx          ),
     .o_csr_wr_en        (o_csr_wr_en        ),
     .o_csr_wr_data      (o_csr_wr_data      ),

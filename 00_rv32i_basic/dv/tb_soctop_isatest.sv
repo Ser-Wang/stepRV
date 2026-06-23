@@ -248,7 +248,7 @@ bind exu sva_csr u_sva_csr (
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),
     .i_csr_wr_en(o_csr_wr_en),
-    .o_csr_ill_exc(o_csr_ill_exc_exu),
+    .exc_raw_illegal_csr_access(i_exc_raw_illegal_csr_access),
     .req_disp_csr(req_disp_csr)
 );
 `endif

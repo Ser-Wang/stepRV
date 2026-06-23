@@ -144,7 +144,7 @@ wire dec_rv32i_miscmem_type = dec_opcode_6_5_00 & dec_opcode_4_2_011 & dec_opcod
 wire dec_rv32i_system_type  = dec_opcode_6_5_11 & dec_opcode_4_2_100 & dec_opcode_1_0_11; // I-type, csrs, "ecall", "ebreak".
 
 wire dec_rv32i_csr_type     = dec_rv32i_system_type & (~dec_rv32_func3_000);    // part of "system" type, func3_000 is for "ecall", "ebreak".
-wire dec_rv32i_ecall_ebreak = dec_rv32i_system_type & dec_rv32_func3_000;
+wire dec_rv32i_ecall_ebreak_mret = dec_rv32i_system_type & dec_rv32_func3_000;
 
 
 ////************    Specific Instruction decode    ************////
@@ -206,6 +206,7 @@ wire dec_rv32i_fence_fencei  = dec_rv32i_miscmem_type;
 // System Instructions
 wire dec_rv32i_ecall  = dec_rv32i_system_type & dec_rv32_func3_000 & (rv32_instr[31:20] == 12'b0000_0000_0000);
 wire dec_rv32i_ebreak = dec_rv32i_system_type & dec_rv32_func3_000 & (rv32_instr[31:20] == 12'b0000_0000_0001);
+wire dec_rv32i_mret   = dec_rv32i_system_type & dec_rv32_func3_000 & (rv32_instr[31:20] == 12'h302);
 wire rv32_csrrw    = dec_rv32i_system_type & dec_rv32_func3_001;
 wire rv32_csrrs    = dec_rv32i_system_type & dec_rv32_func3_010;
 wire rv32_csrrc    = dec_rv32i_system_type & dec_rv32_func3_011;
@@ -245,13 +246,13 @@ wire [11:0] csridx = rv32_instr[31:20];
 // =======================================================================
 // ----------------        EXU Datapath Ctrl Sigs        ---------------- //
 // wire dec_info_need_rd = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_load_type | dec_rv32i_csr_type | dec_rv32i_lui | dec_rv32i_auipc | dec_rv32i_jal | dec_rv32i_jalr;
-wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak);
+wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak_mret);
 wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (   // TODO: Needs further consideration: Do we need to exclude rs == x0?
                                               (~dec_rv32i_lui)
                                             & (~dec_rv32i_auipc) 
                                             & (~dec_rv32i_jal) 
                                             & (~dec_rv32i_fence_fencei) 
-                                            & (~dec_rv32i_ecall_ebreak)
+                                            & (~dec_rv32i_ecall_ebreak_mret)
                                             & (~rv32_csrrwi)
                                             & (~rv32_csrrsi)
                                             & (~rv32_csrrci)
@@ -283,7 +284,7 @@ wire [`DECINFO_BUS_CSR_WIDTH-1:0] dec_info_bus_csr;
 wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
 wire dec_oper_dispatch_bru = dec_rv32i_branch_type | dec_rv32i_jal | dec_rv32i_jalr | dec_rv32i_fence_fencei;
-wire dec_oper_dispatch_csr = dec_rv32i_csr_type;
+wire dec_oper_dispatch_csr = dec_rv32i_csr_type | dec_rv32i_ecall | dec_rv32i_ebreak | dec_rv32i_mret;
 
 
 // ALU group
@@ -336,6 +337,9 @@ assign dec_info_bus_csr[`DECINFO_CSR_RS1IMM ] = rv32_csrrwi | rv32_csrrsi | rv32
 assign dec_info_bus_csr[`DECINFO_CSR_ZIMM   ] = instr32_rs1;
 assign dec_info_bus_csr[`DECINFO_CSR_RS1X0  ] = dec_rv32_rs1_x0;
 assign dec_info_bus_csr[`DECINFO_CSR_CSRIDX ] = rv32_instr[31:20];
+assign dec_info_bus_csr[`DECINFO_CSR_ECALL  ] = dec_rv32i_ecall;
+assign dec_info_bus_csr[`DECINFO_CSR_EBREAK ] = dec_rv32i_ebreak;
+assign dec_info_bus_csr[`DECINFO_CSR_MRET   ] = dec_rv32i_mret;
 
 
 

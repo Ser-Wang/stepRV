@@ -16,14 +16,16 @@ module sva_csr(
     input rst_n,
     input [11:0] i_csr_idx,
     input i_csr_wr_en,
-    input o_csr_ill_exc,
+    input exc_raw_illegal_csr_access,
     input req_disp_csr // From EXU, indicates this is a CSR instruction
 );
 
 wire is_supported = (i_csr_idx == `CSR_MSTATUS)     ||
+                    (i_csr_idx == `CSR_MISA)        ||
                     (i_csr_idx == `CSR_MTVEC)       ||
                     (i_csr_idx == `CSR_MEPC)        ||
                     (i_csr_idx == `CSR_MCAUSE)      ||
+                    (i_csr_idx == `CSR_MTVAL)       ||
                     (i_csr_idx == `CSR_CYCLE)       ||
                     (i_csr_idx == `CSR_CYCLEH)      ||
                     (i_csr_idx == `CSR_MCYCLE)      ||
@@ -31,11 +33,15 @@ wire is_supported = (i_csr_idx == `CSR_MSTATUS)     ||
                     (i_csr_idx == `CSR_MINSTRET)    ||
                     (i_csr_idx == `CSR_MINSTRETH);
 
+wire is_system_non_csr = (i_csr_idx == 12'h000) ||
+                         (i_csr_idx == 12'h001) ||
+                         (i_csr_idx == 12'h302);
+
 // Property to check if an illegal CSR access is correctly flagged
 // We only care when a CSR instruction is executed (req_disp_csr is high)
 property p_csr_illegal_flag;
     @(posedge clk) disable iff(!rst_n)
-    (req_disp_csr && !is_supported) |-> o_csr_ill_exc;
+    (req_disp_csr && !is_supported && !is_system_non_csr) |-> exc_raw_illegal_csr_access;
 endproperty
 
 assert property(p_csr_illegal_flag) else $error("[SVA Error] Unsupported CSR access did not raise illegal exception flag.");
@@ -45,7 +51,7 @@ property p_read_only_csr_write_illegal;
     @(posedge clk) disable iff(!rst_n)
     (req_disp_csr && i_csr_wr_en
      && ((i_csr_idx == `CSR_CYCLE) || (i_csr_idx == `CSR_CYCLEH)))
-    |-> o_csr_ill_exc;
+    |-> exc_raw_illegal_csr_access;
 endproperty
 
 assert property(p_read_only_csr_write_illegal)

@@ -20,8 +20,10 @@ module exu_bru(
     input wire [31:0] i_bru_pc,
     input wire [`DECINFO_BUS_BRU_WIDTH-1:0] i_dec_info_bus_bru,
     output wire [31:0] o_bru_wrbk_data, // jal, jalr has to wrbk pc+4 to rd.
-    output wire [31:0] o_pc_next_bru,
-    output wire o_jump_flag
+    output wire [31:0] o_redirect_pcnext_bru,
+    output wire o_redirect_req_bru,
+    output wire o_exc_req_instr_addr_misaligned_bru,
+    output wire [31:0] o_exc_tval_instr_addr_misaligned_bru
     );
 
 // ----------------        dec_info debus        ---------------- //
@@ -76,16 +78,22 @@ wire comp_res = (bru_req_beq  & comp_res_eq )   // those comp_results may have m
 wire [31:0] adder_jump_opr1 = i_dec_info_bus_bru[`DECINFO_BRU_JALR] ? i_bru_rs1 : i_bru_pc; // only when jalr is rs1+imm, others are all pc+imm.
 wire [31:0] adder_jump_opr2 = i_bru_imm;    // Operands are already gated during dispatch from EXU to EXU_BRU
 
-wire [31:0] adder_jumpaddr = adder_jump_opr1 + adder_jump_opr2; // bxx
-
+wire [31:0] adder_jumpaddr_raw = adder_jump_opr1 + adder_jump_opr2; // bxx
+wire [31:0] adder_jumpaddr = bru_req_jalr ? {adder_jumpaddr_raw[31:1], 1'b0} : adder_jumpaddr_raw;
+// RISC-V JALR clears target bit[0]. JAL/branch targets are PC + imm, whose imm[0] is naturally 1'b0; JALR targets come from rs1 + imm, so bit[0] is forced to 1'b0 and may be used by software as a flag.
+// bit[1:0] is still checked below for RV32I 4-byte alignment.
 wire [31:0] pc_add4 = i_bru_pc + `XLEN'd4;
 
 
 // ---- 
-assign o_jump_flag = (bru_req_info_jump | bru_req_fence_i) ? 1'b1 : comp_res;
+wire jump_taken = (bru_req_info_jump | bru_req_fence_i) ? 1'b1 : comp_res;
+assign o_exc_req_instr_addr_misaligned_bru = jump_taken & (adder_jumpaddr[1:0] != 2'b00) & (~bru_req_fence_i);
+assign o_exc_tval_instr_addr_misaligned_bru = adder_jumpaddr;
+
+assign o_redirect_req_bru = jump_taken & (~o_exc_req_instr_addr_misaligned_bru);
 assign o_bru_wrbk_data = pc_add4;   // only jal, jalr need to wrbk rd
-assign o_pc_next_bru = (bru_req_fence_i) ? pc_add4 :        // Note: when req_fence_i = 1'b1, jump_flag is also 1'b1.
-                       (o_jump_flag)     ? adder_jumpaddr : pc_add4;
+assign o_redirect_pcnext_bru = (bru_req_fence_i) ? pc_add4 :        // Note: when req_fence_i = 1'b1, redirect_req is also 1'b1.
+                               (o_redirect_req_bru) ? adder_jumpaddr : pc_add4;
 
 
 

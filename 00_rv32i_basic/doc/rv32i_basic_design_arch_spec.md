@@ -292,7 +292,7 @@ Behavior:
 - `mcycle` increments every cycle.
 - `minstret` increments when `i_instr_ret_en` is asserted.
 - In `core_rv32i_v0`, `i_instr_ret_en` is currently tied to `1'b0`, so `minstret` does not count retired instructions yet.
-- Unsupported CSR indexes assert `o_csr_ill_exc`.
+- Unsupported CSR indexes assert `o_exc_raw_illegal_csr_access`; EXU gates this raw indication with a real CSR op request before folding it into `o_exc_req` with `mcause=2`.
 
 ## 7. Hazard, Forwarding, Stall, and Flush
 
