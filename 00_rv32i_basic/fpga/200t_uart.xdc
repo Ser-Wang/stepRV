@@ -1,14 +1,21 @@
-# xc7a200t
-set_property PACKAGE_PIN R4 [get_ports sys_clk]
-set_property IOSTANDARD LVCMOS15 [get_ports sys_clk]
+# xc7a200tfbg484-2
+set_property PACKAGE_PIN R4 [get_ports clk]
+set_property IOSTANDARD LVCMOS15 [get_ports clk]
 set_property PACKAGE_PIN U7 [get_ports rst_n]
 set_property IOSTANDARD LVCMOS15 [get_ports rst_n]
 
+create_clock -period 20.000 -name clk [get_ports clk]
+
 # UART
-set_property PACKAGE_PIN D17 [get_ports uart_txd]
-set_property IOSTANDARD LVCMOS33 [get_ports uart_txd]
-set_property IOSTANDARD LVCMOS33 [get_ports uart_rxd]
-set_property PACKAGE_PIN E14 [get_ports uart_rxd]
+set_property PACKAGE_PIN D17 [get_ports o_uart_tx]
+set_property IOSTANDARD LVCMOS33 [get_ports o_uart_tx]
+set_property PACKAGE_PIN E14 [get_ports i_uart_rx]
+set_property IOSTANDARD LVCMOS33 [get_ports i_uart_rx]
+
+# set_property PACKAGE_PIN D17 [get_ports uart_txd]
+# set_property IOSTANDARD LVCMOS33 [get_ports uart_txd]
+# set_property IOSTANDARD LVCMOS33 [get_ports uart_rxd]
+# set_property PACKAGE_PIN E14 [get_ports uart_rxd]
 
 # # ADC
 # set_property IOSTANDARD LVCMOS33 [get_ports {ad_data[0]}]

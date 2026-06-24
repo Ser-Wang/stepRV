@@ -1,35 +1,30 @@
+ifeq ($(OS),Windows_NT)
+RISCV_TOOLCHAIN_DIR ?= gnu-mcu-eclipse-riscv-none-gcc-8.2.0-2.2-20190521-0004-win64
+RISCV_PREFIX ?= riscv-none-embed
+PYTHON_DEFAULT := python
+else
+RISCV_TOOLCHAIN_DIR ?= riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14
+RISCV_PREFIX ?= riscv64-unknown-elf
+PYTHON_DEFAULT := python3
+endif
 
-# [Win] gnu-mcu-eclipse riscv-none-embed toolchain (Windows only)
-# RISCV_PATH := $(TOOLCHAIN_DIR)/tools/gnu-mcu-eclipse-riscv-none-gcc-8.2.0-2.2-20190521-0004-win64/
-# [Win] riscv-none-embed-* (Windows toolchain prefix)
-# RISCV_GCC     := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-gcc)
-# RISCV_AS      := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-as)
-# RISCV_GXX     := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-g++)
-# RISCV_OBJDUMP := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-objdump)
-# RISCV_GDB     := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-gdb)
-# RISCV_AR      := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-ar)
-# RISCV_OBJCOPY := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-objcopy)
-# RISCV_READELF := $(abspath $(RISCV_PATH)/bin/riscv-none-embed-readelf)
+RISCV_PATH ?= $(TOOLCHAIN_DIR)/tools/$(RISCV_TOOLCHAIN_DIR)
+RISCV_BIN := $(abspath $(RISCV_PATH)/bin)
+RISCV_GCC     := $(RISCV_BIN)/$(RISCV_PREFIX)-gcc
+RISCV_AS      := $(RISCV_BIN)/$(RISCV_PREFIX)-as
+RISCV_GXX     := $(RISCV_BIN)/$(RISCV_PREFIX)-g++
+RISCV_OBJDUMP := $(RISCV_BIN)/$(RISCV_PREFIX)-objdump
+RISCV_GDB     := $(RISCV_BIN)/$(RISCV_PREFIX)-gdb
+RISCV_AR      := $(RISCV_BIN)/$(RISCV_PREFIX)-ar
+RISCV_OBJCOPY := $(RISCV_BIN)/$(RISCV_PREFIX)-objcopy
+RISCV_READELF := $(RISCV_BIN)/$(RISCV_PREFIX)-readelf
 
-
-# [Linux] SiFive riscv64-unknown-elf toolchain
-RISCV_PATH := $(TOOLCHAIN_DIR)/tools/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14/
-# [Linux] riscv64-unknown-elf-* (Linux toolchain prefix)
-RISCV_GCC     := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-gcc)
-RISCV_AS      := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-as)
-RISCV_GXX     := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-g++)
-RISCV_OBJDUMP := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-objdump)
-RISCV_GDB     := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-gdb)
-RISCV_AR      := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-ar)
-RISCV_OBJCOPY := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-objcopy)
-RISCV_READELF := $(abspath $(RISCV_PATH)/bin/riscv64-unknown-elf-readelf)
-
-PYTHON ?= python3
+PYTHON ?= $(PYTHON_DEFAULT)
 TOOLS_SCRIPT_DIR := $(abspath $(TOOLCHAIN_DIR)/tools/scripts)
 BIN_TO_MEM_SCRIPT := $(TOOLS_SCRIPT_DIR)/BinToMem_CLI.py
 RENAME_REGS_SCRIPT := $(TOOLS_SCRIPT_DIR)/rename_regs.py
 
-.PHONY: all data rename
+.PHONY: all data rename data_win data_linux rename_win rename_linux
 all: $(TARGET)
 
 data: $(TARGET)
