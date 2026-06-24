@@ -32,6 +32,15 @@ CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` �
 
 其中 `FENCE.I` 当前通过重定向刷新取指路径，`MRET` 通过 `mepc` 产生返回重定向。
 
+## 冒险检测与数据前递
+
+流水线冒险控制集中在 `ctrl_hazard`，并以组合逻辑在当前周期生成 stall、flush 和前递选择信号。
+
+- 普通 RAW 前递在消费者指令处于 EX 阶段的同一周期完成。`ctrl_hazard` 比较 EX 阶段源寄存器与 MAU/WBU 阶段目的寄存器，EXU 内部根据 `fwding_rs*_sel` 从本级寄存器值、`wb_data_mau` 或 `wb_data_wbu` 中选择实际执行操作数。
+- 对于 ALU/BRU/CSR 等非 load 结果，若生产者在 MAU、消费者在 EX，结果从 `wb_data_mau` 前递；若生产者已到 WBU，则从 `wb_data_wbu` 前递。
+- load-use 冒险在 load 指令处于 EX、后一条消费者仍处于 ID 的周期被检测。控制逻辑暂停 PC 与 IF/ID，并 flush ID/EX 插入一个气泡。
+- load 数据在 load 进入 MAU 的周期由 MAU 根据 `i_mem_rd_data_mau`、地址偏移和符号扩展规则组合生成 `mau_load_data`，作为 `wb_data_mau` 输出。由于相邻消费者被插入一个气泡，消费者真正进入 EX 时 load 已推进到 WBU，因此相邻 load-use 场景实际通过 `wb_data_wbu` 前递给 EX 操作数。
+
 ## CSR 与异常
 
 当前版本实现了一个基础机器模式 CSR 子集：
