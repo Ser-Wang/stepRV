@@ -1,0 +1,16 @@
+# Design Compiler run outputs and cache
+/WORK/
+/alib-52/
+/WORK_GP_LIB/
+/.trash/
+
+# Generated output results (date-time stamped runs)
+/output/
+
+# DC execution logs
+/default.svf
+
+# Local editor/temporary files
+*.log
+*.tmp
+*~
