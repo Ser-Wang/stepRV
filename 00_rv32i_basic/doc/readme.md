@@ -1,164 +1,128 @@
-# RV32I Basic 设计概览
+# RV32I Basic 当前版本概览
 
-`00_rv32i_basic` 是一个基础 RV32I 处理器 SoC 设计，当前版本以教学、实验和后续扩展为主要目标。整体结构包括一个五级流水 RV32I CPU core、片上指令/数据存储器、简单 SoC 总线，以及基础 CSR 支持。
+`00_rv32i_basic` 是一个基于 RV32I + Zicsr 的简化处理器 SoC 设计。当前版本包含基础整数执行、CSR 与异常重定向、片上 TCM 存储系统、简单 SoC 总线和 UART MMIO 外设，可用于 RTL 仿真、FPGA 上板和后续 SoC 功能扩展。
 
-## 总体架构
+## 设计组成
 
-设计顶层由三部分组成：
-
-| 部分 | 说明 |
-| --- | --- |
-| RV32I CPU Core | 执行 RV32I 基本整数指令，采用经典五级流水结构 |
-| SoC Bus | 对 core 的访存请求做地址译码，并转发到片上存储器 |
-| 片上存储器 | 包含 ITCM 和 DTCM，分别用于指令存储和数据存储 |
-
-总体数据流可以概括为：
+当前设计由 CPU core、片上存储器、SoC bus 和 UART 外设组成。
 
 ```text
-RV32I Core
-  |-- 取指访问 --> ITCM
-  |-- 数据访问 --> SoC Bus --> ITCM / DTCM
+soc_top_v0
+  |-- core_rv32i_v0
+  |-- soc_bus_v0
+  |-- mem_itcm
+  |-- mem_dtcm
+  `-- uart
 ```
 
-其中 ITCM 主要服务取指路径，同时支持通过数据访问路径写入；DTCM 作为普通数据存储器使用。
+CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` 地址译码后访问 ITCM、DTCM 或 UART。SoC 顶层保持简单的片上系统结构，不包含 cache、复杂互连或中断控制器。
 
-## CPU Core
+## Core 能力
 
-CPU core 实现 RV32I 基础整数指令集，数据宽度为 32 bit，寄存器堆包含 32 个通用寄存器，其中 x0 固定为 0。
+`core_rv32i_v0` 是一个顺序执行的 32-bit RISC-V core。寄存器堆包含 32 个通用寄存器，`x0` 固定为 0；流水线控制支持基础数据前递、load-use 停顿、分支/异常重定向刷新和寄存器堆同周期写回旁路。
 
-流水线采用五级结构：
+当前实现面向 RV32I 和 Zicsr：
 
-| 阶段 | 功能 |
+| 类型 | 支持内容 |
 | --- | --- |
-| IF | 取指，维护 PC，处理跳转后的取指地址 |
-| ID | 指令译码，生成立即数、寄存器读请求和执行控制信息 |
-| EX | 执行 ALU、访存地址计算、分支判断和 CSR 操作 |
-| MA | 访问数据存储器，完成 load 数据对齐和符号扩展 |
-| WB | 将执行结果或 load 结果写回寄存器堆 |
-
-该设计是顺序发射、顺序执行、顺序写回的简单流水线，不包含乱序执行、缓存、分支预测或多发射结构。
-
-## 指令支持
-
-当前设计覆盖 RV32I 的主要基础整数功能：
-
-| 类型 | 已支持内容 |
-| --- | --- |
-| 算术逻辑 | ADD、SUB、SLT、SLTU、XOR、OR、AND 及立即数形式 |
-| 移位 | SLL、SRL、SRA 及立即数形式 |
-| 上位立即数 | LUI、AUIPC |
-| 跳转分支 | JAL、JALR、BEQ、BNE、BLT、BGE、BLTU、BGEU |
-| Load | LB、LH、LW、LBU、LHU |
-| Store | SB、SH、SW |
+| RV32I | 基础整数算术逻辑、移位、比较、跳转分支、load/store、LUI/AUIPC |
+| Zicsr | CSRRW、CSRRS、CSRRC 及立即数形式 |
+| System | ECALL、EBREAK、MRET |
 | Fence | FENCE、FENCE.I 的基础处理 |
-| CSR | CSRRW、CSRRS、CSRRC 及立即数形式 |
 
-ECALL、EBREAK 等 system 指令在译码层面已有识别痕迹，但完整异常/陷入流程尚未形成。
+其中 `FENCE.I` 当前通过重定向刷新取指路径，`MRET` 通过 `mepc` 产生返回重定向。
 
-## 执行单元
+## CSR 与异常
 
-EX 阶段内部按照指令类型拆分为多个执行单元：
+当前版本实现了一个基础机器模式 CSR 子集：
 
-| 单元 | 功能 |
+| CSR | 说明 |
 | --- | --- |
-| ALU | 整数算术、逻辑、比较、移位、LUI/AUIPC |
-| LSU | load/store 地址计算、写掩码生成、非对齐检查 |
-| BRU | 条件分支判断、JAL/JALR 跳转目标计算 |
-| CSR | CSR 读写类指令的执行 |
+| `mstatus` | 机器状态寄存器 |
+| `misa` | 固定返回当前 ISA 能力 |
+| `mtvec` | Trap 入口地址 |
+| `mepc` | Trap 返回 PC |
+| `mcause` | Trap 原因 |
+| `mtval` | Trap 附加信息 |
+| `mcycle/mcycleh` | 周期计数器 |
+| `minstret/minstreth` | 指令退休计数器存储结构 |
+| `cycle/cycleh` | `mcycle` 的只读 shadow view |
 
-这种拆分方式使译码后的指令可以按功能分发，便于后续继续扩展乘除法、异常处理或更多特权指令。
+异常与重定向在 EX 阶段汇聚。当前已覆盖：
 
-## 流水线控制
+- `ecall`、`ebreak`
+- 非法 CSR 访问
+- 跳转目标地址非对齐
+- load/store 地址非对齐
+- `mret` 返回重定向
 
-设计包含基础流水线冒险处理：
+异常请求会更新 `mepc/mcause/mtval`，并重定向到 `mtvec`；`mret` 使用 `mepc` 作为返回地址。
+`mcycle` 按周期递增，`minstret` 的计数入口目前保留，尚未接入完整指令退休事件。
 
-- 支持从后级流水向 EX 阶段进行数据前递，用于减少普通 RAW 相关导致的停顿。
-- 支持 load-use hazard 检测，通过停顿和插入气泡解决 load 后紧邻使用的问题。
-- 分支和跳转在 EX 阶段决策，跳转成立后刷新后续错误路径指令。
-- 寄存器堆支持同周期写回旁路，减轻 WB 与 ID 同周期读写同一寄存器的问题。
+## LSU 机制
 
-当前设计仍属于简单静态流水线，没有分支预测，也没有复杂异常精确提交机制。
+当前 LSU 采用简单的一拍地址生成与字节写掩码机制：
 
-## 数据冒险处理
+- load/store 地址由 `rs1 + imm` 生成。
+- `SB/SH/SW` 根据地址低位生成 4-bit byte mask，并对写数据做相应字节移位。
+- `LB/LH/LW/LBU/LHU` 的读数据在 MA 阶段按地址偏移选取，并完成符号扩展或零扩展。
+- byte 访问允许任意字节地址；halfword 要求 2 字节对齐，word 要求 4 字节对齐。
+- halfword/word 非对齐 load/store 会触发 misalign 异常，并屏蔽对应的访存读写副作用。
 
-为了保证流水线高效、正确地运行，设计在 `ctrl_hazard.sv` 模块中实现了集中的冒险检测与控制逻辑。主要的数据冒险处理机制包括以下三部分：
+当前 LSU 不做跨 word 的非对齐拆分访问，也不包含总线等待、重试或访问错误响应处理。
 
-### 1. 数据前递机制 (Data Forwarding)
-*   **工作流水级**：**EX (执行) 阶段**。
-*   **实现原理**：
-    *   冒险控制模块 `ctrl_hazard` 将当前处于 **EX 阶段** 的源寄存器索引 (`i_rs1idx_exu` / `i_rs2idx_exu` 且 `i_need_rs1_exu` / `i_need_rs2_exu` 有效)，与处于 **MAU (MEM 访存) 阶段** (`i_wrbk_rdidx_mau`) 以及 **WBU (WB 写回) 阶段** (`i_wrbk_rdidx_wbu`) 的目的寄存器索引进行对比。
-    *   如果发生写后读 (RAW) 冒险且后级指令写使能有效，模块会生成前递选择信号 `o_fwding_rs1_sel` / `o_fwding_rs2_sel`：
-        *   `2'b00`：无前递，使用从寄存器堆读取并缓存在 EX 阶段寄存器中的数据。
-        *   `2'b10`：**MEM -> EX 前递**，直接使用 MAU 阶段的写回数据。
-        *   `2'b11`：**WB -> EX 前递**，直接使用 WBU 阶段的写回数据。
-    *   前递选择信号输入到 `exu` 模块后，在算术逻辑/分支/访存等执行单元之前通过多路选择器直接旁路（Bypass）最新数据，避免了大部分 RAW 冒险导致的流水线停顿。
+## 存储系统与 MMIO
 
-### 2. 加载-使用冒险停顿 (Load-Use Hazard Stall)
-*   **工作流水级**：**ID (译码) 阶段**。
-*   **实现原理**：
-    *   当 EX 阶段是一条加载指令 (`i_is_load_req_exu` 为高)，且当前处于 **ID 阶段** 的指令需要读取的源寄存器 (`i_rs1idx_idu` / `i_rs2idx_idu`) 与该加载指令的目的寄存器 (`i_wrbk_rdidx_exu`) 冲突时，由于加载的数据需要到 MEM 阶段结束时才能从存储器读出，因此无法仅通过前递解决。
-    *   `ctrl_hazard` 模块会检测到该冒险并触发停顿信号 `stall_req_lduse_id`：
-        *   **Stall 控制**：通过 `o_stall` 信号使 **PC** 和 **IF/ID** 阶段的流水线寄存器保持不变，将当前译码指令阻挡在 ID 阶段 1 个周期。
-        *   **Flush 控制**：通过 `o_flush` 信号清空 **ID/EX** 阶段的流水线寄存器，在 EX 阶段插入一个气泡 (bubble/NOP)，避免旧的/错误的数据进入执行级。
-    *   在接下来的周期中，加载指令进入 MEM 阶段，加载数据就绪，此时可通过 MEM -> EX 前递通路将数据直接传给已被停顿一轮的 ID 阶段指令（此时已进入 EX 阶段）。
-*   **当前实现状态**：
-    > [!TIP]
-    > 目前 `ctrl_hazard.sv` 模块内的 Load-Use 停顿与气泡产生逻辑已在 `core_rv32i_v0.sv` 顶层完全连通。EX 阶段的加载指令信号 `is_load_req_exu` 已正确从 `exu.sv` 的 `o_is_load_req_exu` 引出并接入，硬件设计已完全闭环并生效。
+当前内存图由 `de/defines/config.v` 定义：
 
-### 3. 寄存器堆内部写旁路 (Register File Bypass)
-*   **工作流水级**：**ID/WB 阶段交界**。
-*   **实现原理**：
-    *   在寄存器堆 `regfile.sv` 内部实现了同周期写回旁路（Write-Through）。
-    *   如果当前周期 ID 阶段读取的源寄存器 (`i_read_rs1_idx` / `i_read_rs2_idx`) 与 WB 阶段正在写回的目的寄存器 (`i_wrbk_rdidx` 且 `i_wrbk_wen` 有效) 相同，寄存器堆将直接把写回数据 `i_wrbk_data` 旁路输出，而不需要等待时钟下降沿或下一周期写回生效后再读取。
-    *   这有效减轻了 WB 与 ID 同周期读写同一寄存器时的相关问题。
+| 地址范围 | 目标 | 大小 | 说明 |
+| --- | --- | ---: | --- |
+| `0x0000_0000` - `0x0000_7FFF` | ITCM | 32 KB | 指令存储，数据侧也可读写 |
+| `0x1000_0000` - `0x1000_3FFF` | DTCM | 16 KB | 普通数据存储 |
+| `0x3000_0000` - `0x3000_0FFF` | UART | 4 KB | 32-bit MMIO 窗口 |
 
-## 存储系统与外设
+ITCM 和 DTCM 当前采用 32-bit word 数组、组合读、同步写，并支持 byte mask 写入。
 
-当前 SoC 侧包含 ITCM、DTCM 和一个 UART MMIO 外设。取指通路固定从 ITCM 读取指令；数据访存通路经过 `soc_bus_v0` 做地址译码，再转发到 ITCM、DTCM 或 UART。
+ITCM 除取指端口外，还提供数据侧读写端口。该路径用于兼容当前部分测试程序将 `.data/signature` 放在 ITCM 窗口内的链接布局，也为 FENCE.I、自修改代码类测试保留基础通路。
 
-| 地址范围 | 目标 | 当前用途 |
-| --- | --- | --- |
-| `0x0000_0000` - `0x0000_7FFF` | ITCM | 指令存储；取指端只读，数据侧可读写 |
-| `0x1000_0000` - `0x1000_3FFF` | DTCM | 普通数据存储器 |
-| `0x3000_0000` - `0x3000_0FFF` | UART | 串口 MMIO 窗口 |
+UART 已接入 `soc_top_v0`，寄存器定义见 `readme_peripherals.md`。
 
-ITCM 当前大小为 32KB，DTCM 为 16KB，UART 窗口为 4KB，基地址和大小集中定义在 `de/defines/config.v`。SoC bus 对 core 的 load/store 地址进行范围匹配，读数据通过多路选择返回；未命中的地址当前返回 `0`。
+## 验证与运行状态
 
-ITCM/DTCM 都是 32-bit word 数组，支持按 byte mask 写入。当前实现采用组合读、同步写的简单存储器模型，便于仿真和教学；后续若替换为 FPGA BRAM 或 SRAM macro，需要同步调整取指/访存时序。
+当前工程在 `sim/` 下提供 VCS 仿真流程，支持 ISA 单测、Compliance 单测、用户程序和批量回归入口。DV 中包含面向 LSU、SoC bus 和 CSR 的基础 SVA 检查；`makefile` 可从 `sim.log` 中整理 SVA 输出到独立 `sva.log`。
 
-需要注意的是，当前部分 `rv_tests` / `rv_compliance` 生成物的链接地址与 SoC 正式内存图并不完全一致：测试中的 `.data`、signature、`tohost/fromhost` 等区域常被放在 `0x0000_1000` 或 `0x0000_2000` 附近，仍处于 ITCM 地址窗口内，而不是 DTCM 的 `0x1000_0000` 段。测试能够通过，主要是因为当前 ITCM 除取指读端口外，还额外提供了数据侧读写端口，SoC bus 也会把命中 ITCM 范围的数据访存转发给 ITCM。
-其中，ITCM 数据侧写主要用于支持 `fence.i` 相关自修改代码测试；ITCM 数据侧读则主要用于兼容这些测试把 `.data/signature` 放在 ITCM 窗口内的链接布局。这属于当前测试兼容路径，不代表软件链接脚本已经完全匹配正式的 ITCM/DTCM 分区。
+CoreMark 当前记录显示，在 50 MHz 配置下：
 
-UART 已接入 SoC 顶层，当前保证 32-bit MMIO 访问。寄存器定义和访问约定见 `doc/readme_peripherals.md`。
+| 指标 | 结果 |
+| --- | ---: |
+| CoreMark | 49.241315 |
+| CoreMark/MHz | 0.984826 |
+| 平均周期数 | 1015407.482 cycles/iteration |
 
-当前还没有 GPIO、Timer MMIO 和中断控制器。后续接入新外设时，主要扩展 `soc_bus_v0` 的地址译码、读写通路和顶层实例化。
+详细配置、原始输出和上板记录见 `coremark_results.md`。
 
-## CSR 支持
+## 当前边界
 
-当前实现了一个基础 CSR 文件，支持机器模式中常用的一小组 CSR：
+当前版本定位为简洁的 RV32I + Zicsr SoC 内核，主要边界如下：
 
-| CSR | 用途 |
-| --- | --- |
-| mstatus | 机器状态寄存器 |
-| mtvec | Trap 入口地址寄存器 |
-| mepc | 异常返回 PC |
-| mcause | 异常原因 |
-| mcycle / mcycleh | 周期计数 |
-| minstret / minstreth | 指令退休计数 |
+- 不包含 ICache/DCache、分支预测或复杂总线互连。
+- 不包含外部中断控制器、Timer MMIO、GPIO 等外设。
+- CSR 支持为基础子集，特权架构功能未完整覆盖。
+- `minstret` 尚未接入真实退休事件。
+- ITCM/DTCM 仍是简单 RTL 存储模型，替换为 FPGA BRAM 或 SRAM macro 时需要同步核对读写时序。
+- 当前测试链接布局仍保留 ITCM 数据侧访问兼容路径，软件内存布局与正式 ITCM/DTCM 分区仍有进一步收敛空间。
 
-`mcycle` 已按周期递增。`minstret` 的寄存器结构已经存在，但当前退休计数使能尚未真正接入流水线提交点。
+## 可考虑改进方向
 
-CSR 指令可以读写已支持的 CSR；访问未支持 CSR 时，设计中已有非法 CSR 访问检测信号，但完整异常进入流程还需要后续补齐。
+- **CSR 精确提交**：当前 CSR 写在执行侧较早形成写请求，虽已通过提交条件屏蔽 flush/stall，但仍不是完整的 WB/Commit 级 CSR 提交模型。后续可参考 biRISC-V 风格，将 CSR 读与写数据计算保留在执行阶段，把 CSR 写意图、写地址、写数据随流水推进到 WB/Commit 统一提交，并令异常提交优先于普通 CSR 写。
+- **CSR 序列化或旁路**：若采用 WB 级 CSR 提交，可先对 CSR 指令做短暂序列化，避免连续 CSR RAW 需要额外 forwarding；之后再考虑 CSR WB-to-EX 旁路提升吞吐。
+- **指令退休事件**：将 `minstret` 接入真实提交点，使性能计数器语义更完整。
+- **存储器时序收敛**：将当前组合读 TCM 逐步替换或适配为 FPGA BRAM/SRAM macro 友好的同步读接口。
+- **外设与中断**：补充 Timer、GPIO、中断控制器和机器模式中断入口，完善 SoC 级运行环境。
+- **软件内存布局**：进一步统一测试程序、用户程序和 SoC 内存图，减少对 ITCM 数据侧兼容路径的依赖。
 
-## 当前设计边界
+## 相关文档
 
-当前版本适合作为 RV32I 五级流水 CPU 的基础实现，但还不是完整特权架构 SoC。主要边界包括：
-
-- 尚未实现完整异常、trap、mret 和精确异常提交机制。
-- CSR 支持为基础子集，尚未形成完整机器模式控制流。
-- 没有中断控制器和外部 MMIO 外设。
-- 没有 ICache/DCache，取指和访存直接访问片上 TCM。
-- 没有分支预测，分支在 EX 阶段解析。
-- load-use hazard 机制已在顶层模块中完全连通并实现，通过硬件停顿与气泡插入机制保证了加载-使用冒险时数据的正确性。
-
-更细的模块级说明、信号连接和 RTL 状态记录可参考同目录下的 `rv32i_basic_design_arch_spec.md`。
+- `readme_peripherals.md`：UART MMIO 寄存器说明。
+- `coremark_results.md`：CoreMark 仿真与上板结果。
+- `static_analysis_report.md`：静态检查、命名和接口风险记录。
