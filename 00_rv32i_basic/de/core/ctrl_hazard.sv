@@ -12,8 +12,6 @@
 `include "config.v"
 
 module ctrl_hazard(
-    input  wire clk,
-    input  wire rst_n,
     // redirect
     input  wire i_redirect_req,
     // for load-use hazard
@@ -22,16 +20,16 @@ module ctrl_hazard(
     input  wire [`RFIDX_WIDTH-1:0] i_rs1idx_idu,
     input  wire [`RFIDX_WIDTH-1:0] i_rs2idx_idu,
     input  wire i_is_load_req_exu,
-    input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_exu,
+    input  wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_exu,
     // for forwarding
     input  wire i_need_rs1_exu,
     input  wire i_need_rs2_exu,
     input  wire [`RFIDX_WIDTH-1:0] i_rs1idx_exu,
     input  wire [`RFIDX_WIDTH-1:0] i_rs2idx_exu,
-    input  wire i_wrbk_rdwen_mau,
-    input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_mau,
-    input  wire i_wrbk_rdwen_wbu,
-    input  wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_wbu,
+    input  wire i_wb_rd_wen_mau,
+    input  wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_mau,
+    input  wire i_wb_rd_wen_wbu,
+    input  wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_wbu,
     output wire [1:0] o_fwding_rs1_sel,
     output wire [1:0] o_fwding_rs2_sel,
     // flush & stall
@@ -42,12 +40,12 @@ module ctrl_hazard(
 // ================================================================
 // ----------------        Data Forwarding Ctrl        ---------------- //
 // RAW with I-1 Instruction, which is at MAU now.
-wire hzd_rs1_raw_mem = i_need_rs1_exu & i_wrbk_rdwen_mau & (i_rs1idx_exu == i_wrbk_rdidx_mau); // need_rd/rs sigs have already excluded the x0 situation. 
-wire hzd_rs2_raw_mem = i_need_rs2_exu & i_wrbk_rdwen_mau & (i_rs2idx_exu == i_wrbk_rdidx_mau);
+wire hzd_rs1_raw_mem = i_need_rs1_exu & i_wb_rd_wen_mau & (i_rs1idx_exu == i_wb_rd_idx_mau); // need_rd/rs sigs have already excluded the x0 situation. 
+wire hzd_rs2_raw_mem = i_need_rs2_exu & i_wb_rd_wen_mau & (i_rs2idx_exu == i_wb_rd_idx_mau);
 
 // RAW with I-2 Instruction, which is at WB now.
-wire hzd_rs1_raw_wbu = i_need_rs1_exu & i_wrbk_rdwen_wbu & (i_rs1idx_exu == i_wrbk_rdidx_wbu); 
-wire hzd_rs2_raw_wbu = i_need_rs2_exu & i_wrbk_rdwen_wbu & (i_rs2idx_exu == i_wrbk_rdidx_wbu);
+wire hzd_rs1_raw_wbu = i_need_rs1_exu & i_wb_rd_wen_wbu & (i_rs1idx_exu == i_wb_rd_idx_wbu); 
+wire hzd_rs2_raw_wbu = i_need_rs2_exu & i_wb_rd_wen_wbu & (i_rs2idx_exu == i_wb_rd_idx_wbu);
 
 assign o_fwding_rs1_sel = hzd_rs1_raw_mem ? 2'b10 : 
                           hzd_rs1_raw_wbu ? 2'b11 : 2'b00;
@@ -55,8 +53,8 @@ assign o_fwding_rs2_sel = hzd_rs2_raw_mem ? 2'b10 :
                           hzd_rs2_raw_wbu ? 2'b11 : 2'b00;
 
 // ----------------        Load-Use Hazard        ---------------- //
-wire hzd_rs1_lduse = i_is_load_req_exu & i_need_rs1_idu & (i_wrbk_rdidx_exu == i_rs1idx_idu);
-wire hzd_rs2_lduse = i_is_load_req_exu & i_need_rs2_idu & (i_wrbk_rdidx_exu == i_rs2idx_idu);
+wire hzd_rs1_lduse = i_is_load_req_exu & i_need_rs1_idu & (i_wb_rd_idx_exu == i_rs1idx_idu);
+wire hzd_rs2_lduse = i_is_load_req_exu & i_need_rs2_idu & (i_wb_rd_idx_exu == i_rs2idx_idu);
 wire hzd_lduse_id = hzd_rs1_lduse | hzd_rs2_lduse;
 
 wire stall_req_lduse_id = hzd_lduse_id;

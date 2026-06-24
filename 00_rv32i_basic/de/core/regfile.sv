@@ -18,9 +18,9 @@ module regfile(
     input wire [4:0] i_read_rs2_idx,
     output wire [31:0] o_read_rs1_data,
     output wire [31:0] o_read_rs2_data,
-    input wire i_wrbk_wen,
-    input wire [4:0] i_wrbk_rdidx,   // write back
-    input wire [31:0] i_wrbk_data
+    input wire i_wb_rd_wen,
+    input wire [4:0] i_wb_rd_idx,   // write back
+    input wire [31:0] i_wb_data
     );
 
 reg [31:0] r_regfile[1:31];
@@ -28,12 +28,12 @@ wire [31:0] w_regfile[0:31];
 wire [31:0] wen;
 
 // write through
-wire write_through_flag_rs1 = i_wrbk_wen & (i_wrbk_rdidx != 5'd0) & (i_wrbk_rdidx == i_read_rs1_idx);    // actually i_wb_en won't be 1'b1 when rdidx == x0.
-wire write_through_flag_rs2 = i_wrbk_wen & (i_wrbk_rdidx != 5'd0) & (i_wrbk_rdidx == i_read_rs2_idx);
+wire write_through_flag_rs1 = i_wb_rd_wen & (i_wb_rd_idx != 5'd0) & (i_wb_rd_idx == i_read_rs1_idx);
+wire write_through_flag_rs2 = i_wb_rd_wen & (i_wb_rd_idx != 5'd0) & (i_wb_rd_idx == i_read_rs2_idx);
 
 // read
-assign o_read_rs1_data = write_through_flag_rs1 ? i_wrbk_data : w_regfile[i_read_rs1_idx];
-assign o_read_rs2_data = write_through_flag_rs2 ? i_wrbk_data : w_regfile[i_read_rs2_idx];
+assign o_read_rs1_data = write_through_flag_rs1 ? i_wb_data : w_regfile[i_read_rs1_idx];
+assign o_read_rs2_data = write_through_flag_rs2 ? i_wb_data : w_regfile[i_read_rs2_idx];
 
 // write
 genvar i;
@@ -45,13 +45,13 @@ generate
         end
         else begin
             assign w_regfile[i] = r_regfile[i];
-            assign wen[i] = i_wrbk_wen & (i_wrbk_rdidx == i);
+            assign wen[i] = i_wb_rd_wen & (i_wb_rd_idx == i);
             always @(posedge clk or negedge rst_n) begin
                 if (!rst_n) begin
                     r_regfile[i] <= 32'b0;
                 end
                 else if(wen[i]) begin
-                    r_regfile[i] <= i_wrbk_data;
+                    r_regfile[i] <= i_wb_data;
                 end
             end
         end

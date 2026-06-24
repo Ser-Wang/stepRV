@@ -20,10 +20,10 @@ module idu(
     input wire [31:0] i_pc_if,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs1idx,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs2idx,
-    output wire [`RFIDX_WIDTH-1:0] o_dec_rdidx,
+    output wire [`RFIDX_WIDTH-1:0] o_dec_rd_idx,
     output wire [31:0] o_dec_imm,
     output wire [`DECINFO_BUS_WIDTH-1:0] o_dec_info_bus_id,
-    output wire o_dec_rdwen_id,
+    output wire o_dec_rd_wen_id,
     output wire o_need_rs1_idu,
     output wire o_need_rs2_idu,
     // Pipeline Reg Output
@@ -125,7 +125,7 @@ wire dec_rv32_func7_0100000 = (instr32_func7 == 7'b0100000);
 
 assign o_dec_rs1idx = instr32_rs1;
 assign o_dec_rs2idx = instr32_rs2;
-assign o_dec_rdidx = instr32_rd;
+assign o_dec_rd_idx = instr32_rd;
 
 wire dec_rv32_rs1_x0 = (instr32_rs1 == 5'b00000);
 wire dec_rv32_rs2_x0 = (instr32_rs2 == 5'b00000);
@@ -247,7 +247,8 @@ wire [11:0] csridx = rv32_instr[31:20];
 // ----------------        EXU Datapath Ctrl Sigs        ---------------- //
 // wire dec_info_need_rd = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_load_type | dec_rv32i_csr_type | dec_rv32i_lui | dec_rv32i_auipc | dec_rv32i_jal | dec_rv32i_jalr;
 wire dec_info_need_rd = (~dec_rv32_rd_x0) & (~dec_rv32i_branch_type) & (~dec_rv32i_store_type) & (~dec_rv32i_fence_fencei) & (~dec_rv32i_ecall_ebreak_mret);
-wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (   // TODO: Needs further consideration: Do we need to exclude rs == x0?
+// x0 still reads as 0 from regfile; excluding it here only skips false hazard/forwarding dependencies.
+wire dec_info_need_rs1 = (~dec_rv32_rs1_x0) & (
                                               (~dec_rv32i_lui)
                                             & (~dec_rv32i_auipc) 
                                             & (~dec_rv32i_jal) 
@@ -267,7 +268,7 @@ wire dec_info_op1pc = dec_rv32i_auipc;
 wire dec_info_op2imm = rv32_imm_sel_i | rv32_imm_sel_s | rv32_imm_sel_b | rv32_imm_sel_u | rv32_imm_sel_j;
 
 // ----------------        Decode Ctrl Sigs        ---------------- //
-assign o_dec_rdwen_id = dec_info_need_rd;
+assign o_dec_rd_wen_id = dec_info_need_rd;
 assign o_need_rs1_idu = dec_info_need_rs1;
 assign o_need_rs2_idu = dec_info_need_rs2;
 

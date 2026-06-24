@@ -16,7 +16,7 @@ module exu_csr(
     input  wire rst_n,
     input  wire [31:0] i_csr_rs1,
     input  wire [`DECINFO_BUS_CSR_WIDTH-1:0] i_dec_info_bus_csr,
-    output wire [31:0] o_csr_wrbk_res,
+    output wire [31:0] o_csr_wb_data,
     output wire        o_csr_op_req,
     output wire        o_exc_req_ecall,
     output wire        o_exc_req_ebreak,
@@ -42,7 +42,7 @@ wire [11:0] csr_idx = i_dec_info_bus_csr[`DECINFO_CSR_CSRIDX];
 assign o_csr_idx = csr_idx;
     
 // Read data goes to write-back
-assign o_csr_wrbk_res = i_csr_rd_data;
+assign o_csr_wb_data = i_csr_rd_data;
     
 // Operand selection
 wire [31:0] operand = csr_req_rs1imm ? {27'b0, zimm} : i_csr_rs1;

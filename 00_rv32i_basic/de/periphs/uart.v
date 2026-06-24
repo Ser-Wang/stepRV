@@ -292,7 +292,8 @@ module uart(
                         1: begin
                         end
                         2, 3, 4, 5, 6, 7, 8, 9: begin
-                            rx_data <= rx_data | (rx_pin << (rx_clk_edge_cnt - 2));
+                            // rx_data <= rx_data | (rx_pin << (rx_clk_edge_cnt - 2));
+                            rx_data[rx_clk_edge_cnt - 2] <= rx_pin;
                             if (rx_clk_edge_cnt == 4'h9) begin
                                 rx_over <= 1'b1;
                             end

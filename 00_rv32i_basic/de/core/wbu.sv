@@ -16,48 +16,48 @@ module wbu(
     input wire rst_n,
     
     // pass by
-    input wire [31:0] i_wrbk_data_mau,
-    input wire [`RFIDX_WIDTH-1:0] i_wrbk_rdidx_mau,
-    input wire i_wrbk_rdwen_mau,
+    input wire [31:0] i_wb_data_mau,
+    input wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_mau,
+    input wire i_wb_rd_wen_mau,
 
-    output wire [31:0] o_wrbk_data_wbu,
-    output wire [`RFIDX_WIDTH-1:0] o_wrbk_rdidx_wbu,
-    output wire o_wrbk_rdwen_wbu
+    output wire [31:0] o_wb_data_wbu,
+    output wire [`RFIDX_WIDTH-1:0] o_wb_rd_idx_wbu,
+    output wire o_wb_rd_wen_wbu
     );
 
-reg [31:0] r_wrbk_data_wbu;
-reg [`RFIDX_WIDTH-1:0] r_wrbk_rdidx_wbu;
-reg r_wrbk_rdwen_wbu;
+reg [31:0] r_wb_data_wbu;
+reg [`RFIDX_WIDTH-1:0] r_wb_rd_idx_wbu;
+reg r_wb_rd_wen_wbu;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_data_wbu <= 32'd0;
+        r_wb_data_wbu <= 32'd0;
     end
     else begin
-        r_wrbk_data_wbu <= i_wrbk_data_mau;
+        r_wb_data_wbu <= i_wb_data_mau;
     end
 end
-assign o_wrbk_data_wbu = r_wrbk_data_wbu;
+assign o_wb_data_wbu = r_wb_data_wbu;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_rdidx_wbu <= {`RFIDX_WIDTH{1'b0}};
+        r_wb_rd_idx_wbu <= {`RFIDX_WIDTH{1'b0}};
     end
     else begin
-        r_wrbk_rdidx_wbu <= i_wrbk_rdidx_mau;
+        r_wb_rd_idx_wbu <= i_wb_rd_idx_mau;
     end
 end
-assign o_wrbk_rdidx_wbu = r_wrbk_rdidx_wbu;
+assign o_wb_rd_idx_wbu = r_wb_rd_idx_wbu;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_wrbk_rdwen_wbu <= 1'd0;
+        r_wb_rd_wen_wbu <= 1'd0;
     end
     else begin
-        r_wrbk_rdwen_wbu <= i_wrbk_rdwen_mau;
+        r_wb_rd_wen_wbu <= i_wb_rd_wen_mau;
     end
 end
-assign o_wrbk_rdwen_wbu = r_wrbk_rdwen_wbu;
+assign o_wb_rd_wen_wbu = r_wb_rd_wen_wbu;
 
 
 endmodule

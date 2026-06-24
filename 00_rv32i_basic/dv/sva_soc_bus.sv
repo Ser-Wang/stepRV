@@ -18,7 +18,7 @@ module sva_soc_bus (
     input wire mau_req_load_mau,
     // From BUS (soc_bus_v0)
     input wire sel_itcm_bus,
-    input wire [31:0] mema_addr_bus
+    input wire [31:0] mem_addr_bus
 );
 
     // SVA: ITCM does not support Data Load (only Data Write for SMC)
@@ -28,7 +28,7 @@ module sva_soc_bus (
     endproperty
 
     assert_no_itcm_load: assert property (p_no_itcm_load) else begin
-        $display("\n[SVA Warning] Detected load from ITCM. Addr: 0x%h", $sampled(mema_addr_bus));
+        $display("\n[SVA Warning] Detected load from ITCM. Addr: 0x%h", $sampled(mem_addr_bus));
         // $fatal
     end
 

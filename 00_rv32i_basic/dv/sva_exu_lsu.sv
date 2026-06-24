@@ -18,53 +18,60 @@ module sva_exu_lsu (
     // From LSU (Load Store Unit)
     input wire lsu_req_load_lsu,
     input wire lsu_req_store_lsu,
-    input wire [31:0] mema_addr_lsu,
+    input wire [31:0] mem_addr_lsu,
     input wire [1:0] lsu_req_info_size_lsu
 );
 
-    // SystemVerilog Assertion: for any load/store request, low two bits must be 00 (Word alignment enforced for now)
-    // property p_mema_addr_align;
-    //     @(posedge clk) disable iff (!rst_n)
-    //         ( (lsu_req_load_lsu || lsu_req_store_lsu) |-> (mema_addr_lsu[1:0] == 2'b00) );
-    // endproperty
+    // The assertions below intentionally report when a misaligned LSU access
+    // occurs. They are debug breadcrumbs for finding the triggering instruction
+    // and address, not a full correctness proof of the exception flow.
+    //
+    // Since the RTL now raises load/store address-misaligned exceptions, a
+    // stricter future checker may also verify exception generation and write
+    // suppression.
+    wire lsu_check_known = !$isunknown({
+        lsu_req_load_lsu,
+        lsu_req_store_lsu,
+        lsu_req_info_size_lsu,
+        mem_addr_lsu
+    });
 
-    // assert_mema_addr_align: assert property (p_mema_addr_align) else begin
-    //     $display("[SVA Warning] mema_addr[1:0] is not 2'b00. Addr: 0x%h",  $sampled(mema_addr_lsu));
-    //     // $fatal(1);
-    // end
-
-    // 1. Word alignment check: if size is Word (10), address must be 4-byte aligned
-    property p_word_align;
-        @(posedge clk) disable iff (!rst_n)
-            ((lsu_req_load_lsu || lsu_req_store_lsu) && (mema_addr_lsu[1:0] != 2'b00)) |-> (lsu_req_info_size_lsu != 2'b10);
+    property p_word_misalign;
+        @(posedge clk) disable iff (!rst_n || !lsu_check_known)
+            !((lsu_req_load_lsu || lsu_req_store_lsu) &&
+              (lsu_req_info_size_lsu == 2'b10) &&
+              (mem_addr_lsu[1:0] != 2'b00));
     endproperty
+    assert_word_misalign: assert property (p_word_misalign) else begin
+        $display("[SVA Warning] LSU word misalign. PC: 0x%h, Addr: 0x%h",
+                 $sampled(pc_exu), $sampled(mem_addr_lsu));
+    end
+
+    // Coverage companion: show whether tests exercised the same debug case.
     cover_word_misalign: cover property (
-        @(posedge clk) disable iff (!rst_n)
+        @(posedge clk) disable iff (!rst_n || !lsu_check_known)
             (lsu_req_load_lsu || lsu_req_store_lsu) &&
             (lsu_req_info_size_lsu == 2'b10) &&
-            (mema_addr_lsu[1:0] != 2'b00)
+            (mem_addr_lsu[1:0] != 2'b00)
     );
 
-    // 2. Halfword alignment check: if size is Halfword (01), address must be 2-byte aligned
-    property p_halfword_align;
-        @(posedge clk) disable iff (!rst_n)
-            ((lsu_req_load_lsu || lsu_req_store_lsu) && (lsu_req_info_size_lsu == 2'b01)) |-> (mema_addr_lsu[0] == 1'b0);
+    property p_halfword_misalign;
+        @(posedge clk) disable iff (!rst_n || !lsu_check_known)
+            !((lsu_req_load_lsu || lsu_req_store_lsu) &&
+              (lsu_req_info_size_lsu == 2'b01) &&
+              (mem_addr_lsu[0] != 1'b0));
     endproperty
+    assert_halfword_misalign: assert property (p_halfword_misalign) else begin
+        $display("[SVA Warning] LSU halfword misalign. PC: 0x%h, Addr: 0x%h",
+                 $sampled(pc_exu), $sampled(mem_addr_lsu));
+    end
+
+    // Coverage companion: show whether tests exercised the same debug case.
     cover_halfword_misalign: cover property (
-        @(posedge clk) disable iff (!rst_n)
+        @(posedge clk) disable iff (!rst_n || !lsu_check_known)
             (lsu_req_load_lsu || lsu_req_store_lsu) &&
             (lsu_req_info_size_lsu == 2'b01) &&
-            (mema_addr_lsu[0] != 1'b0)
+            (mem_addr_lsu[0] != 1'b0)
     );
-
-    // // 3. Mandatory Bit 0 Zero: any load/store address bit 0 must be 0
-    // property p_addr_bit0_zero;
-    //     @(posedge clk) disable iff (!rst_n)
-    //         (lsu_req_load_lsu || lsu_req_store_lsu) |-> (mema_addr_lsu[0] == 1'b0);
-    // endproperty
-    // assert_addr_bit0_zero: assert property (p_addr_bit0_zero) else begin
-    //     $display("[SVA Warning] mema_addr[0] happend to be 1'b1. Addr: 0x%h", $sampled(mema_addr_lsu));
-    //     // $fatal(1);
-    // end
 
 endmodule

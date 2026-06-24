@@ -21,7 +21,7 @@ module csr_regs(
     input  wire        i_csr_wr_req,
     input  wire [31:0] i_csr_wr_data,
     output reg  [31:0] o_csr_rd_data,
-    output wire        o_exc_raw_illegal_csr_access,
+    output wire        o_csr_illegal_access_raw,
     output wire [31:0] o_mtvec,
     output wire [31:0] o_mepc,
     // Hardware update interfaces
@@ -73,9 +73,9 @@ wire is_supported_unpriv_csr = csr_sel_cycle | csr_sel_cycleh;
 
 wire is_supported_csr = is_supported_machine_csr | is_supported_unpriv_csr;
 
-// Raw illegal CSR access indication. EXU gates it with a real CSR op request.
-assign o_exc_raw_illegal_csr_access = (~is_supported_csr)
-                                    | (i_csr_wr_req & (csr_sel_cycle | csr_sel_cycleh));
+// Raw by CSR index/request only; EXU gates this with a real CSR operation.
+assign o_csr_illegal_access_raw = (~is_supported_csr)
+                                | (i_csr_wr_req & (csr_sel_cycle | csr_sel_cycleh));
 assign o_mtvec = r_mtvec;
 assign o_mepc = r_mepc;
 

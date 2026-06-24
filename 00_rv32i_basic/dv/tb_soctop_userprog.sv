@@ -230,7 +230,7 @@ end
 //     .rst_n(u_soc_top_v0.rst_n),
 //     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
 //     .sel_itcm_bus(sel_itcm),
-//     .mema_addr_bus(i_mema_addr)
+//     .mem_addr_bus(i_mem_addr)
 // );
 
 bind exu sva_exu_lsu u_sva_exu_lsu (
@@ -239,7 +239,7 @@ bind exu sva_exu_lsu u_sva_exu_lsu (
     .pc_exu(r_pc_exu),
     .lsu_req_load_lsu(u_exu_lsu.lsu_req_load),
     .lsu_req_store_lsu(u_exu_lsu.lsu_req_store),
-    .mema_addr_lsu(u_exu_lsu.mema_addr),
+    .mem_addr_lsu(u_exu_lsu.mem_addr),
     .lsu_req_info_size_lsu(u_exu_lsu.lsu_req_info_size)
 );
 
@@ -248,7 +248,7 @@ bind exu sva_csr u_sva_csr (
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),
     .i_csr_wr_req(o_csr_wr_req),
-    .exc_raw_illegal_csr_access(i_exc_raw_illegal_csr_access),
+    .csr_illegal_access_raw(i_csr_illegal_access_raw),
     .req_disp_csr(req_disp_csr)
 );
 `endif

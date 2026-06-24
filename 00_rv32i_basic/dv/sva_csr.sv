@@ -16,7 +16,7 @@ module sva_csr(
     input rst_n,
     input [11:0] i_csr_idx,
     input i_csr_wr_req,
-    input exc_raw_illegal_csr_access,
+    input csr_illegal_access_raw,
     input req_disp_csr // From EXU, indicates this is a CSR/SYSTEM instruction
 );
 
@@ -43,7 +43,7 @@ wire spec_system_non_csr = (i_csr_idx == 12'h000) ||
 // We only care when a CSR instruction is executed (req_disp_csr is high)
 property p_csr_illegal_flag;
     @(posedge clk) disable iff(!rst_n)
-    (req_disp_csr && !spec_csr_supported && !spec_system_non_csr) |-> exc_raw_illegal_csr_access;
+    (req_disp_csr && !spec_csr_supported && !spec_system_non_csr) |-> csr_illegal_access_raw;
 endproperty
 
 assert property(p_csr_illegal_flag) else $error("[SVA Error] Unsupported CSR access did not raise illegal exception flag.");
@@ -53,7 +53,7 @@ property p_read_only_csr_write_illegal;
     @(posedge clk) disable iff(!rst_n)
     (req_disp_csr && i_csr_wr_req
      && ((i_csr_idx == `CSR_CYCLE) || (i_csr_idx == `CSR_CYCLEH)))
-    |-> exc_raw_illegal_csr_access;
+    |-> csr_illegal_access_raw;
 endproperty
 
 assert property(p_read_only_csr_write_illegal)

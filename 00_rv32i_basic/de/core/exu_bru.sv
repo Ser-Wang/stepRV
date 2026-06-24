@@ -12,14 +12,12 @@
 `include "config.v"
 
 module exu_bru(
-    input wire clk,
-    input wire rst_n,
     input wire [31:0] i_bru_rs1,
     input wire [31:0] i_bru_rs2,
     input wire [31:0] i_bru_imm,
     input wire [31:0] i_bru_pc,
     input wire [`DECINFO_BUS_BRU_WIDTH-1:0] i_dec_info_bus_bru,
-    output wire [31:0] o_bru_wrbk_data, // jal, jalr has to wrbk pc+4 to rd.
+    output wire [31:0] o_bru_wb_data, // jal, jalr write pc+4 to rd.
     output wire [31:0] o_redirect_pcnext_bru,
     output wire o_redirect_req_bru,
     output wire o_exc_req_instr_addr_misaligned_bru,
@@ -91,7 +89,7 @@ assign o_exc_req_instr_addr_misaligned_bru = jump_taken & (adder_jumpaddr[1:0] !
 assign o_exc_tval_instr_addr_misaligned_bru = adder_jumpaddr;
 
 assign o_redirect_req_bru = jump_taken & (~o_exc_req_instr_addr_misaligned_bru);
-assign o_bru_wrbk_data = pc_add4;   // only jal, jalr need to wrbk rd
+assign o_bru_wb_data = pc_add4;   // only jal, jalr write rd
 assign o_redirect_pcnext_bru = (bru_req_fence_i) ? pc_add4 :        // Note: when req_fence_i = 1'b1, redirect_req is also 1'b1.
                                (o_redirect_req_bru) ? adder_jumpaddr : pc_add4;
 

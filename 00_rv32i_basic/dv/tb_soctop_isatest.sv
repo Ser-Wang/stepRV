@@ -44,6 +44,8 @@ parameter SIGNATURE_OUT  = "signature.output";
 
 reg clk;
 reg rst_n;
+wire uart_tx;
+wire uart_rx = 1'b1;
 
 // =============================================================================
 // ----------------        Shared Tasks          ----------------
@@ -67,8 +69,10 @@ endtask
 // ----------------        Instantiations        ----------------
 // =============================================================================
 soc_top_v0 u_soc_top_v0(
-    .clk    (clk),
-    .rst_n  (rst_n)
+    .clk       (clk),
+    .rst_n     (rst_n),
+    .o_uart_tx (uart_tx),
+    .i_uart_rx (uart_rx)
 );
 
 // =============================================================================
@@ -113,9 +117,9 @@ reg [31:0] ex_end_flag     = 0;
 reg [31:0] begin_signature = 0;
 reg [31:0] end_signature   = 0;
 
-wire [31:0] mema_addr    = u_soc_top_v0.u_core.o_mema_addr;
-wire        mema_wren    = u_soc_top_v0.u_core.o_mema_wren;
-wire [31:0] mema_wr_data = u_soc_top_v0.u_core.o_mema_wr_data;
+wire [31:0] mem_addr    = u_soc_top_v0.u_core.o_mem_addr;
+wire        mem_wr_en    = u_soc_top_v0.u_core.o_mem_wr_en;
+wire [31:0] mem_wr_data = u_soc_top_v0.u_core.o_mem_wr_data;
 
 function automatic [31:0] read_signature_word;
     input [31:0] addr;
@@ -131,10 +135,10 @@ endfunction
 
 // Bus snoop: Capture compliance test control registers
 always @(posedge clk) begin
-    if (rst_n && mema_wren) begin
-        if (mema_addr == 32'h10000008)      begin_signature <= mema_wr_data;
-        else if (mema_addr == 32'h1000000c) end_signature   <= mema_wr_data;
-        else if (mema_addr == 32'h10000010) ex_end_flag     <= mema_wr_data;
+    if (rst_n && mem_wr_en) begin
+        if (mem_addr == 32'h10000008)      begin_signature <= mem_wr_data;
+        else if (mem_addr == 32'h1000000c) end_signature   <= mem_wr_data;
+        else if (mem_addr == 32'h10000010) ex_end_flag     <= mem_wr_data;
     end
 end
 
@@ -230,7 +234,7 @@ bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
     .rst_n(u_soc_top_v0.rst_n),
     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
     .sel_itcm_bus(sel_itcm),
-    .mema_addr_bus(i_mema_addr)
+    .mem_addr_bus(i_mem_addr)
 );
 
 bind exu sva_exu_lsu u_sva_exu_lsu (
@@ -239,7 +243,7 @@ bind exu sva_exu_lsu u_sva_exu_lsu (
     .pc_exu(r_pc_exu),
     .lsu_req_load_lsu(u_exu_lsu.lsu_req_load),
     .lsu_req_store_lsu(u_exu_lsu.lsu_req_store),
-    .mema_addr_lsu(u_exu_lsu.mema_addr),
+    .mem_addr_lsu(u_exu_lsu.mem_addr),
     .lsu_req_info_size_lsu(u_exu_lsu.lsu_req_info_size)
 );
 
@@ -248,7 +252,7 @@ bind exu sva_csr u_sva_csr (
     .rst_n(rst_n),
     .i_csr_idx(o_csr_idx),
     .i_csr_wr_req(o_csr_wr_req),
-    .exc_raw_illegal_csr_access(i_exc_raw_illegal_csr_access),
+    .csr_illegal_access_raw(i_csr_illegal_access_raw),
     .req_disp_csr(req_disp_csr)
 );
 `endif

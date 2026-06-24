@@ -107,6 +107,7 @@ endif
 				echo "Error: Cannot find DMEM data for test '$(test)': $$dmem_file"; \
 				exit 1; \
 			fi; \
+			rm -f ./inst.data ./dmem.data ./out.ref; \
 			cp "$$data_file" ./inst.data; \
 			cp "$$dmem_file" ./dmem.data; \
 			echo "  Data: $$data_file"; \
@@ -140,6 +141,7 @@ endif
 	for grp in $(COMP_GROUPS); do \
 		data_file="$(COMP_DIR)/$$grp/$(test).data"; \
 		if [ -f "$$data_file" ]; then \
+			rm -f ./inst.data ./dmem.data ./out.ref; \
 			cp "$$data_file" ./inst.data; \
 			echo "  Data: $$data_file"; \
 			ref_file="$(COMP_DIR)/$$grp/$(test).ref"; \
@@ -182,6 +184,7 @@ endif
 		echo "Error: Cannot find user program data: $$data_file"; \
 		exit 1; \
 	fi; \
+	rm -f ./inst.data ./dmem.data ./out.ref; \
 	cp "$$data_file" ./inst.data; \
 	echo "=== User Program: $(name) ==="; \
 	echo "  Data: $$data_file"; \
@@ -237,6 +240,7 @@ _batch_isa: com_isa
 			fail=$$((fail + 1)); \
 			continue; \
 		fi; \
+		rm -f ./inst.data ./dmem.data ./out.ref; \
 		cp "$$data_file" ./inst.data; \
 		cp "$$dmem_file" ./dmem.data; \
 		./simv > sim.log 2>&1; \
@@ -269,6 +273,7 @@ _batch_compli: com_compli
 		[ -f "$$data_file" ] || continue; \
 		test_name=$$(basename "$$data_file" .data); \
 		total=$$((total + 1)); \
+		rm -f ./inst.data ./dmem.data ./out.ref; \
 		cp "$$data_file" ./inst.data; \
 		ref_file="$(COMP_DIR)/$(group)/$${test_name}.ref"; \
 		if [ -f "$$ref_file" ]; then \

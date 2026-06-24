@@ -22,11 +22,11 @@ wire [31:0] if_pc;
 
 wire [31:0] itcm_rd_data;
 
-wire [31:0] mema_addr;
-wire mema_wren;
-wire [3:0] mema_wr_mask;
-wire [31:0] mema_wr_data;
-wire [31:0] mema_rd_data;
+wire [31:0] mem_addr;
+wire mem_wr_en;
+wire [3:0] mem_wr_mask;
+wire [31:0] mem_wr_data;
+wire [31:0] mem_rd_data;
 
 core_rv32i_v0 u_core(
     .clk                (clk    ),
@@ -35,11 +35,11 @@ core_rv32i_v0 u_core(
     .o_if_pc            (if_pc          ),
     .i_if_instr         (itcm_rd_data   ),
     // mem access
-    .o_mema_addr        (mema_addr      ),
-    .o_mema_wren        (mema_wren      ),
-    .o_mema_wr_mask     (mema_wr_mask   ),
-    .o_mema_wr_data     (mema_wr_data   ),
-    .i_mema_rd_data     (mema_rd_data   )
+    .o_mem_addr        (mem_addr      ),
+    .o_mem_wr_en        (mem_wr_en      ),
+    .o_mem_wr_mask     (mem_wr_mask   ),
+    .o_mem_wr_data     (mem_wr_data   ),
+    .i_mem_rd_data     (mem_rd_data   )
     );
 
 
@@ -63,11 +63,11 @@ wire [31:0] uart_rd_data;
 // Memory Bus & Arbitration
 soc_bus_v0 u_soc_bus (
     // Core interface
-    .i_mema_addr    (mema_addr    ),
-    .i_mema_wren    (mema_wren    ),
-    .i_mema_wr_mask (mema_wr_mask ),
-    .i_mema_wr_data (mema_wr_data ),
-    .o_mema_rd_data (mema_rd_data ),
+    .i_mem_addr    (mem_addr    ),
+    .i_mem_wr_en    (mem_wr_en    ),
+    .i_mem_wr_mask (mem_wr_mask ),
+    .i_mem_wr_data (mem_wr_data ),
+    .o_mem_rd_data (mem_rd_data ),
 
     // ITCM interface
     .o_itcm_wr_addr (itcm_wr_addr ),
