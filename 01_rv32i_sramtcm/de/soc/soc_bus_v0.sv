@@ -24,7 +24,6 @@ module soc_bus_v0 (
     output wire        o_itcm_wr_en,
     output wire [ 3:0] o_itcm_wr_mask,
     output wire [31:0] o_itcm_wr_data,
-    input  wire [31:0] i_itcm_rd_data, // (Temporary)
 
     // DTCM interface (Read/Write)
     output wire [31:0] o_dtcm_addr,
@@ -64,7 +63,6 @@ assign o_uart_wr_data = i_mem_wr_data;
 
 // Read Data Mux
 assign o_mem_rd_data = sel_dtcm ? i_dtcm_rd_data :
-                        sel_itcm ? i_itcm_rd_data : // (Temporary)
                         sel_uart ? i_uart_rd_data :
                         32'b0;
 

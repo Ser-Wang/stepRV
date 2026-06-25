@@ -21,16 +21,13 @@ module mem_itcm(
     input wire i_wr_en,
     input wire [3:0] i_wr_mask,
     input wire [31:0] i_wr_addr,
-    input wire [31:0] i_wr_data,
-    output wire [31:0] o_data_rd_data // (Temporary)
+    input wire [31:0] i_wr_data
     );
 
 reg [31:0] r_itcm [0:`ITCM_DEPTH-1];    // 8192 by default
 reg [31:0] r_rd_data;
-reg [31:0] r_data_rd_data;
 
 assign o_rd_data = r_rd_data;
-assign o_data_rd_data = r_data_rd_data;
 
 // Port A: Instruction Fetch
 always @(*) begin
@@ -57,16 +54,6 @@ always @(posedge clk) begin
         if (i_wr_mask[3]) begin
             r_itcm[i_wr_addr[31:2]][31:24] <= i_wr_data[31:24];
         end
-    end
-end
-
-// Port B: Data Read
-always @(*) begin
-    if (!rst_n) begin
-        r_data_rd_data = `ZERO_WORD;
-    end
-    else begin
-        r_data_rd_data = r_itcm[i_wr_addr[31:2]];
     end
 end
 
