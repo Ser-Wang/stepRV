@@ -30,25 +30,27 @@ wire [31:0] mem_wr_data;
 wire [31:0] mem_rd_data;
 
 core_rv32i_v0 u_core(
-    .clk                (clk    ),
-    .rst_n              (rst_n  ),
+    .clk            (clk    ),
+    .rst_n          (rst_n  ),
     // if
-    .o_if_pc            (if_pc          ),
-    .i_if_instr         (itcm_rd_data   ),
+    .o_if_pc        (if_pc          ),
+    .i_if_instr     (itcm_rd_data   ),
     // mem access
-    .o_mem_addr        (mem_addr      ),
-    .o_mem_req_load    (mem_req_load  ),
-    .o_mem_wr_en        (mem_wr_en      ),
-    .o_mem_wr_mask     (mem_wr_mask   ),
-    .o_mem_wr_data     (mem_wr_data   ),
-    .i_mem_rd_data     (mem_rd_data   )
+    .o_mem_addr     (mem_addr       ),
+    .o_mem_req_load (mem_req_load   ),
+    .o_mem_wr_en    (mem_wr_en      ),
+    .o_mem_wr_mask  (mem_wr_mask    ),
+    .o_mem_wr_data  (mem_wr_data    ),
+    .i_mem_rd_data  (mem_rd_data    )
     );
 
 
-wire [31:0] itcm_wr_addr;
-wire        itcm_wr_en;
-wire [ 3:0] itcm_wr_mask;
-wire [31:0] itcm_wr_data;
+wire        itcm_p1_en;
+wire        itcm_p1_we;
+wire [31:0] itcm_p1_addr;
+wire [ 3:0] itcm_p1_wmask;
+wire [31:0] itcm_p1_wdata;
+wire [31:0] itcm_p1_rdata;
 
 wire [31:0] dtcm_addr;
 wire        dtcm_wr_en;
@@ -63,21 +65,23 @@ wire [31:0] uart_rd_data;
 
 // Memory Bus & Arbitration
 soc_bus_v0 u_soc_bus (
-    .clk           (clk         ),
-    .rst_n         (rst_n       ),
+    .clk            (clk          ),
+    .rst_n          (rst_n        ),
     // Core interface
-    .i_mem_addr    (mem_addr    ),
-    .i_mem_req_load(mem_req_load),
+    .i_mem_addr     (mem_addr     ),
+    .i_mem_req_load (mem_req_load ),
     .i_mem_wr_en    (mem_wr_en    ),
-    .i_mem_wr_mask (mem_wr_mask ),
-    .i_mem_wr_data (mem_wr_data ),
-    .o_mem_rd_data (mem_rd_data ),
+    .i_mem_wr_mask  (mem_wr_mask  ),
+    .i_mem_wr_data  (mem_wr_data  ),
+    .o_mem_rd_data  (mem_rd_data  ),
 
     // ITCM interface
-    .o_itcm_wr_addr (itcm_wr_addr ),
-    .o_itcm_wr_en   (itcm_wr_en   ),
-    .o_itcm_wr_mask (itcm_wr_mask ),
-    .o_itcm_wr_data (itcm_wr_data ),
+    .o_itcm_p1_en   (itcm_p1_en   ),
+    .o_itcm_p1_we   (itcm_p1_we   ),
+    .o_itcm_p1_addr (itcm_p1_addr ),
+    .o_itcm_p1_wmask(itcm_p1_wmask),
+    .o_itcm_p1_wdata(itcm_p1_wdata),
+    .i_itcm_p1_rdata(itcm_p1_rdata),
 
     // DTCM interface
     .o_dtcm_addr    (dtcm_addr    ),
@@ -96,13 +100,15 @@ soc_bus_v0 u_soc_bus (
 mem_itcm u_imem(
     .clk                (clk            ),
     .rst_n              (rst_n          ),
-    .i_rd_addr          (if_pc     ),
-    .o_rd_data          (itcm_rd_data  ),
+    .i_p0_addr          (if_pc          ),
+    .o_p0_rdata         (itcm_rd_data   ),
     // Data Write (Self-modifying support)
-    .i_wr_en            (itcm_wr_en     ),
-    .i_wr_mask          (itcm_wr_mask   ),
-    .i_wr_addr          (itcm_wr_addr   ),
-    .i_wr_data          (itcm_wr_data   )
+    .i_p1_en            (itcm_p1_en     ),
+    .i_p1_we            (itcm_p1_we     ),
+    .i_p1_addr          (itcm_p1_addr   ),
+    .i_p1_wmask         (itcm_p1_wmask  ),
+    .i_p1_wdata         (itcm_p1_wdata  ),
+    .o_p1_rdata         (itcm_p1_rdata  )
     );
 
 mem_dtcm u_dmem(

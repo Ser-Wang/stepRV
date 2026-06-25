@@ -12,7 +12,7 @@ module tb_soctop_userprog();
 // --- Configuration -------------------------------------------------------
 
 
-// `define ENABLE_SVA 1    // Comment out this macro for faster simulation.
+`define ENABLE_SVA 1    // Comment out this macro for faster simulation.
 
 // By default, enable the x26/x27 checking behavior
 `define CHECK_X26_X27 1
@@ -216,7 +216,8 @@ end
 
 // Global Watchdog Timeout
 initial begin
-    #12_000_000_000;  // 100ms, enough for the CoreMark quick run.
+    // #12_000_000_000;
+    #100_000_000;  // 100ms, enough for the CoreMark quick run.
     $display("\nSimulation Time Out.");
     print_uart_buffer();
     $finish;
@@ -225,13 +226,13 @@ end
 // ---------------- SVA Bindings ----------------
 `ifdef ENABLE_SVA
 `ifndef IVERILOG
-// bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
-//     .clk(u_soc_top_v0.clk),
-//     .rst_n(u_soc_top_v0.rst_n),
-//     .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
-//     .sel_itcm_bus(sel_itcm),
-//     .mem_addr_bus(i_mem_addr)
-// );
+bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
+    .clk(clk),
+    .rst_n(rst_n),
+    .mem_req_load_exu(i_mem_req_load),
+    .sel_itcm_bus(sel_itcm),
+    .mem_addr_bus(i_mem_addr)
+);
 
 bind exu sva_exu_lsu u_sva_exu_lsu (
     .clk(clk),

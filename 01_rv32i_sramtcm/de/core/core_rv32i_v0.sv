@@ -151,10 +151,10 @@ idu u_idu(
     .i_pc_if            (pc_ifu         ),
     .o_dec_rs1idx       (rf_read_rs1_idx),
     .o_dec_rs2idx       (rf_read_rs2_idx),
-    .o_dec_rd_idx        (wb_rd_idx_idu ),
+    .o_dec_rd_idx       (wb_rd_idx_idu  ),
     .o_dec_imm          (dec_imm        ),
     .o_dec_info_bus_id  (dec_info_bus_id),
-    .o_dec_rd_wen_id     (wb_rd_wen_idu ),
+    .o_dec_rd_wen_id    (wb_rd_wen_idu  ),
     .o_need_rs1_idu     (need_rs1_idu   ),  // Decision basis: This signal cannot be directly sent to forwarding_ctrl. fwd_ctrl operates in EX stage, and the need_rs signal must stay consistent with the EXU state; if stalled, it must be stalled together. Thus, it is best kept inside EXU.
     .o_need_rs2_idu     (need_rs2_idu   ),
     // Pipeline_reg_out
@@ -173,7 +173,7 @@ exu u_exu(
     .i_dec_imm          (dec_imm            ),
     .i_pc_id            (pc_id              ),
     .i_dec_info_bus_id  (dec_info_bus_id    ),
-    .o_wb_data_exu    (wb_data_exu      ),
+    .o_wb_data_exu      (wb_data_exu        ),
     // forwarding
     .i_need_rs1_idu     (need_rs1_idu       ),
     .i_need_rs2_idu     (need_rs2_idu       ),
@@ -183,19 +183,19 @@ exu u_exu(
     .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .o_rs1idx_exu       (rs1idx_exu         ),
     .o_rs2idx_exu       (rs2idx_exu         ),
-    .i_fwd_wb_data_mau(wb_data_mau      ),
-    .i_fwd_wb_data_wbu(wb_data_wbu      ),
+    .i_fwd_wb_data_mau  (wb_data_mau        ),
+    .i_fwd_wb_data_wbu  (wb_data_wbu        ),
     .i_fwding_rs1_sel   (fwding_rs1_sel     ),
     .i_fwding_rs2_sel   (fwding_rs2_sel     ),
     // redirect / exception
     .o_redirect_req     (redirect_req_exu   ),
     .o_redirect_pcnext  (redirect_pcnext_exu),
     // mem access
-    .o_mem_addr_exu    (mem_addr_exu      ),
+    .o_mem_addr_exu     (mem_addr_exu       ),
     .o_mem_wr_en_exu    (mem_wr_en_exu      ),
-    .o_mem_wr_data_exu (mem_wr_data_exu   ),
-    .o_mem_wr_mask_exu (mem_wr_mask_exu   ),
-    .o_mem_req_info_bus    (mem_req_info_bus      ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    .o_mem_wr_data_exu  (mem_wr_data_exu    ),
+    .o_mem_wr_mask_exu  (mem_wr_mask_exu    ),
+    .o_mem_req_info_bus (mem_req_info_bus   ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     .o_is_load_req_exu  (is_load_req_exu    ),
     // csr
     .o_csr_idx          (csr_idx            ),
@@ -211,10 +211,10 @@ exu u_exu(
     .o_exc_tval         (exc_tval_exu       ),
     .o_trap_ret_req     (trap_ret_req_exu   ),
     // pass by
-    .i_wb_rd_idx_idu   (wb_rd_idx_idu     ),
-    .i_wb_rd_wen_idu   (wb_rd_wen_idu     ),
-    .o_wb_rd_idx_exu   (wb_rd_idx_exu     ),
-    .o_wb_rd_wen_exu   (wb_rd_wen_exu     )
+    .i_wb_rd_idx_idu    (wb_rd_idx_idu      ),
+    .i_wb_rd_wen_idu    (wb_rd_wen_idu      ),
+    .o_wb_rd_idx_exu    (wb_rd_idx_exu      ),
+    .o_wb_rd_wen_exu    (wb_rd_wen_exu      )
     );
 
 ctrl_hazard u_ctrl_hazard(
@@ -226,16 +226,16 @@ ctrl_hazard u_ctrl_hazard(
     .i_rs1idx_idu       (rf_read_rs1_idx    ),
     .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .i_is_load_req_exu  (is_load_req_exu    ),
-    .i_wb_rd_idx_exu   (wb_rd_idx_exu     ),
+    .i_wb_rd_idx_exu    (wb_rd_idx_exu      ),
     // for forwarding
     .i_need_rs1_exu     (need_rs1_exu       ),
     .i_need_rs2_exu     (need_rs2_exu       ),
     .i_rs1idx_exu       (rs1idx_exu         ),
     .i_rs2idx_exu       (rs2idx_exu         ),
-    .i_wb_rd_wen_mau   (wb_rd_wen_mau     ),
-    .i_wb_rd_idx_mau   (wb_rd_idx_mau     ),
-    .i_wb_rd_wen_wbu   (wb_rd_wen_wbu     ),
-    .i_wb_rd_idx_wbu   (wb_rd_idx_wbu     ),
+    .i_wb_rd_wen_mau    (wb_rd_wen_mau      ),
+    .i_wb_rd_idx_mau    (wb_rd_idx_mau      ),
+    .i_wb_rd_wen_wbu    (wb_rd_wen_wbu      ),
+    .i_wb_rd_idx_wbu    (wb_rd_idx_wbu      ),
     .o_fwding_rs1_sel   (fwding_rs1_sel     ),
     .o_fwding_rs2_sel   (fwding_rs2_sel     ),
     // flush & stall
@@ -247,28 +247,28 @@ ctrl_hazard u_ctrl_hazard(
 mau u_mau(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
-    .i_mem_addr_exu    (mem_addr_exu      ),
-    .i_mem_req_info_bus    (mem_req_info_bus      ),
-    .i_mem_rd_data_mau (i_mem_rd_data ),
+    .i_mem_addr_exu     (mem_addr_exu       ),
+    .i_mem_req_info_bus (mem_req_info_bus   ),
+    .i_mem_rd_data_mau  (i_mem_rd_data      ),
     // pass by
-    .i_wb_data_exu    (wb_data_exu  ),
-    .i_wb_rd_idx_exu   (wb_rd_idx_exu ),
-    .i_wb_rd_wen_exu   (wb_rd_wen_exu ),
-    .o_wb_data_mau    (wb_data_mau  ),
-    .o_wb_rd_idx_mau   (wb_rd_idx_mau ),
-    .o_wb_rd_wen_mau   (wb_rd_wen_mau )
+    .i_wb_data_exu      (wb_data_exu    ),
+    .i_wb_rd_idx_exu    (wb_rd_idx_exu  ),
+    .i_wb_rd_wen_exu    (wb_rd_wen_exu  ),
+    .o_wb_data_mau      (wb_data_mau    ),
+    .o_wb_rd_idx_mau    (wb_rd_idx_mau  ),
+    .o_wb_rd_wen_mau    (wb_rd_wen_mau  )
     );
 
 wbu u_wbu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
     // pass by
-    .i_wb_data_mau    (wb_data_mau  ),
-    .i_wb_rd_idx_mau   (wb_rd_idx_mau ),
-    .i_wb_rd_wen_mau   (wb_rd_wen_mau ),
-    .o_wb_data_wbu    (wb_data_wbu  ),
-    .o_wb_rd_idx_wbu   (wb_rd_idx_wbu ),
-    .o_wb_rd_wen_wbu   (wb_rd_wen_wbu )
+    .i_wb_data_mau      (wb_data_mau    ),
+    .i_wb_rd_idx_mau    (wb_rd_idx_mau  ),
+    .i_wb_rd_wen_mau    (wb_rd_wen_mau  ),
+    .o_wb_data_wbu      (wb_data_wbu    ),
+    .o_wb_rd_idx_wbu    (wb_rd_idx_wbu  ),
+    .o_wb_rd_wen_wbu    (wb_rd_wen_wbu  )
     );
 
 csr_regs u_csr_regs(
@@ -283,10 +283,10 @@ csr_regs u_csr_regs(
     .o_csr_illegal_access_raw (csr_illegal_access_raw),
     .o_mtvec        (csr_mtvec      ),
     .o_mepc         (csr_mepc       ),
-    .i_exc_req      (exc_req_exu      ),
-    .i_exc_epc      (exc_epc_exu      ),
-    .i_exc_cause    (exc_cause_exu    ),
-    .i_exc_tval     (exc_tval_exu     ),
+    .i_exc_req      (exc_req_exu    ),
+    .i_exc_epc      (exc_epc_exu    ),
+    .i_exc_cause    (exc_cause_exu  ),
+    .i_exc_tval     (exc_tval_exu   ),
     .i_trap_ret_req (trap_ret_req_exu ),
     .i_instr_ret_en (1'b0           ) // Tied to 0 for now
     );
