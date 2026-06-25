@@ -19,7 +19,8 @@ module exu_lsu(
     output wire [31:0] o_mem_addr_exu,
     output wire [31:0] o_mem_wr_data_exu,
     output wire o_mem_wr_en_exu,
-    output wire [7:0] o_mem_req_info_bus, // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    output wire [3:0] o_mem_wr_mask_exu,
+    output wire [3:0] o_mem_req_info_bus, // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     output wire o_exc_req_load_addr_misaligned_lsu,
     output wire o_exc_req_store_addr_misaligned_lsu,
     output wire [31:0] o_exc_tval_addr_misaligned_lsu
@@ -79,7 +80,8 @@ assign o_mem_wr_data_exu = (lsu_req_info_size == 2'b10) ? data_sw :
 
 // ---- ctrl logic
 assign o_mem_wr_en_exu = lsu_req_store && !addr_misaligned; // Prevent writing if address is misaligned
-assign o_mem_req_info_bus = {mem_wr_mask, lsu_req_load && !addr_misaligned, lsu_req_info_size, lsu_req_info_usign};
+assign o_mem_wr_mask_exu = mem_wr_mask;
+assign o_mem_req_info_bus = {lsu_req_load && !addr_misaligned, lsu_req_info_size, lsu_req_info_usign};
 
 
 //// ----------------------------------------------------------------------------------------------------------

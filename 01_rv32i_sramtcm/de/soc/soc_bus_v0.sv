@@ -12,8 +12,11 @@
 `include "config.v"
 
 module soc_bus_v0 (
+    input  wire        clk,
+    input  wire        rst_n,
     // Core LSU interface
     input  wire [31:0] i_mem_addr,
+    input  wire        i_mem_req_load,
     input  wire        i_mem_wr_en,
     input  wire [ 3:0] i_mem_wr_mask,
     input  wire [31:0] i_mem_wr_data,
@@ -44,6 +47,9 @@ wire sel_itcm = (i_mem_addr >= `ITCM_BASE) && (i_mem_addr < (`ITCM_BASE + `ITCM_
 wire sel_dtcm = (i_mem_addr >= `DTCM_BASE) && (i_mem_addr < (`DTCM_BASE + `DTCM_SIZE));
 wire sel_uart = (i_mem_addr >= `UART_BASE) && (i_mem_addr < (`UART_BASE + `UART_SIZE));
 
+reg rd_sel_dtcm_d1;
+reg rd_sel_uart_d1;
+
 // Route to ITCM
 assign o_itcm_wr_addr = i_mem_addr;
 assign o_itcm_wr_en   = i_mem_wr_en & sel_itcm;
@@ -61,9 +67,20 @@ assign o_uart_addr    = i_mem_addr;
 assign o_uart_wr_en   = i_mem_wr_en & sel_uart;
 assign o_uart_wr_data = i_mem_wr_data;
 
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        rd_sel_dtcm_d1 <= 1'b0;
+        rd_sel_uart_d1 <= 1'b0;
+    end
+    else begin
+        rd_sel_dtcm_d1 <= i_mem_req_load & sel_dtcm;
+        rd_sel_uart_d1 <= i_mem_req_load & sel_uart;
+    end
+end
+
 // Read Data Mux
-assign o_mem_rd_data = sel_dtcm ? i_dtcm_rd_data :
-                        sel_uart ? i_uart_rd_data :
+assign o_mem_rd_data = rd_sel_dtcm_d1 ? i_dtcm_rd_data :
+                        rd_sel_uart_d1 ? i_uart_rd_data :
                         32'b0;
 
 

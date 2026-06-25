@@ -42,7 +42,8 @@ module exu(
     output wire [31:0] o_mem_addr_exu,
     output wire [31:0] o_mem_wr_data_exu,
     output wire o_mem_wr_en_exu,
-    output wire [7:0] o_mem_req_info_bus,  // {store_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    output wire [3:0] o_mem_wr_mask_exu,
+    output wire [3:0] o_mem_req_info_bus,  // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     output wire o_is_load_req_exu,
     // input  wire [31:0] i_mem_rd_data,
     // pass by
@@ -299,6 +300,7 @@ exu_lsu u_exu_lsu(
     .o_mem_addr_exu    (o_mem_addr_exu    ),
     .o_mem_wr_data_exu (o_mem_wr_data_exu ),
     .o_mem_wr_en_exu    (o_mem_wr_en_exu    ),
+    .o_mem_wr_mask_exu   (o_mem_wr_mask_exu  ),
     .o_mem_req_info_bus    (o_mem_req_info_bus    ),
     .o_exc_req_load_addr_misaligned_lsu  (exc_req_load_addr_misaligned_lsu ),
     .o_exc_req_store_addr_misaligned_lsu (exc_req_store_addr_misaligned_lsu),

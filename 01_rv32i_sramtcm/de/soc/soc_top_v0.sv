@@ -23,6 +23,7 @@ wire [31:0] if_pc;
 wire [31:0] itcm_rd_data;
 
 wire [31:0] mem_addr;
+wire mem_req_load;
 wire mem_wr_en;
 wire [3:0] mem_wr_mask;
 wire [31:0] mem_wr_data;
@@ -36,6 +37,7 @@ core_rv32i_v0 u_core(
     .i_if_instr         (itcm_rd_data   ),
     // mem access
     .o_mem_addr        (mem_addr      ),
+    .o_mem_req_load    (mem_req_load  ),
     .o_mem_wr_en        (mem_wr_en      ),
     .o_mem_wr_mask     (mem_wr_mask   ),
     .o_mem_wr_data     (mem_wr_data   ),
@@ -61,8 +63,11 @@ wire [31:0] uart_rd_data;
 
 // Memory Bus & Arbitration
 soc_bus_v0 u_soc_bus (
+    .clk           (clk         ),
+    .rst_n         (rst_n       ),
     // Core interface
     .i_mem_addr    (mem_addr    ),
+    .i_mem_req_load(mem_req_load),
     .i_mem_wr_en    (mem_wr_en    ),
     .i_mem_wr_mask (mem_wr_mask ),
     .i_mem_wr_data (mem_wr_data ),

@@ -233,7 +233,7 @@ end
 bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
     .clk(u_soc_top_v0.clk),
     .rst_n(u_soc_top_v0.rst_n),
-    .mau_req_load_mau(u_soc_top_v0.u_core.u_mau.mau_req_load),
+    .mem_req_load_exu(u_soc_top_v0.u_core.o_mem_req_load),
     .sel_itcm_bus(sel_itcm),
     .mem_addr_bus(i_mem_addr)
 );

@@ -45,13 +45,13 @@ always @(posedge clk) begin
     end
 end
 
-// read data
-always @(*) begin
+// synchronous read data
+always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_rd_data = `ZERO_WORD;
+        r_rd_data <= `ZERO_WORD;
     end
     else begin
-        r_rd_data = r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]];
+        r_rd_data <= r_dtcm[i_addr[DTCM_ADDR_WIDTH+1:2]];
     end
 end
 

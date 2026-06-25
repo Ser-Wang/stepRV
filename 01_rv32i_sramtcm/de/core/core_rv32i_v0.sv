@@ -19,6 +19,7 @@ module core_rv32i_v0(
     input  wire [31:0] i_if_instr,
     // mem access
     output wire [31:0] o_mem_addr,
+    output wire o_mem_req_load,
     output wire o_mem_wr_en,
     output wire [3:0] o_mem_wr_mask,
     output wire [31:0] o_mem_wr_data,
@@ -53,7 +54,9 @@ wire need_rs2_idu;
 wire [31:0] mem_addr_exu;
 wire mem_wr_en_exu;
 wire [31:0] mem_wr_data_exu;
-wire [7:0] mem_req_info_bus;
+wire       mem_req_load_exu;
+wire [3:0] mem_wr_mask_exu;
+wire [3:0] mem_req_info_bus;
 
 wire [31:0] wb_data_exu;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_exu;
@@ -104,6 +107,13 @@ wire [3:0] flush;
 
 ////********    IO Insts    ********////
 assign o_if_pc = pc_ifu;
+assign mem_req_load_exu = mem_req_info_bus[3];
+
+assign o_mem_addr    = mem_addr_exu;
+assign o_mem_req_load = mem_req_load_exu;
+assign o_mem_wr_en   = mem_wr_en_exu;
+assign o_mem_wr_mask = mem_wr_mask_exu;
+assign o_mem_wr_data = mem_wr_data_exu;
 
 
 regfile u_regfile(
@@ -184,7 +194,8 @@ exu u_exu(
     .o_mem_addr_exu    (mem_addr_exu      ),
     .o_mem_wr_en_exu    (mem_wr_en_exu      ),
     .o_mem_wr_data_exu (mem_wr_data_exu   ),
-    .o_mem_req_info_bus    (mem_req_info_bus      ), // {wr_mask, lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
+    .o_mem_wr_mask_exu (mem_wr_mask_exu   ),
+    .o_mem_req_info_bus    (mem_req_info_bus      ), // {lsu_req_load, lsu_req_info_size, lsu_req_info_usign}
     .o_is_load_req_exu  (is_load_req_exu    ),
     // csr
     .o_csr_idx          (csr_idx            ),
@@ -237,13 +248,7 @@ mau u_mau(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
     .i_mem_addr_exu    (mem_addr_exu      ),
-    .i_mem_wr_en_exu    (mem_wr_en_exu      ),
-    .i_mem_wr_data_exu (mem_wr_data_exu   ),
     .i_mem_req_info_bus    (mem_req_info_bus      ),
-    .o_mem_addr_mau    (o_mem_addr    ),
-    .o_mem_wr_en_mau    (o_mem_wr_en    ),
-    .o_mem_wr_mask     (o_mem_wr_mask ),
-    .o_mem_wr_data_mau (o_mem_wr_data ),
     .i_mem_rd_data_mau (i_mem_rd_data ),
     // pass by
     .i_wb_data_exu    (wb_data_exu  ),

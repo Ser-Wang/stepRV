@@ -14,8 +14,8 @@
 module sva_soc_bus (
     input wire clk,
     input wire rst_n,
-    // From MAU (Memory Access Unit)
-    input wire mau_req_load_mau,
+    // From EXU LSU request
+    input wire mem_req_load_exu,
     // From BUS (soc_bus_v0)
     input wire sel_itcm_bus,
     input wire [31:0] mem_addr_bus
@@ -24,7 +24,7 @@ module sva_soc_bus (
     // SVA: ITCM does not support Data Load (only Data Write for SMC)
     property p_no_itcm_load;
         @(posedge clk) disable iff (!rst_n)
-        (mau_req_load_mau && sel_itcm_bus) |-> 1'b0;
+        (mem_req_load_exu && sel_itcm_bus) |-> 1'b0;
     endproperty
 
     assert_no_itcm_load: assert property (p_no_itcm_load) else begin
