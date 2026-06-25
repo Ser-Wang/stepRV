@@ -16,7 +16,7 @@
 SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 
-CORE_VERSION ?= ../00_rv32i_basic
+CORE_VERSION ?= ../01_rv32i_sramtcm
 DE_DIR       := $(CORE_VERSION)/de
 DV_DIR       := $(CORE_VERSION)/dv
 DEFINES_DIR  ?= $(DE_DIR)/defines
@@ -27,8 +27,8 @@ TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
 DUMP         ?= 0
 
 # ---- Test Dirs ----
-TESTS_DIR    ?= ../tests/rv_tests_isa_new
-COMP_DIR     := ../tests/rv_compliance
+RVTESTS_DIR    ?= ../tests/rv_tests_isa_new
+RVCOMPI_DIR     ?= ../tests/rv_compliance_new
 USERPROG_DIR := ../tests/programs
 
 # ---- ISA test search folders ----
@@ -100,7 +100,7 @@ endif
 	@echo "=== ISA Test: $(test) ==="
 	@found=0; \
 	for grp in $(ISA_GROUPS); do \
-		data_file="$(TESTS_DIR)/$$grp/$${grp}-p-$(test).data"; \
+		data_file="$(RVTESTS_DIR)/$$grp/$${grp}-p-$(test).data"; \
 		if [ -f "$$data_file" ]; then \
 			dmem_file="$${data_file%.data}.dmem.data"; \
 			if [ ! -f "$$dmem_file" ]; then \
@@ -139,12 +139,20 @@ endif
 	@echo "=== Compliance Test: $(test) ==="
 	@found=0; \
 	for grp in $(COMP_GROUPS); do \
-		data_file="$(COMP_DIR)/$$grp/$(test).data"; \
+		data_file="$(RVCOMPI_DIR)/$$grp/$(test).data"; \
 		if [ -f "$$data_file" ]; then \
 			rm -f ./inst.data ./dmem.data ./out.ref; \
 			cp "$$data_file" ./inst.data; \
+			dmem_file="$${data_file%.data}.dmem.data"; \
+			if [ -f "$$dmem_file" ]; then \
+				cp "$$dmem_file" ./dmem.data; \
+				echo "  DMem: $$dmem_file"; \
+			else \
+				printf "00000000\n" > ./dmem.data; \
+				echo "  DMem: <zero-init fallback>"; \
+			fi; \
 			echo "  Data: $$data_file"; \
-			ref_file="$(COMP_DIR)/$$grp/$(test).ref"; \
+			ref_file="$(RVCOMPI_DIR)/$$grp/$(test).ref"; \
 			if [ -f "$$ref_file" ]; then \
 				cp "$$ref_file" ./out.ref; \
 				echo "  Ref:  $$ref_file"; \
@@ -229,7 +237,7 @@ _batch_isa: com_isa
 	@echo "  Batch ISA Test: group=$(group)"
 	@echo "-------------------------------------------"
 	@pass=0; fail=0; total=0; \
-	for data_file in $(TESTS_DIR)/$(group)/$(group)-p-*.data; do \
+	for data_file in $(RVTESTS_DIR)/$(group)/$(group)-p-*.data; do \
 		[ -f "$$data_file" ] || continue; \
 		[[ "$$data_file" != *.dmem.data ]] || continue; \
 		test_name=$$(basename "$$data_file" .data | sed 's/$(group)-p-//'); \
@@ -269,13 +277,20 @@ _batch_compli: com_compli
 	@echo "  Batch Compliance Test: group=$(group)"
 	@echo "-------------------------------------------"
 	@pass=0; fail=0; total=0; \
-	for data_file in $(COMP_DIR)/$(group)/*.data; do \
+	for data_file in $(RVCOMPI_DIR)/$(group)/*.data; do \
 		[ -f "$$data_file" ] || continue; \
+		[[ "$$data_file" != *.dmem.data ]] || continue; \
 		test_name=$$(basename "$$data_file" .data); \
 		total=$$((total + 1)); \
 		rm -f ./inst.data ./dmem.data ./out.ref; \
 		cp "$$data_file" ./inst.data; \
-		ref_file="$(COMP_DIR)/$(group)/$${test_name}.ref"; \
+		dmem_file="$${data_file%.data}.dmem.data"; \
+		if [ -f "$$dmem_file" ]; then \
+			cp "$$dmem_file" ./dmem.data; \
+		else \
+			printf "00000000\n" > ./dmem.data; \
+		fi; \
+		ref_file="$(RVCOMPI_DIR)/$(group)/$${test_name}.ref"; \
 		if [ -f "$$ref_file" ]; then \
 			cp "$$ref_file" ./out.ref; \
 		else \

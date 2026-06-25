@@ -126,15 +126,15 @@ function automatic [31:0] read_signature_word;
     begin
         if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE)))
             read_signature_word = u_soc_top_v0.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
-        else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
-            read_signature_word = u_soc_top_v0.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
+        // else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
+        //     read_signature_word = u_soc_top_v0.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
         else
             read_signature_word = 32'hxxxx_xxxx;
     end
 endfunction
 
 // Bus snoop: Capture compliance test control registers
-always @(posedge clk) begin
+always @(posedge clk) begin : p_compliance_bus_snoop
     if (rst_n && mem_wr_en) begin
         if (mem_addr == 32'h10000008)      begin_signature <= mem_wr_data;
         else if (mem_addr == 32'h1000000c) end_signature   <= mem_wr_data;
@@ -147,6 +147,7 @@ integer r, fd;
 initial begin
     $display("ISA Test: [riscv-compliance] running...");
     wait(ex_end_flag == 32'h1);
+    @(posedge clk);
 
     // 1. Dump signature file (always, for debug)
     fd = $fopen(SIGNATURE_OUT);
