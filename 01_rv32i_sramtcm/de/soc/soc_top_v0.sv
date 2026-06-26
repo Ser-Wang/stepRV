@@ -18,7 +18,8 @@ module soc_top_v0(
     input wire i_uart_rx
     );
 
-wire [31:0] if_pc;
+wire        fetch_req;
+wire [31:0] fetch_pc;
 
 wire [31:0] itcm_rd_data;
 
@@ -33,7 +34,8 @@ core_rv32i_v0 u_core(
     .clk            (clk    ),
     .rst_n          (rst_n  ),
     // if
-    .o_if_pc        (if_pc          ),
+    .o_fetch_req    (fetch_req      ),
+    .o_fetch_pc     (fetch_pc       ),
     .i_if_instr     (itcm_rd_data   ),
     // mem access
     .o_mem_addr     (mem_addr       ),
@@ -100,7 +102,9 @@ soc_bus_v0 u_soc_bus (
 mem_itcm u_imem(
     .clk                (clk            ),
     .rst_n              (rst_n          ),
-    .i_p0_addr          (if_pc          ),
+    // Instruction Fetch (Read-Only)
+    .i_p0_en            (fetch_req      ),
+    .i_p0_addr          (fetch_pc       ),
     .o_p0_rdata         (itcm_rd_data   ),
     // Data Write (Self-modifying support)
     .i_p1_en            (itcm_p1_en     ),

@@ -16,7 +16,7 @@ Current version note:
 - Fixed UART RX sampling to assign each sampled bit directly.
 - Cleaned minor RTL issues: MAU reset width, EXU dispatch group constants, EXU LSU write-back comment, and the IDU x0 source-need TODO.
 - Migrated global memory/write-back naming from `mema/wrbk/rdwen/wren` to `mem_*`, `wb_*`, `rd_wen`, and `wr_en`.
-- Deferred `pcnext` naming normalization by request.
+- Fixed IFU PC timing: moved from combinational ITCM read to synchronous SRAM read, with proper pipeline state registers (`if_valid`, `pc_r`), and renamed signals (`o_fetch_req`, `o_fetch_pc`, `o_instr_pc`).
 
 ## 1. Tool Check Summary
 
@@ -148,20 +148,11 @@ Suggested direction:
 
 ## 5. Functional Mechanisms Still Waiting for Closure
 
-### 5.1 IFU PC timing assumes combinational ITCM
+### 5.1 IFU PC timing assumes combinational ITCM (fixed)
 
 Location: `de/core/ifu.sv`
 
-The current IFU outputs `pc_r` directly and increments it every unstalled cycle. Existing TODO comments already identify that reset/next-PC behavior must change when moving to a normal synchronous SRAM.
-
-Risk:
-
-- With a synchronous instruction memory, PC address and instruction return timing will be off by one cycle unless IF/ID alignment is redesigned.
-
-Suggested direction:
-
-- Decide whether `o_pc_if` is "current instruction PC" or "next fetch address".
-- If using synchronous SRAM, add an IF valid/data register or a fetch request/response convention.
+The IFU PC output and timing have been fully refactored to support synchronous SRAM read. A pipeline state register separates the fetch request PC (`o_fetch_pc`) from the instruction pipeline PC (`o_instr_pc`), aligning perfectly with the memory's 1-cycle latency.
 
 ### 5.2 `fence` and `fence.i` mechanism needs documentation
 

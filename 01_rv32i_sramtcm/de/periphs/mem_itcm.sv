@@ -15,6 +15,7 @@ module mem_itcm(
     input wire clk,
     input wire rst_n,
     // Port 0: 1R, IFU
+    input  wire        i_p0_en,
     input  wire [31:0] i_p0_addr,
     output wire [31:0] o_p0_rdata,
     // Port 1: 1RW, LSU/load or preload/write
@@ -34,12 +35,12 @@ assign o_p0_rdata = r_p0_rdata;
 assign o_p1_rdata = r_p1_rdata;
 
 // Port 0: Instruction Fetch
-always @(*) begin
+always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        r_p0_rdata = `ZERO_WORD;
+        r_p0_rdata <= `INSTR_NOP;
     end
-    else begin
-        r_p0_rdata = r_itcm[i_p0_addr[31:2]];
+    else if (i_p0_en) begin
+        r_p0_rdata <= r_itcm[i_p0_addr[31:2]];
     end
 end
 

@@ -15,7 +15,8 @@ module core_rv32i_v0(
     input wire clk,
     input wire rst_n,
     // if
-    output wire [31:0] o_if_pc,
+    output wire        o_fetch_req,
+    output wire [31:0] o_fetch_pc,
     input  wire [31:0] i_if_instr,
     // mem access
     output wire [31:0] o_mem_addr,
@@ -38,7 +39,9 @@ wire [31:0] rf_wb_data;
 
 //-------- pipe data flow
 // if_2_id
-wire [31:0] pc_ifu;  // this and above: reg_out
+wire [31:0] instr_pc;  // this and above: reg_out
+wire        if_valid;
+wire [31:0] fetch_pc;
 
 // id_2_ex
 wire [31:0] instr_id;
@@ -106,7 +109,7 @@ wire [3:0] flush;
 
 
 ////********    IO Insts    ********////
-assign o_if_pc = pc_ifu;
+assign o_fetch_pc = fetch_pc;
 assign mem_req_load_exu = mem_req_info_bus[3];
 
 assign o_mem_addr    = mem_addr_exu;
@@ -139,16 +142,20 @@ ifu u_ifu(
     .i_stall        (stall[`STALL_PC]),
     .i_redirect_req (redirect_req_exu),
     .i_redirect_pcnext  (redirect_pcnext_exu ),
-    .o_pc_if        (pc_ifu         )
+    .o_fetch_req    (o_fetch_req),
+    .o_fetch_pc     (fetch_pc),
+    .o_if_valid     (if_valid),
+    .o_instr_pc     (instr_pc)
     );
 
+wire [31:0] instr_to_idu = if_valid ? i_if_instr : `INSTR_NOP;
 idu u_idu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
     .i_stall            (stall[`STALL_IF_ID]),
     .i_flush            (flush[`FLUSH_IF_ID]),
-    .i_instr            (i_if_instr     ),
-    .i_pc_if            (pc_ifu         ),
+    .i_instr            (instr_to_idu   ),
+    .i_pc_if            (instr_pc       ),
     .o_dec_rs1idx       (rf_read_rs1_idx),
     .o_dec_rs2idx       (rf_read_rs2_idx),
     .o_dec_rd_idx       (wb_rd_idx_idu  ),
