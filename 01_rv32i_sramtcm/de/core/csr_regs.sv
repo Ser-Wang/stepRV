@@ -36,6 +36,7 @@ module csr_regs(
 // Registers
 reg [31:0] r_mstatus;
 reg [31:0] r_mtvec;
+reg [31:0] r_mscratch;
 reg [31:0] r_mepc;
 reg [31:0] r_mcause;
 reg [31:0] r_mtval;
@@ -46,6 +47,7 @@ reg [63:0] r_minstret;
 wire csr_sel_mstatus   = (i_csr_idx == `CSR_MSTATUS)   ? 1'b1 : 1'b0;
 wire csr_sel_misa      = (i_csr_idx == `CSR_MISA)      ? 1'b1 : 1'b0;
 wire csr_sel_mtvec     = (i_csr_idx == `CSR_MTVEC)     ? 1'b1 : 1'b0;
+wire csr_sel_mscratch  = (i_csr_idx == `CSR_MSCRATCH)  ? 1'b1 : 1'b0;
 wire csr_sel_mepc      = (i_csr_idx == `CSR_MEPC)      ? 1'b1 : 1'b0;
 wire csr_sel_mcause    = (i_csr_idx == `CSR_MCAUSE)    ? 1'b1 : 1'b0;
 wire csr_sel_mtval     = (i_csr_idx == `CSR_MTVAL)     ? 1'b1 : 1'b0;
@@ -63,7 +65,7 @@ wire csr_sel_cycleh    = (i_csr_idx == `CSR_CYCLEH)    ? 1'b1 : 1'b0;
 
 
 wire is_supported_machine_csr = csr_sel_mstatus  | csr_sel_misa     |
-                                csr_sel_mtvec    |
+                                csr_sel_mtvec    | csr_sel_mscratch |
                                 csr_sel_mepc     | csr_sel_mcause   |
                                 csr_sel_mtval    |
                                 csr_sel_mcycle   | csr_sel_mcycleh  |
@@ -115,6 +117,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_mstatus <= 32'b0;
         r_mtvec <= 32'b0;
+        r_mscratch <= 32'b0;
         r_mepc <= 32'b0;
         r_mcause <= 32'b0;
         r_mtval <= 32'b0;
@@ -130,9 +133,10 @@ always @(posedge clk or negedge rst_n) begin
         r_mstatus[7] <= 1'b1;         // MPIE <= 1
         r_mstatus[12:11] <= 2'b00;    // MPP  <= U-mode per spec
     end else if (csr_wr_en) begin
-        if (csr_sel_mstatus) r_mstatus <= i_csr_wr_data;
-        if (csr_sel_mtvec)   r_mtvec   <= i_csr_wr_data;
-        if (csr_sel_mepc)    r_mepc    <= i_csr_wr_data;
+        if (csr_sel_mstatus)  r_mstatus  <= i_csr_wr_data;
+        if (csr_sel_mtvec)    r_mtvec    <= i_csr_wr_data;
+        if (csr_sel_mscratch) r_mscratch <= i_csr_wr_data;
+        if (csr_sel_mepc)     r_mepc     <= i_csr_wr_data;
         if (csr_sel_mcause)  r_mcause  <= i_csr_wr_data;
         if (csr_sel_mtval)   r_mtval   <= i_csr_wr_data;
     end
@@ -158,6 +162,7 @@ always @(*) begin
     o_csr_rd_data = ({32{csr_sel_mstatus}}   & r_mstatus)
                   | ({32{csr_sel_misa}}      & 32'h4000_0100)
                   | ({32{csr_sel_mtvec}}     & r_mtvec)
+                  | ({32{csr_sel_mscratch}}  & r_mscratch)
                   | ({32{csr_sel_mepc}}      & r_mepc)
                   | ({32{csr_sel_mcause}}    & r_mcause)
                   | ({32{csr_sel_mtval}}     & r_mtval)

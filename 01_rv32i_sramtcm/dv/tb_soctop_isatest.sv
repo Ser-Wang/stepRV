@@ -139,6 +139,12 @@ always @(posedge clk) begin : p_compliance_bus_snoop
         if (mem_addr == 32'h10000008)      begin_signature <= mem_wr_data;
         else if (mem_addr == 32'h1000000c) end_signature   <= mem_wr_data;
         else if (mem_addr == 32'h10000010) ex_end_flag     <= mem_wr_data;
+        // Exception or trap detected via tohost (0x10000100)
+        else if (mem_addr == 32'h10000100 && mem_wr_data != 0) begin
+            $display("  !!! Exception/Trap detected! tohost = 0x%h", mem_wr_data);
+            report_result(0, "COMPLIANCE");
+            $finish;
+        end
     end
 end
 
