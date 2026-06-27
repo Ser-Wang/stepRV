@@ -17,6 +17,10 @@ soc_top_v0
 
 CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` 地址译码后访问 ITCM、DTCM 或 UART。SoC 顶层保持简单的片上系统结构，不包含 cache、复杂互连或中断控制器。
 
+当前版本在存储模型与流水线握手协议上进行了演进，全面采用了“同步读、同步写”的物理 SRAM 模型：
+- `mem_itcm` 取指端口升级为标准的同步读取 (`o_fetch_req` 和 `o_fetch_pc`)。IFU 增加了流水级状态寄存器，实现了取指请求和取指数据的 Pipeline 1拍完美对齐。
+- `mem_dtcm` 的数据存取也已完全采用标准的同步 SRAM 时序。
+
 ## Core 能力
 
 `core_rv32i_v0` 是一个顺序执行的 32-bit RISC-V core。寄存器堆包含 32 个通用寄存器，`x0` 固定为 0；流水线控制支持基础数据前递、load-use 停顿、分支/异常重定向刷新和寄存器堆同周期写回旁路。
@@ -90,7 +94,7 @@ CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` �
 | `0x1000_0000` - `0x1000_3FFF` | DTCM | 16 KB | 普通数据存储 |
 | `0x3000_0000` - `0x3000_0FFF` | UART | 4 KB | 32-bit MMIO 窗口 |
 
-ITCM 和 DTCM 当前采用 32-bit word 数组、组合读、同步写，并支持 byte mask 写入。
+ITCM 和 DTCM 当前采用 32-bit word 数组、同步读、同步写，并支持 byte mask 写入。时序表现已与真实的 FPGA Block RAM (BRAM) 或 ASIC SRAM Macro 完全一致。
 
 ITCM 除取指端口外，还提供数据侧读写端口。该路径用于兼容当前部分测试程序将 `.data/signature` 放在 ITCM 窗口内的链接布局，也为 FENCE.I、自修改代码类测试保留基础通路。
 
@@ -118,15 +122,13 @@ CoreMark 当前记录显示，在 50 MHz 配置下：
 - 不包含外部中断控制器、Timer MMIO、GPIO 等外设。
 - CSR 支持为基础子集，特权架构功能未完整覆盖。
 - `minstret` 尚未接入真实退休事件。
-- ITCM/DTCM 仍是简单 RTL 存储模型，替换为 FPGA BRAM 或 SRAM macro 时需要同步核对读写时序。
-- 当前测试链接布局仍保留 ITCM 数据侧访问兼容路径，软件内存布局与正式 ITCM/DTCM 分区仍有进一步收敛空间。
+- 软件内存布局与正式 ITCM/DTCM 分区仍有进一步收敛空间。
 
 ## 可考虑改进方向
 
 - **CSR 精确提交**：当前 CSR 写在执行侧较早形成写请求，虽已通过提交条件屏蔽 flush/stall，但仍不是完整的 WB/Commit 级 CSR 提交模型。后续可参考 biRISC-V 风格，将 CSR 读与写数据计算保留在执行阶段，把 CSR 写意图、写地址、写数据随流水推进到 WB/Commit 统一提交，并令异常提交优先于普通 CSR 写。
 - **CSR 序列化或旁路**：若采用 WB 级 CSR 提交，可先对 CSR 指令做短暂序列化，避免连续 CSR RAW 需要额外 forwarding；之后再考虑 CSR WB-to-EX 旁路提升吞吐。
 - **指令退休事件**：将 `minstret` 接入真实提交点，使性能计数器语义更完整。
-- **存储器时序收敛**：将当前组合读 TCM 逐步替换或适配为 FPGA BRAM/SRAM macro 友好的同步读接口。
 - **外设与中断**：补充 Timer、GPIO、中断控制器和机器模式中断入口，完善 SoC 级运行环境。
 - **软件内存布局**：进一步统一测试程序、用户程序和 SoC 内存图，减少对 ITCM 数据侧兼容路径的依赖。
 
