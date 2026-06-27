@@ -7,9 +7,9 @@
 当前 SoC 结构为：
 
 ```text
-soc_top_v0
-  |-- core_rv32i_v0
-  |-- soc_bus_v0
+soc_top
+  |-- core
+  |-- soc_bus
   |-- mem_itcm
   |-- mem_dtcm
   `-- uart
@@ -94,7 +94,7 @@ ifu/soc_top:
 - 如果软件布局已经保证 `.data/signature` 在 DTCM，则 LSU 不再需要从 ITCM load。
 - 本轮可以明确暂不支持自修改指令测试，不要求 `FENCE.I` 对 ITCM 写后取指做完整一致性保证。
 - `FENCE.I` 可以先保留为普通 redirect/flush 类指令，语义上作为取指路径刷新点；真正的 I/D 一致性可等后续 cache/ICache invalidate 机制再恢复。
-- `soc_bus_v0` 的 `i_itcm_rd_data` 和 `mem_itcm.o_data_rd_data` 可以作为去兼容端口的主要清理对象；但去掉前应同步调整 compliance/test linker，把 signature 放在 DTCM。
+- `soc_bus` 的 `i_itcm_rd_data` 和 `mem_itcm.o_data_rd_data` 可以作为去兼容端口的主要清理对象；但去掉前应同步调整 compliance/test linker，把 signature 放在 DTCM。
 
 ## LSU/DTCM 影响
 
@@ -105,7 +105,7 @@ ifu/soc_top:
 ```text
 EXU/exu_lsu: mem_addr_exu, mem_req_info_bus
   -> MAU regs: r_mem_addr_mau, r_mem_req_info_bus
-  -> soc_bus_v0/dtcm_addr
+  -> soc_bus/dtcm_addr
   -> mem_dtcm combinational read
   -> MAU load align/sign-extend
 ```
@@ -135,7 +135,7 @@ EXU/exu_lsu: mem_addr_exu, mem_wr_data_exu, mem_req_info_bus
 
 ### SoC bus 读选择也要提前或打拍
 
-如果 DTCM read address 用 EXU 地址，而 `soc_bus_v0.o_mem_rd_data` 仍用当前 `i_mem_addr` 组合选择返回源，会出现“返回数据是上一拍请求的数据，但选择信号是当前 EXU 地址”的错配。
+如果 DTCM read address 用 EXU 地址，而 `soc_bus.o_mem_rd_data` 仍用当前 `i_mem_addr` 组合选择返回源，会出现“返回数据是上一拍请求的数据，但选择信号是当前 EXU 地址”的错配。
 
 至少需要为读返回路径保存一拍的 decode/tag：
 
@@ -275,13 +275,13 @@ csrr  x2, mtvec
 当前 ITCM 数据侧临时读链路为：
 
 ```text
-core LSU -> soc_bus_v0 sel_itcm -> mem_itcm.o_data_rd_data -> core load data
+core LSU -> soc_bus sel_itcm -> mem_itcm.o_data_rd_data -> core load data
 ```
 
 移除它会影响：
 
-- `soc_bus_v0` 端口：删除 `i_itcm_rd_data`，读 mux 不再选择 ITCM load。
-- `soc_top_v0` 连线：删除 `itcm_rd_data_lsu`。
+- `soc_bus` 端口：删除 `i_itcm_rd_data`，读 mux 不再选择 ITCM load。
+- `soc_top` 连线：删除 `itcm_rd_data_lsu`。
 - `mem_itcm` 端口：删除 `o_data_rd_data`，并考虑将 Port B 改名为 write-only data port。
 - DV：`sva_soc_bus` 当前已经断言 `mau_req_load_mau && sel_itcm_bus` 不应发生，可继续保留或升级为 fatal。
 - testbench signature dump：`tb_soctop_isatest.sv` 的 `read_signature_word()` 仍支持从 ITCM 读 signature，软件布局收敛到 DTCM 后应同步删除或仅作为历史兼容。
@@ -294,12 +294,12 @@ core LSU -> soc_bus_v0 sel_itcm -> mem_itcm.o_data_rd_data -> core load data
 | 模块 | 信号/逻辑 | 调整原因 |
 | --- | --- | --- |
 | `ifu` | `pc_r`, `pc_next`, `o_pc_if` | 拆分 fetch request PC 和 instruction response PC |
-| `core_rv32i_v0` | `o_if_pc`, `i_if_instr` | 顶层取指接口语义从组合读改为同步返回 |
+| `core` | `o_if_pc`, `i_if_instr` | 顶层取指接口语义从组合读改为同步返回 |
 | `idu` | `i_instr`, `i_pc_if`, `i_flush`, `r_pc_id` | 指令和 PC 必须按 SRAM 返回对齐；无效返回写 NOP |
 | `ctrl_hazard` | load-use stall, forward select | 保持一拍 load-use；建议补 valid 断言防止无效 MAU 前递 |
 | `exu` | `o_mem_addr_exu`, `o_mem_wr_en_exu`, `o_mem_wr_data_exu`, `o_is_load_req_exu` | DTCM 读写请求提前到 EXU 级；load hazard 保持当前入口 |
 | `mau` | `r_mem_addr_mau`, `r_mem_req_info_bus`, `mau_load_data` | 作为 MEM 级返回数据的 offset/size/unsigned/tag |
-| `soc_bus_v0` | read decode mux | 返回数据选择需要使用上一拍 request 的 decode |
+| `soc_bus` | read decode mux | 返回数据选择需要使用上一拍 request 的 decode |
 | `mem_dtcm` | `i_addr/o_rd_data` | 组合读改为同步读，读地址来自 EXU 或 bus read-request |
 | `mem_itcm` | `i_rd_addr/o_rd_data` | 组合读改为同步读，去掉临时数据读端口 |
 | `csr_regs` | `csr_commit_en` | ITCM fetch valid/kill 引入后建议改用 EX valid/kill |
@@ -311,7 +311,7 @@ core LSU -> soc_bus_v0 sel_itcm -> mem_itcm.o_data_rd_data -> core load data
 推荐顺序：
 
 1. 先整理软件内存布局，保证普通数据和 signature 全部在 DTCM；保留并强化 `sva_soc_bus` 对 ITCM data load 的检查。
-2. 移除 ITCM 第二读端口的依赖：`soc_bus_v0` 不再从 ITCM 返回 LSU load 数据，`mem_itcm.o_data_rd_data` 后续可删除；暂不支持自修改指令测试。
+2. 移除 ITCM 第二读端口的依赖：`soc_bus` 不再从 ITCM 返回 LSU load 数据，`mem_itcm.o_data_rd_data` 后续可删除；暂不支持自修改指令测试。
 3. 单独做 DTCM SRAM 化：将 DTCM read/write address、write data、write mask、write enable 的给出时间提前到 EXU 级；MAU 保留 offset/size/unsigned/rd tag，对 MEM 级 `rd_data` 做 load align。
 4. 验证 DTCM 阶段：重点跑 load/store、byte/halfword、misalign、load-use、load 后 branch/store/csr 源操作数；确认 load-use 仍为一拍。
 5. DTCM 稳定后，再做 ITCM SRAM 化：为 IF 路径引入 request/response PC 和 valid/kill，处理 reset 首条取指和 redirect 后旧 fetch response。

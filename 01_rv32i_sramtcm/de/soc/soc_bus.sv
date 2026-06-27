@@ -3,7 +3,7 @@
 // Engineer: Wang Jianghao
 // Create Date: 2026/05/14
 // Design Name: StepRV_v0
-// Module Name: soc_bus_v0
+// Module Name: soc_bus
 // Description: 
 // Revision:
 // Revision 0.01 - File Created
@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module soc_bus_v0 (
+module soc_bus (
     input  wire        clk,
     input  wire        rst_n,
     // Core LSU interface

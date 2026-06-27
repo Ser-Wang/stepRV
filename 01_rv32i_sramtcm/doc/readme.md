@@ -7,15 +7,15 @@
 当前设计由 CPU core、片上存储器、SoC bus 和 UART 外设组成。
 
 ```text
-soc_top_v0
-  |-- core_rv32i_v0
-  |-- soc_bus_v0
+soc_top
+  |-- core
+  |-- soc_bus
   |-- mem_itcm
   |-- mem_dtcm
   `-- uart
 ```
 
-CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` 地址译码后访问 ITCM、DTCM 或 UART。SoC 顶层保持简单的片上系统结构，不包含 cache、复杂互连或中断控制器。
+CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus` 地址译码后访问 ITCM、DTCM 或 UART。SoC 顶层保持简单的片上系统结构，不包含 cache、复杂互连或中断控制器。
 
 当前版本在存储模型与流水线握手协议上进行了演进，全面采用了“同步读、同步写”的物理 SRAM 模型：
 - `mem_itcm` 取指端口升级为标准的同步读取 (`o_fetch_req` 和 `o_fetch_pc`)。IFU 增加了流水级状态寄存器，实现了取指请求和取指数据的 Pipeline 1拍完美对齐。
@@ -23,7 +23,7 @@ CPU core 的取指路径直接访问 ITCM；数据访存路径经 `soc_bus_v0` �
 
 ## Core 能力
 
-`core_rv32i_v0` 是一个顺序执行的 32-bit RISC-V core。寄存器堆包含 32 个通用寄存器，`x0` 固定为 0；流水线控制支持基础数据前递、load-use 停顿、分支/异常重定向刷新和寄存器堆同周期写回旁路。
+`core` 是一个顺序执行的 32-bit RISC-V core。寄存器堆包含 32 个通用寄存器，`x0` 固定为 0；流水线控制支持基础数据前递、load-use 停顿、分支/异常重定向刷新和寄存器堆同周期写回旁路。
 
 当前实现面向 RV32I 和 Zicsr：
 
@@ -98,7 +98,7 @@ ITCM 和 DTCM 当前采用 32-bit word 数组、同步读、同步写，并支�
 
 ITCM 除取指端口外，还提供数据侧读写端口。该路径用于兼容当前部分测试程序将 `.data/signature` 放在 ITCM 窗口内的链接布局，也为 FENCE.I、自修改代码类测试保留基础通路。
 
-UART 已接入 `soc_top_v0`，寄存器定义见 `readme_peripherals.md`。
+UART 已接入 `soc_top`，寄存器定义见 `readme_peripherals.md`。
 
 ## 验证与运行状态
 

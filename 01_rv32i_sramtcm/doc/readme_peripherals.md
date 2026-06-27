@@ -4,7 +4,7 @@
 
 ## UART
 
-UART 已在 `soc_top_v0` 中接入，基地址和窗口大小由 `de/defines/config.v` 定义：
+UART 已在 `soc_top` 中接入，基地址和窗口大小由 `de/defines/config.v` 定义：
 
 ```text
 UART_BASE = 0x3000_0000

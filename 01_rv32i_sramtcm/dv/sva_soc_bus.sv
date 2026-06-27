@@ -16,7 +16,7 @@ module sva_soc_bus (
     input wire rst_n,
     // From EXU LSU request
     input wire mem_req_load_exu,
-    // From BUS (soc_bus_v0)
+    // From BUS (soc_bus)
     input wire sel_itcm_bus,
     input wire [31:0] mem_addr_bus
 );

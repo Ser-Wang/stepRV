@@ -38,7 +38,7 @@ reg uart_rx;
 string uart_buffer = "";
 
 // ---------------- Instantiations ----------------
-wrapper_soc_top_v0 u_wrapper_soc_top_v0(
+wrapper_soc_top u_wrapper_soc_top(
     .clk       (clk),
     .rst_n     (rst_n),
     .o_uart_tx (uart_tx),
@@ -47,9 +47,9 @@ wrapper_soc_top_v0 u_wrapper_soc_top_v0(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    // $readmemh(INST_DATA_PATH, u_soc_top.u_imem.r_itcm);
     
-    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+    // $readmemh(INST_DATA_PATH, u_soc_top.u_dmem.r_dtcm);
 end
 
 // ---------------- Clock & Reset ----------------
@@ -95,7 +95,7 @@ task automatic uart_tx_monitor();
 
         forever begin
             @(negedge uart_tx);
-            baud_cycle_cnt = u_soc_top_v0.u_uart.uart_baud[15:0];
+            baud_cycle_cnt = u_soc_top.u_uart.uart_baud[15:0];
             bit_period_ns = 20 * (baud_cycle_cnt + 1);
 
             #(bit_period_ns + (bit_period_ns / 2));
@@ -140,10 +140,10 @@ end
 
 // ---------------- SVA Bindings ----------------
 `ifndef IVERILOG
-bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
-    .clk(u_soc_top_v0.clk),
-    .rst_n(u_soc_top_v0.rst_n),
-    .mem_req_load_exu(u_soc_top_v0.u_core.o_mem_req_load),
+bind soc_bus sva_soc_bus u_sva_soc_bus (
+    .clk(u_soc_top.clk),
+    .rst_n(u_soc_top.rst_n),
+    .mem_req_load_exu(u_soc_top.u_core.o_mem_req_load),
     .sel_itcm_bus(sel_itcm),
     .mem_addr_bus(i_mem_addr)
 );

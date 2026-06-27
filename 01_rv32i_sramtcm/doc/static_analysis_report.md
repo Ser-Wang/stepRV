@@ -10,7 +10,7 @@ This report summarizes static review findings for RTL naming, signal semantics, 
 
 Current version note:
 
-- Fixed DV `soc_top_v0` UART port connections in `tb_soctop_isatest`.
+- Fixed DV `soc_top` UART port connections in `tb_soctop_isatest`.
 - Removed unused `clk/rst_n` ports from `exu_alu`, `exu_bru`, `exu_lsu`, and `ctrl_hazard`.
 - Renamed the raw CSR illegal-access signal to `csr_illegal_access_raw` and retained the EXU-side `csr_op_req` gate.
 - Fixed UART RX sampling to assign each sampled bit directly.
@@ -61,7 +61,7 @@ Suggested direction:
 
 ### 2.2 `minstret` mechanism is present but permanently disabled
 
-Locations: `de/core/core_rv32i_v0.sv`, `de/core/csr_regs.sv`
+Locations: `de/core/core.sv`, `de/core/csr_regs.sv`
 
 `csr_regs` implements `minstret/minstreth`, but `i_instr_ret_en` is still tied to `1'b0` at the core level.
 
@@ -79,7 +79,7 @@ Suggested direction:
 
 Locations:
 
-- `de/soc/soc_bus_v0.sv`
+- `de/soc/soc_bus.sv`
 - `de/periphs/mem_itcm.sv`
 
 The LSU can access ITCM through a data-side interface. This supports current test layouts and self-modifying-code-style flows, but the interface still carries temporary naming and lacks a documented conflict policy.

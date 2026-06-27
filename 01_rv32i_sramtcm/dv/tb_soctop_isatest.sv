@@ -68,7 +68,7 @@ endtask
 // =============================================================================
 // ----------------        Instantiations        ----------------
 // =============================================================================
-soc_top_v0 u_soc_top_v0(
+soc_top u_soc_top(
     .clk       (clk),
     .rst_n     (rst_n),
     .o_uart_tx (uart_tx),
@@ -93,9 +93,9 @@ end
 
 // --- Case A: ISA Tests ---
 `ifdef RVTEST_ISA
-wire [31:0] x3  = u_soc_top_v0.u_core.u_regfile.r_regfile[3];
-wire [31:0] x26 = u_soc_top_v0.u_core.u_regfile.r_regfile[26];
-wire [31:0] x27 = u_soc_top_v0.u_core.u_regfile.r_regfile[27];
+wire [31:0] x3  = u_soc_top.u_core.u_regfile.r_regfile[3];
+wire [31:0] x26 = u_soc_top.u_core.u_regfile.r_regfile[26];
+wire [31:0] x27 = u_soc_top.u_core.u_regfile.r_regfile[27];
 
 initial begin
     $display("ISA Test: [riscv-tests] running...");
@@ -117,17 +117,17 @@ reg [31:0] ex_end_flag     = 0;
 reg [31:0] begin_signature = 0;
 reg [31:0] end_signature   = 0;
 
-wire [31:0] mem_addr    = u_soc_top_v0.u_core.o_mem_addr;
-wire        mem_wr_en    = u_soc_top_v0.u_core.o_mem_wr_en;
-wire [31:0] mem_wr_data = u_soc_top_v0.u_core.o_mem_wr_data;
+wire [31:0] mem_addr    = u_soc_top.u_core.o_mem_addr;
+wire        mem_wr_en    = u_soc_top.u_core.o_mem_wr_en;
+wire [31:0] mem_wr_data = u_soc_top.u_core.o_mem_wr_data;
 
 function automatic [31:0] read_signature_word;
     input [31:0] addr;
     begin
         if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE)))
-            read_signature_word = u_soc_top_v0.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
+            read_signature_word = u_soc_top.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
         // else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
-        //     read_signature_word = u_soc_top_v0.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
+        //     read_signature_word = u_soc_top.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
         else
             read_signature_word = 32'hxxxx_xxxx;
     end
@@ -211,8 +211,8 @@ end
 // ----------------        Memory Loading        ----------------
 // =============================================================================
 initial begin
-    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
-    $readmemh(DMEM_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+    $readmemh(INST_DATA_PATH, u_soc_top.u_imem.r_itcm);
+    $readmemh(DMEM_DATA_PATH, u_soc_top.u_dmem.r_dtcm);
 end
 
 // =============================================================================
@@ -236,10 +236,10 @@ end
 // ----------------        SVA Bindings          ----------------
 // =============================================================================
 `ifndef IVERILOG
-bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
-    .clk(u_soc_top_v0.clk),
-    .rst_n(u_soc_top_v0.rst_n),
-    .mem_req_load_exu(u_soc_top_v0.u_core.o_mem_req_load),
+bind soc_bus sva_soc_bus u_sva_soc_bus (
+    .clk(u_soc_top.clk),
+    .rst_n(u_soc_top.rst_n),
+    .mem_req_load_exu(u_soc_top.u_core.o_mem_req_load),
     .sel_itcm_bus(sel_itcm),
     .mem_addr_bus(i_mem_addr)
 );

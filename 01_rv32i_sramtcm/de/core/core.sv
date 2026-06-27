@@ -3,7 +3,7 @@
 // Engineer: Wang Jianghao
 // Create Date: 2026/01/22
 // Design Name: StepRV_v0
-// Module Name: core_rv32i_v0
+// Module Name: core
 // Description: 
 // Revision:
 // Revision 0.01 - File Created
@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module core_rv32i_v0(
+module core(
     input wire clk,
     input wire rst_n,
     // if

@@ -44,7 +44,7 @@ reg uart_rx;
 string uart_buffer = "";
 
 // ---------------- Instantiations ----------------
-soc_top_v0 u_soc_top_v0(
+soc_top u_soc_top(
     .clk       (clk),
     .rst_n     (rst_n),
     .o_uart_tx (uart_tx),
@@ -53,9 +53,9 @@ soc_top_v0 u_soc_top_v0(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    $readmemh(INST_DATA_PATH, u_soc_top_v0.u_imem.r_itcm);
+    $readmemh(INST_DATA_PATH, u_soc_top.u_imem.r_itcm);
     
-    // $readmemh(INST_DATA_PATH, u_soc_top_v0.u_dmem.r_dtcm);
+    // $readmemh(INST_DATA_PATH, u_soc_top.u_dmem.r_dtcm);
 end
 
 // ---------------- Clock & Reset ----------------
@@ -133,11 +133,11 @@ task automatic monitor_pc();
     $display("[PC Monitor] Started monitoring EXU PC...");
     forever @(posedge clk) begin
         if (rst_n) begin
-            func_name = get_func_name(u_soc_top_v0.u_core.u_exu.r_pc_exu);
+            func_name = get_func_name(u_soc_top.u_core.u_exu.r_pc_exu);
             if (func_name != current_func) begin
                 prev_func = current_func;
                 current_func = func_name;
-                $display("[PC Monitor] Time = %0t ns | PC = 32'h%08h | Function transition: %s -> %s", $time, u_soc_top_v0.u_core.u_exu.r_pc_exu, prev_func, current_func);
+                $display("[PC Monitor] Time = %0t ns | PC = 32'h%08h | Function transition: %s -> %s", $time, u_soc_top.u_core.u_exu.r_pc_exu, prev_func, current_func);
             end
         end
     end
@@ -157,7 +157,7 @@ task automatic uart_tx_monitor();
 
         forever begin
             @(negedge uart_tx);
-            baud_cycle_cnt = u_soc_top_v0.u_uart.uart_baud[15:0];
+            baud_cycle_cnt = u_soc_top.u_uart.uart_baud[15:0];
             bit_period_ns = 20 * (baud_cycle_cnt + 1);
 
             #(bit_period_ns + (bit_period_ns / 2));
@@ -176,9 +176,9 @@ endtask
 
 // --- Wires for User Program x26/x27 ISA checking ---
 `ifdef CHECK_X26_X27
-wire [31:0] x3  = u_soc_top_v0.u_core.u_regfile.r_regfile[3];
-wire [31:0] x26 = u_soc_top_v0.u_core.u_regfile.r_regfile[26];
-wire [31:0] x27 = u_soc_top_v0.u_core.u_regfile.r_regfile[27];
+wire [31:0] x3  = u_soc_top.u_core.u_regfile.r_regfile[3];
+wire [31:0] x26 = u_soc_top.u_core.u_regfile.r_regfile[26];
+wire [31:0] x27 = u_soc_top.u_core.u_regfile.r_regfile[27];
 `endif
 
 // x26/x27 Result Checker Task
@@ -216,8 +216,8 @@ end
 
 // Global Watchdog Timeout
 initial begin
-    // #12_000_000_000;
-    #100_000_000;  // 100ms, enough for the CoreMark quick run.
+    #12_000_000_000;
+    // #100_000_000;  // 100ms, enough for the CoreMark quick run.
     $display("\nSimulation Time Out.");
     print_uart_buffer();
     $finish;
@@ -226,7 +226,7 @@ end
 // ---------------- SVA Bindings ----------------
 `ifdef ENABLE_SVA
 `ifndef IVERILOG
-bind soc_bus_v0 sva_soc_bus u_sva_soc_bus (
+bind soc_bus sva_soc_bus u_sva_soc_bus (
     .clk(clk),
     .rst_n(rst_n),
     .mem_req_load_exu(i_mem_req_load),

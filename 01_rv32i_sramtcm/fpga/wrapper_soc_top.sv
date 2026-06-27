@@ -3,7 +3,7 @@
 // Engineer: Wang Jianghao
 // Create Date: 2026/06/08
 // Design Name: StepRV_v0
-// Module Name: wrapper_soc_top_v0
+// Module Name: wrapper_soc_top
 // Description: 
 // Revision:
 // Revision 0.01 - File Created
@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module wrapper_soc_top_v0(
+module wrapper_soc_top(
     input wire clk,
     input wire rst_n,
     output wire o_uart_tx,
@@ -32,7 +32,7 @@ module wrapper_soc_top_v0(
 //     .clk_in1(clk_board)      // input clk_in1
 // );
 
-soc_top_v0 u_soc_top_v0(
+soc_top u_soc_top(
     .clk        (clk),
     .rst_n      (rst_n),
     .o_uart_tx  (o_uart_tx),
@@ -43,7 +43,7 @@ soc_top_v0 u_soc_top_v0(
 // ila_0 your_instance_name (
 // 	.clk(clk), // input wire clk
 // 	.probe0(o_uart_tx), // input wire [0:0]  probe0  
-// 	.probe1(u_soc_top_v0.u_core.u_exu.r_pc_exu) // input wire [7:0]  probe1
+// 	.probe1(u_soc_top.u_core.u_exu.r_pc_exu) // input wire [7:0]  probe1
 // );
 
 

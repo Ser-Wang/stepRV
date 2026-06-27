@@ -3,7 +3,7 @@
 // Engineer: Wang Jianghao
 // Create Date: 2026/01/22
 // Design Name: StepRV_v0
-// Module Name: soc_top_v0
+// Module Name: soc_top
 // Description: 
 // Revision:
 // Revision 0.01 - File Created
@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------
 `include "config.v"
 
-module soc_top_v0(
+module soc_top(
     input wire clk,
     input wire rst_n,
     output wire o_uart_tx,
@@ -30,7 +30,7 @@ wire [3:0] mem_wr_mask;
 wire [31:0] mem_wr_data;
 wire [31:0] mem_rd_data;
 
-core_rv32i_v0 u_core(
+core u_core(
     .clk            (clk    ),
     .rst_n          (rst_n  ),
     // if
@@ -66,7 +66,7 @@ wire [31:0] uart_wr_data;
 wire [31:0] uart_rd_data;
 
 // Memory Bus & Arbitration
-soc_bus_v0 u_soc_bus (
+soc_bus u_soc_bus (
     .clk            (clk          ),
     .rst_n          (rst_n        ),
     // Core interface

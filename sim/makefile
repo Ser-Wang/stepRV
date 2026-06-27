@@ -27,8 +27,8 @@ TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
 DUMP         ?= 0
 
 # ---- Test Dirs ----
-RVTESTS_DIR    ?= ../tests/rv_tests_isa_new
-RVCOMPI_DIR     ?= ../tests/rv_compliance_new
+RVTESTS_DIR  ?= ../tests/rv_tests_isa_new
+RVCOMPI_DIR  ?= ../tests/rv_compliance_new
 USERPROG_DIR := ../tests/programs
 
 # ---- ISA test search folders ----
@@ -265,9 +265,7 @@ _batch_isa: com_isa
 	echo "-------------------------------------------"; \
 	echo "  Summary: $$pass/$$total Passed"; \
 	echo "-------------------------------------------"; \
-	if [ "$$fail" = "0" ]; then \
-		echo "  Congratulations, All PASS!"; \
-	else \
+	if [ "$$fail" != "0" ]; then \
 		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
 	fi
 
@@ -312,9 +310,7 @@ _batch_compli: com_compli
 	echo "-------------------------------------------"; \
 	echo "  Summary: $$pass/$$total Passed"; \
 	echo "-------------------------------------------"; \
-	if [ "$$fail" = "0" ]; then \
-		echo "  Congratulations, All PASS!"; \
-	else \
+	if [ "$$fail" != "0" ]; then \
 		echo "  $$fail test(s) failed. Check sim_*.fail.log"; \
 	fi
 
