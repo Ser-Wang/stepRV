@@ -1,6 +1,15 @@
 // ===========================================================================
 //// --------        CONFIGURATION        -------- ////
 
+// Memory implementation selection:
+// - No macro defined: use generic synthesizable RTL memory models.
+// - USE_BRAM: instantiate Vivado Block Memory Generator IP wrappers.
+// - USE_SRAM_MACRO: instantiate ASIC SRAM macro wrapper modules.
+// If both are defined, USE_SRAM_MACRO has priority in mem_* wrappers.
+//
+// Vivado users can enable BRAM IP instantiation by uncommenting USE_BRAM here.
+// `define USE_BRAM
+// `define USE_SRAM_MACRO
 
 
 // ===========================================================================

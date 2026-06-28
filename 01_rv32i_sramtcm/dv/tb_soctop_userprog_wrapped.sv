@@ -14,19 +14,19 @@ module tb_soctop_userprog_wrapped();
 
 // --- Mode Selection (For tools like Vivado, uncomment one to select mode) ---
 
-`ifndef VCS
-  `ifndef IVERILOG
-    `define VIVADO_MANUAL 1
-  `endif
-`endif
+// `ifndef VCS
+//   `ifndef IVERILOG
+//     `define VIVADO_MANUAL 1
+//   `endif
+// `endif
 
-`ifdef VIVADO_MANUAL
+// `ifdef VIVADO_MANUAL
 
-    parameter INST_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data";
-`else
-    // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
-    parameter INST_DATA_PATH = "./inst.data";
-`endif
+//     parameter INST_DATA_PATH = "d:/myProj_WJH/11_myRV/tests/programs/simple/simple.data";
+// `else
+//     // ---- When using VCS or iverilog (Batch/Scripted Mode) ----
+//     parameter INST_DATA_PATH = "./inst.data";
+// `endif
 
 
 reg clk;
@@ -36,6 +36,10 @@ reg uart_rx;
 
 // Buffer for UART TX Monitor
 string uart_buffer = "";
+
+// Hierarchical alias for probes that still need to look inside the wrapped SoC.
+// Keep this local to the testbench so the wrapper instance name remains explicit.
+`define DUT_SOC u_wrapper_soc_top.u_soc_top
 
 // ---------------- Instantiations ----------------
 wrapper_soc_top u_wrapper_soc_top(
@@ -47,9 +51,9 @@ wrapper_soc_top u_wrapper_soc_top(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    // $readmemh(INST_DATA_PATH, u_soc_top.u_imem.r_itcm);
+    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_imem.r_itcm);
     
-    // $readmemh(INST_DATA_PATH, u_soc_top.u_dmem.r_dtcm);
+    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_dmem.r_dtcm);
 end
 
 // ---------------- Clock & Reset ----------------
@@ -95,7 +99,7 @@ task automatic uart_tx_monitor();
 
         forever begin
             @(negedge uart_tx);
-            baud_cycle_cnt = u_soc_top.u_uart.uart_baud[15:0];
+            baud_cycle_cnt = `DUT_SOC.u_uart.uart_baud[15:0];
             bit_period_ns = 20 * (baud_cycle_cnt + 1);
 
             #(bit_period_ns + (bit_period_ns / 2));
@@ -119,14 +123,14 @@ endtask
 `ifdef DUMP_FSDB
 initial begin
     $fsdbDumpfile("tb_top.fsdb");
-    $fsdbDumpvars(0, tb_soctop_userprog);
+    $fsdbDumpvars(0, tb_soctop_userprog_wrapped);
 end
 `endif
 
 `ifdef IVERILOG
 initial begin
     $dumpfile("tb_soc_top.vcd");
-    $dumpvars(0, tb_soctop_userprog);
+    $dumpvars(0, tb_soctop_userprog_wrapped);
 end
 `endif
 
@@ -140,10 +144,11 @@ end
 
 // ---------------- SVA Bindings ----------------
 `ifndef IVERILOG
+`ifdef VCS
 bind soc_bus sva_soc_bus u_sva_soc_bus (
-    .clk(u_soc_top.clk),
-    .rst_n(u_soc_top.rst_n),
-    .mem_req_load_exu(u_soc_top.u_core.o_mem_req_load),
+    .clk(`DUT_SOC.clk),
+    .rst_n(`DUT_SOC.rst_n),
+    .mem_req_load_exu(`DUT_SOC.u_core.o_mem_req_load),
     .sel_itcm_bus(sel_itcm),
     .mem_addr_bus(i_mem_addr)
 );
@@ -167,5 +172,8 @@ bind exu sva_csr u_sva_csr (
     .req_disp_csr(req_disp_csr)
 );
 `endif
+`endif
+
+`undef DUT_SOC
 
 endmodule

@@ -22,13 +22,17 @@ RISCV_READELF := $(RISCV_BIN)/$(RISCV_PREFIX)-readelf
 PYTHON ?= $(PYTHON_DEFAULT)
 TOOLS_SCRIPT_DIR := $(abspath $(TOOLCHAIN_DIR)/tools/scripts)
 BIN_TO_MEM_SCRIPT := $(TOOLS_SCRIPT_DIR)/BinToMem_CLI.py
+BIN_TO_COE_SCRIPT := $(TOOLS_SCRIPT_DIR)/BinToCoe_CLI.py
 RENAME_REGS_SCRIPT := $(TOOLS_SCRIPT_DIR)/rename_regs.py
 
-.PHONY: all data rename data_win data_linux rename_win rename_linux
+.PHONY: all data coe rename data_win data_linux rename_win rename_linux
 all: $(TARGET)
 
 data: $(TARGET)
 	$(PYTHON) $(BIN_TO_MEM_SCRIPT) $(TARGET).bin $(TARGET).data
+
+coe: $(TARGET)
+	$(PYTHON) $(BIN_TO_COE_SCRIPT) $(TARGET).bin $(TARGET).coe
 
 rename: $(TARGET)
 	$(PYTHON) $(RENAME_REGS_SCRIPT) $(TARGET).dump $(TARGET).dump.rename
@@ -57,7 +61,7 @@ LINK_DEPS += $(LINKER_SCRIPT)
 
 CLEAN_OBJS += $(TARGET) $(LINK_OBJS)
 CLEAN_OUTPUTS += $(TARGET).bin $(TARGET).dump
-CLEAN_OUTPUTS += $(TARGET).data $(TARGET).dump.rename
+CLEAN_OUTPUTS += $(TARGET).data $(TARGET).coe $(TARGET).dump.rename
 
 CFLAGS += -march=$(RISCV_ARCH)
 CFLAGS += -mabi=$(RISCV_ABI)
