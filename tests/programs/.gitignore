@@ -1,0 +1,22 @@
+# 编译生成的中间对象文件
+*.o
+*.ko
+*.obj
+
+# 生成的通用结果文件（适用于所有子目录）
+*.bin
+*.data
+*.coe
+*.dump
+*.dump.rename*
+*.map
+*.hex
+*.elf
+
+# 由于 Git 不支持动态匹配与文件夹同名的无后缀文件，
+# 所以这里的无后缀可执行文件仍需要手动列出。
+# 后续如果有新的测试程序（比如 hello_world），请在这里加一行：/hello_world/hello_world
+/coremark/coremark
+/coremark_lite/coremark_lite
+/simple/simple
+/uart_tx/uart_tx

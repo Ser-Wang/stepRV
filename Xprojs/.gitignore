@@ -1,13 +1,18 @@
-/v0_rv32i_basic/v0_rv32i_basic.cache
-/v0_rv32i_basic/v0_rv32i_basic.hw
-/v0_rv32i_basic/v0_rv32i_basic.sim
-/v0_rv32i_basic/v0_rv32i_basic.runs
-/v0_rv32i_basic/v0_rv32i_basic.gen
-/v0_rv32i_basic/v0_rv32i_basic.ip_user_files
+# Vivado auto-generated directories
+*.cache/
+*.hw/
+*.sim/
+*.runs/
+*.gen/
+*.ip_user_files/
 
-/test_wrapped/test_wrapped.cache
-/test_wrapped/test_wrapped.hw
-/test_wrapped/test_wrapped.sim
-/test_wrapped/test_wrapped.runs
-/test_wrapped/test_wrapped.gen
-/test_wrapped/test_wrapped.ip_user_files
+# Vivado incremental compilation imports
+*.srcs/utils_1/imports/
+
+# Vivado design checkpoints
+*.dcp
+
+# Vivado logs and temp files
+*.jou
+*.log
+*.str

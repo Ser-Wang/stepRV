@@ -1,9 +1,0 @@
-# Object files
-*.o
-*.ko
-*.obj
-simple
-simple.bin
-simple.data
-simple.dump
-simple.dump.rename

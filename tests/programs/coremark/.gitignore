@@ -1,9 +1,0 @@
-# Object files
-*.o
-*.ko
-*.obj
-coremark
-coremark.bin
-coremark.data
-coremark.dump
-coremark.dump.rename
