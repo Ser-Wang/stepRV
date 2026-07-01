@@ -1,0 +1,20 @@
+# Design RTL, paths are relative to 01_rv32i_sramtcm/de.
+# SRAM macro wrappers and macro simulation models are intentionally excluded.
+soc/soc_top.sv
+soc/soc_bus.sv
+periphs/mem_itcm.sv
+periphs/uart.v
+periphs/mem_dtcm.sv
+core/core.sv
+core/exu_bru.sv
+core/exu.sv
+core/regfile.sv
+core/mau.sv
+core/exu_csr.sv
+core/wbu.sv
+core/exu_lsu.sv
+core/exu_alu.sv
+core/csr_regs.sv
+core/ifu.sv
+core/ctrl_hazard.sv
+core/idu.sv

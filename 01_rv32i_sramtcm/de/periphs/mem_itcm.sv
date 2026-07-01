@@ -31,7 +31,7 @@ localparam ITCM_ADDR_WIDTH = $clog2(`ITCM_DEPTH);
 
 `ifdef USE_SRAM_MACRO
 
-sram_itcm_1r1rw_macro u_itcm_sram_macro (
+sram_itcm_1r1rw_wrapper u_itcm_sram_wrapper (
     .clk        (clk),
     .rst_n      (rst_n),
     .i_p0_en    (i_p0_en),

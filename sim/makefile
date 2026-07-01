@@ -12,19 +12,31 @@
 #   make clean                          - Clean all generated files
 # ------------------------------------------------------------------------------
 
+DUMP         ?= 0
+SRAM_IMPL    ?= macro# rtl | macro
 # ---- Global Config ----
 SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
+.NOTPARALLEL:
 
-CORE_VERSION ?= ../01_rv32i_sramtcm
-DE_DIR       := $(CORE_VERSION)/de
-DV_DIR       := $(CORE_VERSION)/dv
+DESIGN_NAME ?= ../01_rv32i_sramtcm
+DE_DIR       := $(DESIGN_NAME)/de
+DV_DIR       := $(DESIGN_NAME)/dv
 DEFINES_DIR  ?= $(DE_DIR)/defines
+FILELIST_DIR ?= $(DESIGN_NAME)/filelists
 TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
 # DEFINES_DIR  :=
 # No define files: change the line above to `DEFINES_DIR :=`, or run `make <target> DEFINES_DIR=`.
 
-DUMP         ?= 0
+FILELIST_OUT ?= filelist.f
+FILELIST_RTL ?= $(FILELIST_DIR)/filelist_rtl.f
+FILELIST_SRAM_WRAPPER ?= $(FILELIST_DIR)/filelist_sram_wrapper.f
+FILELIST_SRAM_MACRO_MODEL ?= $(FILELIST_DIR)/filelist_sram_macro_model.f
+DESIGN_FILELISTS := $(FILELIST_RTL)
+SVA_FILES := \
+	$(DV_DIR)/sva_exu_lsu.sv \
+	$(DV_DIR)/sva_soc_bus.sv \
+	$(DV_DIR)/sva_csr.sv
 
 # ---- Test Dirs ----
 RVTESTS_DIR  ?= ../tests/rv_tests_isa_new
@@ -39,37 +51,59 @@ COMP_GROUPS  := rv32i rv32im rv32Zicsr rv32Zifencei
 SVA_LOG      ?= sva.log
 VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
 VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
+ifeq ($(SRAM_IMPL),macro)
+VCS_DEFINES  += +define+USE_SRAM_MACRO
+DESIGN_FILELISTS += $(FILELIST_SRAM_WRAPPER) $(FILELIST_SRAM_MACRO_MODEL)
+else ifneq ($(SRAM_IMPL),rtl)
+$(error Unknown SRAM_IMPL='$(SRAM_IMPL)'. Use 'rtl' or 'macro'.)
+endif
 # Common VCS compile options
 VCS_FLAGS := \
 	-timescale=1ns/100ps \
 	-full64 +v2k -sverilog -Mupdate \
 	$(VCS_INCDIR) \
 	-debug_acc+all -debug_region+cell+encrypt
+ifeq ($(SRAM_IMPL),macro)
+VCS_FLAGS    += +notimingcheck
+endif
 
 # ------------------------------------------------------------------------------
 # Normal Compile / Sim / Verdi / Clean Flow
 # ------------------------------------------------------------------------------
 filelist:
-	@find $(DE_DIR) -path "$(DEFINES_DIR)" -prune -o \( -name "*.v" -o -name "*.sv" \) -print > filelist.f
-	@echo "$(TB_FILE)" >> filelist.f
-	@echo "$(DV_DIR)/sva_exu_lsu.sv"       >> filelist.f
-	@echo "$(DV_DIR)/sva_soc_bus.sv"       >> filelist.f
-	@echo "$(DV_DIR)/sva_csr.sv"           >> filelist.f
+	@find $(DE_DIR) \( -name "*.v" -o -name "*.sv" \) -print > $(FILELIST_OUT)
+
+filelist_cfig:
+	@: > $(FILELIST_OUT)
+	@for fl in $(DESIGN_FILELISTS); do \
+		if [ ! -f "$$fl" ]; then \
+			echo "Error: required design filelist not found: $$fl"; \
+			exit 1; \
+		fi; \
+		while IFS= read -r line || [ -n "$$line" ]; do \
+			case "$$line" in \
+				""|\#*|//*) printf "%s\n" "$$line" >> $(FILELIST_OUT) ;; \
+				/*|+*)      printf "%s\n" "$$line" >> $(FILELIST_OUT) ;; \
+				*)          printf "%s/%s\n" "$(DE_DIR)" "$$line" >> $(FILELIST_OUT) ;; \
+			esac; \
+		done < "$$fl"; \
+	done
+	@printf "%s\n" "$(TB_FILE)" $(SVA_FILES) >> $(FILELIST_OUT)
 
 # Compile for normal simulation
 com:
-	vcs -f filelist.f \
+	vcs -f $(FILELIST_OUT) \
 		$(VCS_FLAGS) $(VCS_DEFINES) \
 		|tee vcs.log
 
-sim: filelist com
+sim: com
 	./simv |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
 
 sim_run_all: sim verdi
 
 verdi:
-	verdi -f filelist.f -ssf tb_top.fsdb -play ./scripts/verdi.tcl &
+	verdi -f $(FILELIST_OUT) -ssf tb_top.fsdb -play ./scripts/verdi.tcl &
 
 clean:
 	rm -rf csrc novas* *.log simv* *fsdb* ucli.key verdiLog \
@@ -81,15 +115,15 @@ clean:
 
 # Compile for ISA test mode
 com_isa: VCS_DEFINES += +define+RVTEST_ISA
-com_isa: filelist com
+com_isa: filelist_cfig com
 
 # Compile for Compliance test mode
 com_compli: VCS_DEFINES += +define+RVTEST_COMPLIANCE
-com_compli: filelist com
+com_compli: filelist_cfig com
 
 # Compile for user program mode
 com_userprog: TB_FILE := $(DV_DIR)/tb_soctop_userprog.sv
-com_userprog: filelist com
+com_userprog: filelist_cfig com
 
 # Usage: make sim_isa test=add
 #   Searches for rv32ui-p-add.data / rv32um-p-add.data etc.
@@ -110,8 +144,6 @@ endif
 			rm -f ./inst.data ./dmem.data ./out.ref; \
 			cp "$$data_file" ./inst.data; \
 			cp "$$dmem_file" ./dmem.data; \
-			echo "  Data: $$data_file"; \
-			echo "  DMem: $$dmem_file"; \
 			found=1; \
 			break; \
 		fi; \
@@ -122,7 +154,6 @@ endif
 	fi
 	./simv |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
-	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
 	else \
@@ -146,16 +177,12 @@ endif
 			dmem_file="$${data_file%.data}.dmem.data"; \
 			if [ -f "$$dmem_file" ]; then \
 				cp "$$dmem_file" ./dmem.data; \
-				echo "  DMem: $$dmem_file"; \
 			else \
 				printf "00000000\n" > ./dmem.data; \
-				echo "  DMem: <zero-init fallback>"; \
 			fi; \
-			echo "  Data: $$data_file"; \
 			ref_file="$(RVCOMPI_DIR)/$$grp/$(test).ref"; \
 			if [ -f "$$ref_file" ]; then \
 				cp "$$ref_file" ./out.ref; \
-				echo "  Ref:  $$ref_file"; \
 			else \
 				echo "Error: Cannot find .ref for test '$(test)': $$ref_file"; \
 				exit 1; \
@@ -170,7 +197,6 @@ endif
 	fi
 	./simv |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
-	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
 	elif grep -q '\[FAIL\]' sim.log; then \
@@ -194,14 +220,10 @@ endif
 	fi; \
 	rm -f ./inst.data ./dmem.data ./out.ref; \
 	cp "$$data_file" ./inst.data; \
-	echo "=== User Program: $(name) ==="; \
-	echo "  Data: $$data_file"; \
-	echo "  TB:   $(DV_DIR)/tb_soctop_userprog.sv"; \
-	echo "  RTL:  $(CORE_VERSION)"
+	echo "=== User Program: $(name) ==="
 	@$(MAKE) --no-print-directory com_userprog
 	./simv |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
-	@echo ""
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \
 	elif grep -q '\[FAIL\]' sim.log; then \
@@ -233,9 +255,7 @@ endif
 
 # --- Internal: Batch ISA ---
 _batch_isa: com_isa
-	@echo "-------------------------------------------"
-	@echo "  Batch ISA Test: group=$(group)"
-	@echo "-------------------------------------------"
+	@echo "=== Batch ISA: group=$(group) ==="
 	@pass=0; fail=0; total=0; \
 	for data_file in $(RVTESTS_DIR)/$(group)/$(group)-p-*.data; do \
 		[ -f "$$data_file" ] || continue; \
@@ -261,7 +281,6 @@ _batch_isa: com_isa
 			cp sim.log "sim_$${test_name}.fail.log"; \
 		fi; \
 	done; \
-	echo ""; \
 	echo "-------------------------------------------"; \
 	echo "  Summary: $$pass/$$total Passed"; \
 	echo "-------------------------------------------"; \
@@ -271,9 +290,7 @@ _batch_isa: com_isa
 
 # --- Internal: Batch Compliance ---
 _batch_compli: com_compli
-	@echo "-------------------------------------------"
-	@echo "  Batch Compliance Test: group=$(group)"
-	@echo "-------------------------------------------"
+	@echo "=== Batch Compliance: group=$(group) ==="
 	@pass=0; fail=0; total=0; \
 	for data_file in $(RVCOMPI_DIR)/$(group)/*.data; do \
 		[ -f "$$data_file" ] || continue; \
@@ -306,7 +323,6 @@ _batch_compli: com_compli
 			cp sim.log "sim_$${test_name}.fail.log"; \
 		fi; \
 	done; \
-	echo ""; \
 	echo "-------------------------------------------"; \
 	echo "  Summary: $$pass/$$total Passed"; \
 	echo "-------------------------------------------"; \
@@ -328,10 +344,9 @@ sva_log:
 	} > $(SVA_LOG)
 	@if grep -q -E '\[SVA Error\]|SVA Error|assert|Assertion|cover_|u_sva' $(SVA_LOG); then \
 		echo "SVA summary written to $(SVA_LOG)"; \
-	else \
-		echo "No SVA messages found. Empty summary written to $(SVA_LOG)"; \
 	fi
 
-.PHONY: all filelist com com_isa com_compli com_userprog sim sim_run_all \
+.PHONY: all filelist filelist_cfig \
+        com com_isa com_compli com_userprog sim sim_run_all \
         sim_isa sim_compli sim_userprog sim_user sim_isa_all _batch_isa \
         _batch_compli verdi clean sva_log

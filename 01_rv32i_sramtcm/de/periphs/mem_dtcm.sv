@@ -28,7 +28,7 @@ localparam DTCM_ADDR_WIDTH = $clog2(`DTCM_DEPTH);
 
 `ifdef USE_SRAM_MACRO
 
-sram_dtcm_1rw_macro u_dtcm_sram_macro (
+sram_dtcm_1rw_wrapper u_dtcm_sram_wrapper (
     .clk       (clk),
     .rst_n     (rst_n),
     .i_wr_en   (i_wr_en),

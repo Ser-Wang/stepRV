@@ -124,8 +124,13 @@ wire [31:0] mem_wr_data = u_soc_top.u_core.o_mem_wr_data;
 function automatic [31:0] read_signature_word;
     input [31:0] addr;
     begin
-        if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE)))
+        if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE))) begin
+`ifdef USE_SRAM_MACRO
+            read_signature_word = u_soc_top.u_dmem.u_dtcm_sram_wrapper.u_smic55_4096x32_1rw.mem_array[(addr - `DTCM_BASE) >> 2];
+`else
             read_signature_word = u_soc_top.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
+`endif
+        end
         // else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
         //     read_signature_word = u_soc_top.u_imem.r_itcm[(addr - `ITCM_BASE) >> 2];
         else
@@ -210,9 +215,30 @@ end
 // =============================================================================
 // ----------------        Memory Loading        ----------------
 // =============================================================================
+task automatic load_inst_mem(input string data_path);
+`ifdef USE_SRAM_MACRO
+    $display("[Memory Load] ITCM SRAM macro <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_imem.u_itcm_sram_wrapper.u_smic55_8192x32_2p.mem_array);
+`else
+    $display("[Memory Load] ITCM RTL memory <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_imem.r_itcm);
+`endif
+endtask
+
+task automatic load_data_mem(input string data_path);
+`ifdef USE_SRAM_MACRO
+    $display("[Memory Load] DTCM SRAM macro <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_dmem.u_dtcm_sram_wrapper.u_smic55_4096x32_1rw.mem_array);
+`else
+    $display("[Memory Load] DTCM RTL memory <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_dmem.r_dtcm);
+`endif
+endtask
+
 initial begin
-    $readmemh(INST_DATA_PATH, u_soc_top.u_imem.r_itcm);
-    $readmemh(DMEM_DATA_PATH, u_soc_top.u_dmem.r_dtcm);
+    #1;
+    load_inst_mem(INST_DATA_PATH);
+    load_data_mem(DMEM_DATA_PATH);
 end
 
 // =============================================================================
