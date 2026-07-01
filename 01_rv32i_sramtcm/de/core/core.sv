@@ -67,6 +67,7 @@ wire wb_rd_wen_exu;
 
 // mem_2_wb
 wire [31:0] wb_data_mau;
+wire [31:0] fwd_data_mau;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_mau;
 wire wb_rd_wen_mau;
 
@@ -190,7 +191,7 @@ exu u_exu(
     .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .o_rs1idx_exu       (rs1idx_exu         ),
     .o_rs2idx_exu       (rs2idx_exu         ),
-    .i_fwd_wb_data_mau  (wb_data_mau        ),
+    .i_fwd_wb_data_mau  (fwd_data_mau       ),
     .i_fwd_wb_data_wbu  (wb_data_wbu        ),
     .i_fwding_rs1_sel   (fwding_rs1_sel     ),
     .i_fwding_rs2_sel   (fwding_rs2_sel     ),
@@ -262,6 +263,7 @@ mau u_mau(
     .i_wb_rd_idx_exu    (wb_rd_idx_exu  ),
     .i_wb_rd_wen_exu    (wb_rd_wen_exu  ),
     .o_wb_data_mau      (wb_data_mau    ),
+    .o_fwd_data_mau     (fwd_data_mau   ),
     .o_wb_rd_idx_mau    (wb_rd_idx_mau  ),
     .o_wb_rd_wen_mau    (wb_rd_wen_mau  )
     );

@@ -22,6 +22,7 @@ module mau(
     input  wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_exu,
     input  wire i_wb_rd_wen_exu,
     output wire [31:0] o_wb_data_mau,
+    output wire [31:0] o_fwd_data_mau,
     output wire [`RFIDX_WIDTH-1:0] o_wb_rd_idx_mau,
     output wire o_wb_rd_wen_mau
     );
@@ -80,6 +81,7 @@ end
 
 // pass by
 assign o_wb_data_mau = mau_req_load ? mau_load_data : r_wb_data_exu_d1; // write-back data may load from mem
+assign o_fwd_data_mau = r_wb_data_exu_d1;
 assign o_wb_rd_idx_mau = r_wb_rd_idx_mau;
 assign o_wb_rd_wen_mau = r_wb_rd_wen_mau;
 
