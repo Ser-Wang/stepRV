@@ -6,6 +6,7 @@
 // Module Name: tb_soctop_userprog
 // Description: Testbench for user-defined programs.
 //--------------------------------------------------------------------------------
+`include "config.v"
 
 module tb_soctop_userprog();
 

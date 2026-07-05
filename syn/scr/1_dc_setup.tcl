@@ -5,6 +5,9 @@ set DESIGN_TOP      [getenv DESIGN_TOP]
 set RTL_PATH        [getenv RTL_PATH]
 set DEFINE_PATH     [getenv DEFINE_PATH]
 set LIB_PATH        [getenv LIB_PATH]
+set SYN_FILELIST    [getenv SYN_FILELIST]
+set SRAM_MACRO_ROOT [getenv SRAM_MACRO_ROOT]
+set SRAM_MACRO_DB_FILES  [getenv SRAM_MACRO_DB_FILES]
 set OUT_DIR         [getenv OUT_DIR]
 
 set RPT_PATH        $OUT_DIR/rpt
@@ -15,13 +18,18 @@ file mkdir $OUT_DIR $RPT_PATH
 #-------------------------------------------------------------------------------
 # Library configuration
 #-------------------------------------------------------------------------------
-set search_path [concat $search_path $LIB_PATH $RTL_PATH $DEFINE_PATH]
+set search_path [concat $search_path $LIB_PATH $RTL_PATH $DEFINE_PATH $SRAM_MACRO_ROOT]
 set synthetic_library "dw_foundation.sldb"
 
-# Industry practice: target_library should only specify the worst-case setup corner (SS) for single-corner optimization
-# Original three-corner configuration:
-# set target_library "scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs.db scc55ulp_hdlp_rvt_ff_v1p32_-40c_ccs.db scc55ulp_hdlp_rvt_tt_v1p2_25c_ccs.db"
 set target_library "scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs.db"
+
+foreach macro_db $SRAM_MACRO_DB_FILES {
+    if {![file exists $macro_db]} {
+        echo "Error: SRAM macro DB not found: $macro_db"
+        exit
+    }
+    lappend target_library $macro_db
+}
 
 set link_library "* $target_library $synthetic_library"
 
@@ -55,46 +63,11 @@ set_svf $OUT_DIR/$DESIGN_TOP.svf
 # Define work library directory
 define_design_lib WORK -path ./WORK
 
-# Helper procedure to read standard .f filelists
-proc read_filelist {filelist} {
-    set fp [open $filelist r]
-    set files {}
-    while {[gets $fp line] >= 0} {
-        set line [string trim $line]
-        if {$line == "" || [string match "#*" $line] || [string match "//*" $line]} {
-            continue
-        }
-        lappend files $line
-    }
-    close $fp
-    return $files
-}
+set vcs_args "+define+SYNTHESIS +incdir+${RTL_PATH} +incdir+${DEFINE_PATH}"
+append vcs_args " -f $SYN_FILELIST"
 
-# Sourcing file list
-set filelist_path "./filelist/${DESIGN_TOP}.f"
-if {[file exists $filelist_path]} {
-    echo "Reading design filelist from $filelist_path"
-    set hdl_files [read_filelist $filelist_path]
-} else {
-    echo "Error: Filelist $filelist_path not found!"
-    exit
-}
-
-# Analyze Verilog/SystemVerilog files
-foreach file $hdl_files {
-    set file_ext [file extension $file]
-    if {[file pathtype $file] == "absolute"} {
-        set full_path $file
-    } else {
-        set full_path [file join $RTL_PATH $file]
-    }
-
-    if {$file_ext == ".sv" || $file_ext == ".sverilog"} {
-        analyze -format sverilog $full_path
-    } else {
-        analyze -format verilog $full_path
-    }
-}
+echo "Analyzing design with VCS-style filelist: $SYN_FILELIST"
+analyze -vcs $vcs_args -format sverilog
 
 # Elaborate
 elaborate $DESIGN_TOP

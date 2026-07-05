@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
 # Compile
 #-------------------------------------------------------------------------------
-echo "Starting compilation using: compile"
-compile
+echo "Starting compilation using: compile_ultra"
+# compile
+compile_ultra

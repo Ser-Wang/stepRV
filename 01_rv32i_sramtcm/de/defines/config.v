@@ -9,7 +9,7 @@
 //
 // Vivado users can enable BRAM IP instantiation by uncommenting USE_BRAM here.
 // `define USE_BRAM
-// `define USE_SRAM_MACRO
+`define USE_SRAM_MACRO
 
 
 // ===========================================================================

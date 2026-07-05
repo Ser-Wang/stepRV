@@ -36,15 +36,16 @@ The setup script uses Design Compiler's VCS-style filelist parser:
 analyze -vcs "+define+SYNTHESIS +incdir+... -f $SYN_FILELIST" -format sverilog
 ```
 
-Filelist source entries are resolved through the DC search path, which includes
-`RTL_PATH`. The setup script also adds `../01_rv32i_sramtcm/de/defines` to the
-include path so source files can resolve `include "config.v"`.
+Filelist source entries stay relative to `RTL_PATH`, for example
+`soc/soc_top.sv`. The setup script also adds
+`../01_rv32i_sramtcm/de/defines` to the include path so source files can
+resolve `include "config.v"`.
 
 The default SRAM synthesis filelist nests the base RTL and SRAM wrapper lists:
 
 ```text
--f /home/moxiao/work/my-RISCV-Projs/01_rv32i_sramtcm/filelists/filelist_rtl.f
--f /home/moxiao/work/my-RISCV-Projs/01_rv32i_sramtcm/filelists/filelist_sram_wrapper.f
+-f ../01_rv32i_sramtcm/filelists/filelist_rtl.f
+-f ../01_rv32i_sramtcm/filelists/filelist_sram_wrapper.f
 ```
 
 For designs without SRAM macros, point `SYN_FILELIST` at the RTL-only filelist.

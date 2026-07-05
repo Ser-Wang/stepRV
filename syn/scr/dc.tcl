@@ -18,5 +18,8 @@ source ./scr/3_dc_compile.tcl
 # Sourcing with echo: source -echo -verbose ./scr/4_dc_report.tcl
 source ./scr/4_dc_report.tcl
 
+# 5. Temporary reports for active debug/optimization work
+source ./scr/5_dc_temp_report.tcl
+
 echo "Synthesis finished successfully!"
 exit

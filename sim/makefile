@@ -13,7 +13,6 @@
 # ------------------------------------------------------------------------------
 
 DUMP         ?= 0
-SRAM_IMPL    ?= macro# rtl | macro
 # ---- Global Config ----
 SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
@@ -22,17 +21,12 @@ SHELL       := /bin/bash
 DESIGN_NAME ?= ../01_rv32i_sramtcm
 DE_DIR       := $(DESIGN_NAME)/de
 DV_DIR       := $(DESIGN_NAME)/dv
-DEFINES_DIR  ?= $(DE_DIR)/defines
-FILELIST_DIR ?= $(DESIGN_NAME)/filelists
-TB_FILE      ?= $(DV_DIR)/tb_soctop_isatest.sv
-# DEFINES_DIR  :=
-# No define files: change the line above to `DEFINES_DIR :=`, or run `make <target> DEFINES_DIR=`.
+DEFINES_DIR  := $(DE_DIR)/defines
+FILELIST_DIR := $(DESIGN_NAME)/filelists
+TB_FILE      := $(DV_DIR)/tb_soctop_isatest.sv
+SIM_FILELIST := $(FILELIST_DIR)/filelist_sim_sram.f
 
 FILELIST_OUT ?= filelist.f
-FILELIST_RTL ?= $(FILELIST_DIR)/filelist_rtl.f
-FILELIST_SRAM_WRAPPER ?= $(FILELIST_DIR)/filelist_sram_wrapper.f
-FILELIST_SRAM_MACRO_MODEL ?= $(FILELIST_DIR)/filelist_sram_macro_model.f
-DESIGN_FILELISTS := $(FILELIST_RTL)
 SVA_FILES := \
 	$(DV_DIR)/sva_exu_lsu.sv \
 	$(DV_DIR)/sva_soc_bus.sv \
@@ -51,21 +45,13 @@ COMP_GROUPS  := rv32i rv32im rv32Zicsr rv32Zifencei
 SVA_LOG      ?= sva.log
 VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
 VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
-ifeq ($(SRAM_IMPL),macro)
-VCS_DEFINES  += +define+USE_SRAM_MACRO
-DESIGN_FILELISTS += $(FILELIST_SRAM_WRAPPER) $(FILELIST_SRAM_MACRO_MODEL)
-else ifneq ($(SRAM_IMPL),rtl)
-$(error Unknown SRAM_IMPL='$(SRAM_IMPL)'. Use 'rtl' or 'macro'.)
-endif
 # Common VCS compile options
 VCS_FLAGS := \
 	-timescale=1ns/100ps \
 	-full64 +v2k -sverilog -Mupdate \
 	$(VCS_INCDIR) \
-	-debug_acc+all -debug_region+cell+encrypt
-ifeq ($(SRAM_IMPL),macro)
-VCS_FLAGS    += +notimingcheck
-endif
+	-debug_acc+all -debug_region+cell+encrypt \
+	+notimingcheck
 
 # ------------------------------------------------------------------------------
 # Normal Compile / Sim / Verdi / Clean Flow
@@ -74,21 +60,7 @@ filelist:
 	@find $(DE_DIR) \( -name "*.v" -o -name "*.sv" \) -print > $(FILELIST_OUT)
 
 filelist_cfig:
-	@: > $(FILELIST_OUT)
-	@for fl in $(DESIGN_FILELISTS); do \
-		if [ ! -f "$$fl" ]; then \
-			echo "Error: required design filelist not found: $$fl"; \
-			exit 1; \
-		fi; \
-		while IFS= read -r line || [ -n "$$line" ]; do \
-			case "$$line" in \
-				""|\#*|//*) printf "%s\n" "$$line" >> $(FILELIST_OUT) ;; \
-				/*|+*)      printf "%s\n" "$$line" >> $(FILELIST_OUT) ;; \
-				*)          printf "%s/%s\n" "$(DE_DIR)" "$$line" >> $(FILELIST_OUT) ;; \
-			esac; \
-		done < "$$fl"; \
-	done
-	@printf "%s\n" "$(TB_FILE)" $(SVA_FILES) >> $(FILELIST_OUT)
+	@printf "%s\n" "-f $(SIM_FILELIST)" "$(TB_FILE)" $(SVA_FILES) > $(FILELIST_OUT)
 
 # Compile for normal simulation
 com:

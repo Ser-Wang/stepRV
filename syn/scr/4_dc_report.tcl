@@ -34,6 +34,8 @@ redirect $RPT_PATH/${DESIGN_TOP}_timing_min.rpt {report_timing -delay min -nets 
 redirect $RPT_PATH/${DESIGN_TOP}_clock_gate_ungated.rpt {report_clock_gating -ungated}
 # Report cell, net, and total logic area
 redirect $RPT_PATH/${DESIGN_TOP}_area.rpt {report_area}
+# Report hierarchical area breakout
+redirect $RPT_PATH/${DESIGN_TOP}_area_hierarchy.rpt {report_area -hierarchy}
 # Report dynamic and leakage power consumption
 redirect $RPT_PATH/${DESIGN_TOP}_power.rpt {report_power}
 # Report hierarchical power consumption breakout

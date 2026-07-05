@@ -1,0 +1,2 @@
+-f ../01_rv32i_sramtcm/filelists/filelist_rtl.f
+-f ../01_rv32i_sramtcm/filelists/filelist_sram_wrapper.f
