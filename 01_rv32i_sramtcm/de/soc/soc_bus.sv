@@ -45,9 +45,13 @@ module soc_bus (
 );
 
 // Address Decoding
-wire sel_itcm = (i_mem_addr >= `ITCM_BASE) && (i_mem_addr < (`ITCM_BASE + `ITCM_SIZE));
-wire sel_dtcm = (i_mem_addr >= `DTCM_BASE) && (i_mem_addr < (`DTCM_BASE + `DTCM_SIZE));
-wire sel_uart = (i_mem_addr >= `UART_BASE) && (i_mem_addr < (`UART_BASE + `UART_SIZE));
+localparam [31:0] ITCM_BASE_ADDR = `ITCM_BASE;
+localparam [31:0] DTCM_BASE_ADDR = `DTCM_BASE;
+localparam [31:0] UART_BASE_ADDR = `UART_BASE;
+
+wire sel_itcm = (i_mem_addr[31:28] == ITCM_BASE_ADDR[31:28]);
+wire sel_dtcm = (i_mem_addr[31:28] == DTCM_BASE_ADDR[31:28]);
+wire sel_uart = (i_mem_addr[31:28] == UART_BASE_ADDR[31:28]);
 
 reg rd_sel_itcm_d1;
 reg rd_sel_dtcm_d1;
@@ -77,17 +81,16 @@ always @(posedge clk or negedge rst_n) begin
         rd_sel_itcm_d1 <= 1'b0;
         rd_sel_dtcm_d1 <= 1'b0;
         rd_sel_uart_d1 <= 1'b0;
-        r_uart_rd_data_d1 <= 32'b0;
     end
     else begin
         rd_sel_itcm_d1 <= i_mem_req_load & sel_itcm;
         rd_sel_dtcm_d1 <= i_mem_req_load & sel_dtcm;
         rd_sel_uart_d1 <= i_mem_req_load & sel_uart;
-        // Sample UART combinational output while address & sel_uart are still valid (this cycle).
-        // Next cycle, rd_sel_uart_d1 will select this latched value.
-        if (i_mem_req_load & sel_uart)
-            r_uart_rd_data_d1 <= i_uart_rd_data;
     end
+end
+
+always @(posedge clk) begin
+    r_uart_rd_data_d1 <= i_uart_rd_data;
 end
 
 // Read Data Mux (Parallel, No Priority)
