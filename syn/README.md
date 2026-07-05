@@ -1,38 +1,65 @@
 # Design Compiler Flow for my-RISCV-Projs
 
 This directory contains a Makefile-driven Synopsys Design Compiler flow adapted
-for `00_rv32i_basic`.
+for `01_rv32i_sramtcm`.
 
 ## Directory Layout
 
 ```text
 syn/
 ├── Makefile
-├── filelist/
-│   └── soc_top_v0.f
 ├── sdc/
-│   └── soc_top_v0.sdc
+│   └── soc_top.sdc
 └── scr/
     ├── dc.tcl
     ├── dc_check.tcl
     ├── 1_dc_setup.tcl
     ├── 2_dc_const.tcl
     ├── 3_dc_compile.tcl
-    └── 4_dc_report.tcl
+    ├── 4_dc_report.tcl
+    └── 5_dc_temp_report.tcl
 ```
 
 The default configuration is:
 
 ```text
-MODULE_NAME = 00_rv32i_basic
-DESIGN_TOP  = soc_top_v0
-SDC_NAME    = soc_top_v0
-RTL_PATH    = ../00_rv32i_basic/de
+DESIGN_NAME    = 01_rv32i_sramtcm
+DESIGN_TOP     = soc_top
+SDC_NAME       = soc_top
+RTL_PATH       = ../01_rv32i_sramtcm/de
+SYN_FILELIST   = ../01_rv32i_sramtcm/filelists/filelist_syn_sram.f
 ```
 
-Filelist entries are relative to `RTL_PATH`. The setup script also adds
-`../00_rv32i_basic/de/defines` to the DC search path so source files can resolve
-`include "config.v"`.
+The setup script uses Design Compiler's VCS-style filelist parser:
+
+```tcl
+analyze -vcs "+define+SYNTHESIS +incdir+... -f $SYN_FILELIST" -format sverilog
+```
+
+Filelist source entries are resolved through the DC search path, which includes
+`RTL_PATH`. The setup script also adds `../01_rv32i_sramtcm/de/defines` to the
+include path so source files can resolve `include "config.v"`.
+
+The default SRAM synthesis filelist nests the base RTL and SRAM wrapper lists:
+
+```text
+-f /home/moxiao/work/my-RISCV-Projs/01_rv32i_sramtcm/filelists/filelist_rtl.f
+-f /home/moxiao/work/my-RISCV-Projs/01_rv32i_sramtcm/filelists/filelist_sram_wrapper.f
+```
+
+For designs without SRAM macros, point `SYN_FILELIST` at the RTL-only filelist.
+For designs with different SRAM macros, update the design-local synthesis
+filelist and `SRAM_MACRO_DBLIST`, or override those variables on the make command
+line. `SRAM_MACRO_DBLIST` uses one `.db` path per line and supports blank lines
+plus full-line `#` or `//` comments.
+
+The VCS-style parser used by this DC version does not ignore `#` comment lines
+inside HDL filelists. Keep synthesis HDL filelists to source paths and `-f`
+entries.
+
+The RTL macro selection itself is owned by the design source. For this project,
+`USE_SRAM_MACRO` is defined in `../01_rv32i_sramtcm/de/defines/config.v`, and
+the synthesis scripts do not pass it through command-line defines.
 
 ## Fast Check
 
@@ -59,9 +86,9 @@ Useful files include:
 ```text
 check.log
 check_error_warning.log
-rpt/soc_top_v0_chk_design.rpt
-rpt/soc_top_v0_check_timing.rpt
-rpt/soc_top_v0_constraints_check.rpt
+rpt/soc_top_chk_design.rpt
+rpt/soc_top_check_timing.rpt
+rpt/soc_top_constraints_check.rpt
 ```
 
 ## Full Synthesis
