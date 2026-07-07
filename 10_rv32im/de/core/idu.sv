@@ -105,6 +105,7 @@ wire dec_rv32_func3_111 = (instr32_func3 == 3'b111);
 
 // func7
 wire dec_rv32_func7_0000000 = (instr32_func7 == 7'b0000000);
+wire dec_rv32_func7_0000001 = (instr32_func7 == 7'b0000001);
 wire dec_rv32_func7_0100000 = (instr32_func7 == 7'b0100000);
 
 // To be considered
@@ -198,6 +199,17 @@ wire dec_rv32i_sra  = dec_rv32i_arithm_type & dec_rv32_func3_101 & dec_rv32_func
 wire dec_rv32i_or   = dec_rv32i_arithm_type & dec_rv32_func3_110 & dec_rv32_func7_0000000;
 wire dec_rv32i_and  = dec_rv32i_arithm_type & dec_rv32_func3_111 & dec_rv32_func7_0000000;
 
+// RV32M Instructions
+wire dec_rv32m_mul    = dec_rv32i_arithm_type & dec_rv32_func3_000 & dec_rv32_func7_0000001;
+wire dec_rv32m_mulh   = dec_rv32i_arithm_type & dec_rv32_func3_001 & dec_rv32_func7_0000001;
+wire dec_rv32m_mulhsu = dec_rv32i_arithm_type & dec_rv32_func3_010 & dec_rv32_func7_0000001;
+wire dec_rv32m_mulhu  = dec_rv32i_arithm_type & dec_rv32_func3_011 & dec_rv32_func7_0000001;
+wire dec_rv32m_div    = dec_rv32i_arithm_type & dec_rv32_func3_100 & dec_rv32_func7_0000001;
+wire dec_rv32m_divu   = dec_rv32i_arithm_type & dec_rv32_func3_101 & dec_rv32_func7_0000001;
+wire dec_rv32m_rem    = dec_rv32i_arithm_type & dec_rv32_func3_110 & dec_rv32_func7_0000001;
+wire dec_rv32m_remu   = dec_rv32i_arithm_type & dec_rv32_func3_111 & dec_rv32_func7_0000001;
+wire dec_rv32m_muldiv_type = dec_rv32i_arithm_type & dec_rv32_func7_0000001;
+
 // Memory Order Instructions
 wire dec_rv32i_fence    = dec_rv32i_miscmem_type & dec_rv32_func3_000;
 wire dec_rv32i_fence_i  = dec_rv32i_miscmem_type & dec_rv32_func3_001;
@@ -282,7 +294,7 @@ wire [`DECINFO_BUS_LSU_WIDTH-1:0] dec_info_bus_lsu;
 wire [`DECINFO_BUS_BRU_WIDTH-1:0] dec_info_bus_bru;
 wire [`DECINFO_BUS_CSR_WIDTH-1:0] dec_info_bus_csr;
 
-wire dec_oper_dispatch_alu = dec_rv32i_arithm_type | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
+wire dec_oper_dispatch_alu = (dec_rv32i_arithm_type & (~dec_rv32_func7_0000001)) | dec_rv32i_arithm_imm_type | dec_rv32i_lui | dec_rv32i_auipc;
 wire dec_oper_dispatch_lsu = dec_rv32i_load_type | dec_rv32i_store_type;
 wire dec_oper_dispatch_bru = dec_rv32i_branch_type | dec_rv32i_jal | dec_rv32i_jalr | dec_rv32i_fence_fencei;
 wire dec_oper_dispatch_csr = dec_rv32i_csr_type | dec_rv32i_ecall | dec_rv32i_ebreak | dec_rv32i_mret;

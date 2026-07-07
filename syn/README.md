@@ -1,7 +1,7 @@
 # Design Compiler Flow for my-RISCV-Projs
 
 This directory contains a Makefile-driven Synopsys Design Compiler flow adapted
-for `01_rv32i_sramtcm`.
+for `10_rv32im`.
 
 ## Directory Layout
 
@@ -23,11 +23,13 @@ syn/
 The default configuration is:
 
 ```text
-DESIGN_NAME    = 01_rv32i_sramtcm
+DESIGN_NAME    = 10_rv32im
 DESIGN_TOP     = soc_top
 SDC_NAME       = soc_top
-RTL_PATH       = ../01_rv32i_sramtcm/de
-SYN_FILELIST   = ../01_rv32i_sramtcm/filelists/filelist_syn_sram.f
+RTL_PATH       = ../10_rv32im/de
+SYN_FILELIST   = ../10_rv32im/filelists/filelist_syn_sram.f
+STD_DB_PATH    = /home/moxiao/pdk/smic55/lib
+STD_DB_LIST    = scc55ulp_hdlp_rvt_tt_v1p2_25c_ccs.db
 ```
 
 The setup script uses Design Compiler's VCS-style filelist parser:
@@ -38,14 +40,14 @@ analyze -vcs "+define+SYNTHESIS +incdir+... -f $SYN_FILELIST" -format sverilog
 
 Filelist source entries stay relative to `RTL_PATH`, for example
 `soc/soc_top.sv`. The setup script also adds
-`../01_rv32i_sramtcm/de/defines` to the include path so source files can
+`../10_rv32im/de/defines` to the include path so source files can
 resolve `include "config.v"`.
 
 The default SRAM synthesis filelist nests the base RTL and SRAM wrapper lists:
 
 ```text
--f ../01_rv32i_sramtcm/filelists/filelist_rtl.f
--f ../01_rv32i_sramtcm/filelists/filelist_sram_wrapper.f
+-f ../10_rv32im/filelists/filelist_rtl.f
+-f ../10_rv32im/filelists/filelist_sram_wrapper.f
 ```
 
 For designs without SRAM macros, point `SYN_FILELIST` at the RTL-only filelist.
@@ -58,8 +60,13 @@ The VCS-style parser used by this DC version does not ignore `#` comment lines
 inside HDL filelists. Keep synthesis HDL filelists to source paths and `-f`
 entries.
 
+The standard-cell synthesis target library is configured in `Makefile` through
+`STD_DB_PATH` and `STD_DB_LIST`, matching the origin flow's `STD_DB_PATH` /
+`STD_DB_LIST` style. Override `STD_DB_LIST` to switch to another independent
+`.db` corner.
+
 The RTL macro selection itself is owned by the design source. For this project,
-`USE_SRAM_MACRO` is defined in `../01_rv32i_sramtcm/de/defines/config.v`, and
+`USE_SRAM_MACRO` is defined in `../10_rv32im/de/defines/config.v`, and
 the synthesis scripts do not pass it through command-line defines.
 
 ## Fast Check

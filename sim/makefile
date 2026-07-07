@@ -18,7 +18,7 @@ SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 .NOTPARALLEL:
 
-DESIGN_NAME ?= ../01_rv32i_sramtcm
+DESIGN_NAME ?= ../10_rv32im
 DE_DIR       := $(DESIGN_NAME)/de
 DV_DIR       := $(DESIGN_NAME)/dv
 DEFINES_DIR  := $(DE_DIR)/defines

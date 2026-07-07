@@ -4,7 +4,8 @@
 set DESIGN_TOP      [getenv DESIGN_TOP]
 set RTL_PATH        [getenv RTL_PATH]
 set DEFINE_PATH     [getenv DEFINE_PATH]
-set LIB_PATH        [getenv LIB_PATH]
+set STD_DB_PATH     [getenv STD_DB_PATH]
+set STD_DB_LIST     [getenv STD_DB_LIST]
 set SYN_FILELIST    [getenv SYN_FILELIST]
 set SRAM_MACRO_ROOT [getenv SRAM_MACRO_ROOT]
 set SRAM_MACRO_DB_FILES  [getenv SRAM_MACRO_DB_FILES]
@@ -18,10 +19,10 @@ file mkdir $OUT_DIR $RPT_PATH
 #-------------------------------------------------------------------------------
 # Library configuration
 #-------------------------------------------------------------------------------
-set search_path [concat $search_path $LIB_PATH $RTL_PATH $DEFINE_PATH $SRAM_MACRO_ROOT]
+set search_path [concat $search_path $STD_DB_PATH $RTL_PATH $DEFINE_PATH $SRAM_MACRO_ROOT]
 set synthetic_library "dw_foundation.sldb"
 
-set target_library "scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs.db"
+set target_library $STD_DB_LIST
 
 foreach macro_db $SRAM_MACRO_DB_FILES {
     if {![file exists $macro_db]} {

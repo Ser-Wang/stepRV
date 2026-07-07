@@ -4,7 +4,7 @@ SHELL := /bin/bash
 # ------------------------------------------------------------------------------
 # Configurable Variables
 # ------------------------------------------------------------------------------
-DESIGN_NAME   ?= 01_rv32i_sramtcm
+DESIGN_NAME   ?= 10_rv32im
 DESIGN_TOP    ?= soc_top
 SDC_NAME      ?= soc_top
 
@@ -22,7 +22,9 @@ SRAM_MACRO_ROOT ?= /home/moxiao/pdk/smic55/sram/generated/macros
 SRAM_MACRO_DBLIST ?= $(FILELIST_PATH)/filelist_sram_macro_db.f
 SRAM_MACRO_DB_FILES ?= $(shell if [ -f "$(SRAM_MACRO_DBLIST)" ]; then sed -E '/^[[:space:]]*$$/d; /^[[:space:]]*\#/d; /^[[:space:]]*\/\//d; s/[[:space:]]+$$//' "$(SRAM_MACRO_DBLIST)"; fi)
 
-LIB_PATH      ?= /home/moxiao/pdk/smic55/lib
+STD_DB_PATH   ?= /home/moxiao/pdk/smic55/lib
+STD_DB_LIST ?= scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs.db
+# STD_DB_LIST   ?= scc55ulp_hdlp_rvt_tt_v1p2_25c_ccs.db
 
 # Date and Output Directory precise to the minute
 DATE          := $(shell date +%Y%m%d_%H%M)
@@ -33,7 +35,8 @@ export DESIGN_TOP
 export SDC_NAME
 export RTL_PATH
 export DEFINE_PATH
-export LIB_PATH
+export STD_DB_PATH
+export STD_DB_LIST
 export SYN_FILELIST
 export SRAM_MACRO_ROOT
 export SRAM_MACRO_DB_FILES
@@ -86,7 +89,8 @@ clean:
 help:
 	@echo "Usage:"
 	@echo "  make check                Run fast DC analyze/elaborate/link/check_design flow"
-	@echo "  make syn                  Run synthesis with default top 'soc_top' in '01_rv32i_sramtcm'"
+	@echo "  make syn                  Run synthesis with default top 'soc_top' in '10_rv32im'"
 	@echo "  make syn DESIGN_NAME=... DESIGN_TOP=... SDC_NAME=...  Run synthesis for a different design/top/SDC"
+	@echo "  make syn STD_DB_LIST='...'  Select standard-cell DB corner/library"
 	@echo "  make syn SYN_FILELIST='...' SRAM_MACRO_DBLIST='...'  Configure synthesis filelist and SRAM macro DBs"
 	@echo "  make clean                Remove all generated files and folders"
