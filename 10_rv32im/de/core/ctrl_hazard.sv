@@ -14,6 +14,7 @@
 module ctrl_hazard(
     // redirect
     input  wire i_redirect_req,
+    input  wire i_id_ex_vld,
     // for load-use hazard
     input  wire i_need_rs1_idu,
     input  wire i_need_rs2_idu,
@@ -39,12 +40,14 @@ module ctrl_hazard(
 
 // ================================================================
 // ----------------        Data Forwarding Ctrl        ---------------- //
+// The EXU source-use flags and the MAU/WBU rd write enables are already
+// qualified by their respective stage-valid bits, so no extra valid term is needed here.
 // RAW with I-1 Instruction, which is at MAU now.
-wire hzd_rs1_raw_mem = i_need_rs1_exu & i_wb_rd_wen_mau & (i_rs1idx_exu == i_wb_rd_idx_mau); // need_rd/rs sigs have already excluded the x0 situation. 
+wire hzd_rs1_raw_mem = i_need_rs1_exu & i_wb_rd_wen_mau & (i_rs1idx_exu == i_wb_rd_idx_mau); // need_rd/rs sigs have already excluded the x0 situation.
 wire hzd_rs2_raw_mem = i_need_rs2_exu & i_wb_rd_wen_mau & (i_rs2idx_exu == i_wb_rd_idx_mau);
 
 // RAW with I-2 Instruction, which is at WB now.
-wire hzd_rs1_raw_wbu = i_need_rs1_exu & i_wb_rd_wen_wbu & (i_rs1idx_exu == i_wb_rd_idx_wbu); 
+wire hzd_rs1_raw_wbu = i_need_rs1_exu & i_wb_rd_wen_wbu & (i_rs1idx_exu == i_wb_rd_idx_wbu);
 wire hzd_rs2_raw_wbu = i_need_rs2_exu & i_wb_rd_wen_wbu & (i_rs2idx_exu == i_wb_rd_idx_wbu);
 
 assign o_fwding_rs1_sel = hzd_rs1_raw_mem ? 2'b10 : 
@@ -53,8 +56,10 @@ assign o_fwding_rs2_sel = hzd_rs2_raw_mem ? 2'b10 :
                           hzd_rs2_raw_wbu ? 2'b11 : 2'b00;
 
 // ----------------        Load-Use Hazard        ---------------- //
-wire hzd_rs1_lduse = i_is_load_req_exu & i_need_rs1_idu & (i_wb_rd_idx_exu == i_rs1idx_idu);
-wire hzd_rs2_lduse = i_is_load_req_exu & i_need_rs2_idu & (i_wb_rd_idx_exu == i_rs2idx_idu);
+// i_is_load_req_exu already includes EX-stage valid. i_id_ex_vld is still
+// required because the IDU register indices/use flags are don't-care in an invalid slot.
+wire hzd_rs1_lduse = i_id_ex_vld & i_is_load_req_exu & i_need_rs1_idu & (i_wb_rd_idx_exu == i_rs1idx_idu);
+wire hzd_rs2_lduse = i_id_ex_vld & i_is_load_req_exu & i_need_rs2_idu & (i_wb_rd_idx_exu == i_rs2idx_idu);
 wire hzd_lduse_id = hzd_rs1_lduse | hzd_rs2_lduse;
 
 wire stall_req_lduse_id = hzd_lduse_id;

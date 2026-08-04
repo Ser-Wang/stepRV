@@ -40,12 +40,15 @@ wire [31:0] rf_wb_data;
 //-------- pipe data flow
 // if_2_id
 wire [31:0] instr_pc;  // this and above: reg_out
-wire        if_valid;
 wire [31:0] fetch_pc;
+wire        if_id_vld;
+wire        if_id_rdy;
 
 // id_2_ex
 wire [31:0] instr_id;
 wire [31:0] pc_id;      // this and above: reg_out
+wire        id_ex_vld;
+wire        id_ex_rdy;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_idu;
 wire [31:0] dec_imm;
 wire [`DECINFO_BUS_WIDTH-1:0] dec_info_bus_id;
@@ -54,6 +57,8 @@ wire need_rs1_idu;
 wire need_rs2_idu;
 
 // ex_2_mem
+wire        ex_ma_vld;
+wire        ex_ma_rdy;
 wire [31:0] mem_addr_exu;
 wire mem_wr_en_exu;
 wire [31:0] mem_wr_data_exu;
@@ -66,12 +71,16 @@ wire [`RFIDX_WIDTH-1:0] wb_rd_idx_exu;
 wire wb_rd_wen_exu;
 
 // mem_2_wb
+wire        ma_wb_vld;
+wire        ma_wb_rdy;
 wire [31:0] wb_data_mau;
 wire [31:0] fwd_data_mau;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_mau;
 wire wb_rd_wen_mau;
 
 // wb_out
+wire        wb_vld;
+wire        wb_rdy;
 wire [31:0] wb_data_wbu;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_wbu;
 wire wb_rd_wen_wbu;
@@ -112,6 +121,7 @@ wire [3:0] flush;
 ////********    IO Insts    ********////
 assign o_fetch_pc = fetch_pc;
 assign mem_req_load_exu = mem_req_info_bus[3];
+assign wb_rdy = 1'b1;
 
 assign o_mem_addr    = mem_addr_exu;
 assign o_mem_req_load = mem_req_load_exu;
@@ -132,6 +142,7 @@ regfile u_regfile(
     .i_wb_data          (rf_wb_data       )
     );
 
+// wb_rd_wen_wbu is already qualified by the WB-stage valid bit in WBU.
 assign rf_wb_rd_wen = wb_rd_wen_wbu;
 assign rf_wb_rd_idx = wb_rd_idx_wbu;
 assign rf_wb_data = wb_data_wbu;
@@ -141,21 +152,25 @@ ifu u_ifu(
     .clk            (clk    ),
     .rst_n          (rst_n  ),
     .i_stall        (stall[`STALL_PC]),
+    .i_if_id_rdy    (if_id_rdy),
     .i_redirect_req (redirect_req_exu),
     .i_redirect_pcnext  (redirect_pcnext_exu ),
     .o_fetch_req    (o_fetch_req),
     .o_fetch_pc     (fetch_pc),
-    .o_if_valid     (if_valid),
+    .o_if_id_vld    (if_id_vld),
     .o_instr_pc     (instr_pc)
     );
 
-wire [31:0] instr_to_idu = if_valid ? i_if_instr : `INSTR_NOP;
 idu u_idu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
     .i_stall            (stall[`STALL_IF_ID]),
     .i_flush            (flush[`FLUSH_IF_ID]),
-    .i_instr            (instr_to_idu   ),
+    .i_if_id_vld        (if_id_vld      ),
+    .o_if_id_rdy        (if_id_rdy      ),
+    .o_id_ex_vld        (id_ex_vld      ),
+    .i_id_ex_rdy        (id_ex_rdy      ),
+    .i_instr            (i_if_instr     ),
     .i_pc_if            (instr_pc       ),
     .o_dec_rs1idx       (rf_read_rs1_idx),
     .o_dec_rs2idx       (rf_read_rs2_idx),
@@ -175,6 +190,10 @@ exu u_exu(
     .rst_n              (rst_n  ),
     .i_stall            (stall[`STALL_ID_EX]),
     .i_flush            (flush[`FLUSH_ID_EX]),
+    .i_id_ex_vld        (id_ex_vld      ),
+    .o_id_ex_rdy        (id_ex_rdy      ),
+    .o_ex_ma_vld        (ex_ma_vld      ),
+    .i_ex_ma_rdy        (ex_ma_rdy      ),
     // dpath
     .i_rf_rs1_data      (rf_read_rs1_data   ),
     .i_rf_rs2_data      (rf_read_rs2_data   ),
@@ -228,6 +247,7 @@ exu u_exu(
 ctrl_hazard u_ctrl_hazard(
     // redirect
     .i_redirect_req     (redirect_req_exu   ),
+    .i_id_ex_vld        (id_ex_vld          ),
     // for load-use hazard
     .i_need_rs1_idu     (need_rs1_idu       ),
     .i_need_rs2_idu     (need_rs2_idu       ),
@@ -255,6 +275,10 @@ ctrl_hazard u_ctrl_hazard(
 mau u_mau(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    .i_ex_ma_vld        (ex_ma_vld      ),
+    .o_ex_ma_rdy        (ex_ma_rdy      ),
+    .o_ma_wb_vld        (ma_wb_vld      ),
+    .i_ma_wb_rdy        (ma_wb_rdy      ),
     .i_mem_addr_exu     (mem_addr_exu       ),
     .i_mem_req_info_bus (mem_req_info_bus   ),
     .i_mem_rd_data_mau  (i_mem_rd_data      ),
@@ -271,6 +295,10 @@ mau u_mau(
 wbu u_wbu(
     .clk                (clk    ),
     .rst_n              (rst_n  ),
+    .i_ma_wb_vld        (ma_wb_vld      ),
+    .o_ma_wb_rdy        (ma_wb_rdy      ),
+    .o_wb_vld           (wb_vld         ),
+    .i_wb_rdy           (wb_rdy         ),
     // pass by
     .i_wb_data_mau      (wb_data_mau    ),
     .i_wb_rd_idx_mau    (wb_rd_idx_mau  ),

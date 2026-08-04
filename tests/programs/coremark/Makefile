@@ -1,5 +1,5 @@
 # RISCV_ARCH := rv32im
-RISCV_ARCH := rv32i
+RISCV_ARCH := rv32im
 RISCV_ABI := ilp32
 RISCV_MCMODEL := medlow
 
@@ -13,7 +13,7 @@ TARGET = coremark
 
 # These values can be overridden on the make command line.
 TOTAL_DATA_SIZE ?= 2000	# Total benchmark data size; official performance/validation runs require 2000 bytes.
-ITERATIONS ?= 500			# Benchmark loops: 457 is estimated at ~9.28s; use about 500 at 50MHz to exceed 10s with some margin.
+ITERATIONS ?= 1300			# Benchmark loops: 500 for my_rv32i@50MHz, 750 for my_rv32im_phase1@50MHz, 1300 for my_rv32im_phase2@50MHz
 RUN_TYPE ?= PERFORMANCE
 # RUN_TYPE ?= PERFORMANCE	# Seed set: PERFORMANCE produces the score; VALIDATION separately checks official validation CRCs; PROFILE is for PGO.
 QUICK_RUN ?= 0			# 1 skips the official >=10s validity check; set to 0 for a reportable performance run.

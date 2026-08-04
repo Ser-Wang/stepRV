@@ -15,11 +15,12 @@ module ifu(
     input  wire        clk,
     input  wire        rst_n,
     input  wire        i_stall,
+    input  wire        i_if_id_rdy,
+    output wire        o_if_id_vld,
     input  wire        i_redirect_req,
     input  wire [31:0] i_redirect_pcnext,
     output wire        o_fetch_req,
     output wire [31:0] o_fetch_pc, // Sent to ITCM
-    output wire        o_if_valid,
     output wire [31:0] o_instr_pc  // Sent to ID
 );
 
@@ -34,7 +35,7 @@ wire        if_accept;
 
 assign pc_add4 = pc_r + 32'd4;
 
-assign if_accept = o_if_valid && !i_stall && !i_redirect_req;
+assign if_accept = o_if_id_vld && i_if_id_rdy && !i_stall && !i_redirect_req;
 
 assign if_req_pc = i_redirect_req ? i_redirect_pcnext : // actrually if_req_pc is pc_next for pc_r
                    if_accept      ? pc_add4 :
@@ -59,7 +60,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-assign o_if_valid = if_valid_r && !i_redirect_req;
+assign o_if_id_vld = if_valid_r && !i_redirect_req;
 assign o_instr_pc = pc_r;
 
 endmodule

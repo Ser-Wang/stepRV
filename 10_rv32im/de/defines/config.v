@@ -72,6 +72,7 @@
 `define DECINFO_GRP_LSU             `DECINFO_GRP_WIDTH'd1
 `define DECINFO_GRP_BRU             `DECINFO_GRP_WIDTH'd2
 `define DECINFO_GRP_CSR             `DECINFO_GRP_WIDTH'd3
+`define DECINFO_GRP_MDU             `DECINFO_GRP_WIDTH'd4
 
     `define DECINFO_GRP_LSB         0
     `define DECINFO_GRP_MSB         (`DECINFO_GRP_LSB + `DECINFO_GRP_WIDTH -1)
@@ -156,7 +157,6 @@
 `define DECINFO_BUS_LSU_WIDTH   (`DECINFO_LSU_OP2IMM_MSB+1)  // = 9
 
 
-
 // ----------------        BRU group        ---------------- //
     `define DECINFO_BRU_JAL_LSB     `DECINFO_SUBDECINFO_LSB
     `define DECINFO_BRU_JAL_MSB     (`DECINFO_BRU_JAL_LSB+1-1)
@@ -208,8 +208,6 @@
 //   `define DECINFO_BRU_DRET    `DECINFO_BRU_DRET_MSB :`DECINFO_BRU_DRET_LSB
 
 
-
-
 // ----------------        CSR group        ---------------- //
     `define DECINFO_CSR_CSRRW_LSB   `DECINFO_SUBDECINFO_LSB
     `define DECINFO_CSR_CSRRW_MSB   (`DECINFO_CSR_CSRRW_LSB+1-1)
@@ -244,6 +242,24 @@
 
 `define DECINFO_BUS_CSR_WIDTH   (`DECINFO_CSR_MRET_MSB+1)  // = 28
 
+
+// ----------------        MDU group        ---------------- //
+    `define DECINFO_MDU_OP_LSB      `DECINFO_SUBDECINFO_LSB
+    `define DECINFO_MDU_OP_MSB      (`DECINFO_MDU_OP_LSB+3-1)
+`define DECINFO_MDU_OP      `DECINFO_MDU_OP_MSB :`DECINFO_MDU_OP_LSB
+
+`define DECINFO_BUS_MDU_WIDTH   (`DECINFO_MDU_OP_MSB+1)  // = 6
+
+// These 2-bit multiply operation codes match RV32M funct3[1:0].
+`define MDU_OP_MUL       2'b00
+`define MDU_OP_MULH      2'b01
+`define MDU_OP_MULHSU    2'b10
+`define MDU_OP_MULHU     2'b11
+// These 2-bit divide operation codes match RV32M funct3[1:0].
+`define MDU_DIV_OP_DIV   2'b00
+`define MDU_DIV_OP_DIVU  2'b01
+`define MDU_DIV_OP_REM   2'b10
+`define MDU_DIV_OP_REMU  2'b11
 
 
 `define DECINFO_BUS_WIDTH       `DECINFO_BUS_CSR_WIDTH  // max(ALU=16, LSU=9, BRU=15, CSR=28)

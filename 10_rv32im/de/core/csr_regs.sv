@@ -75,12 +75,15 @@ wire is_supported_unpriv_csr = csr_sel_cycle | csr_sel_cycleh;
 
 wire is_supported_csr = is_supported_machine_csr | is_supported_unpriv_csr;
 
-// Raw by CSR index/request only; EXU gates this with a real CSR operation.
+// Raw by CSR index/request only; this lookup has no side effect, and EXU gates
+// the result with a valid CSR operation before turning it into an exception.
 assign o_csr_illegal_access_raw = (~is_supported_csr)
                                 | (i_csr_wr_req & (csr_sel_cycle | csr_sel_cycleh));
 assign o_mtvec = r_mtvec;
 assign o_mepc = r_mepc;
 
+// i_csr_wr_req is already qualified by EX-stage valid in EXU, so no extra valid term is needed here.
+// TODO: move CSR side effects to the WB commit stage.
 wire csr_commit_en = (~i_stall[`STALL_ID_EX]) & (~i_flush[`FLUSH_ID_EX]);
 wire csr_wr_en = i_csr_wr_req & csr_commit_en;
 

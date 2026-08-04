@@ -14,6 +14,10 @@
 module mau(
     input  wire clk,
     input  wire rst_n,
+    input  wire i_ex_ma_vld,
+    output wire o_ex_ma_rdy,
+    output wire o_ma_wb_vld,
+    input  wire i_ma_wb_rdy,
     input  wire [31:0] i_mem_addr_exu,
     input  wire [3:0] i_mem_req_info_bus, // {mau_req_load, mau_req_size, mau_req_usign}
     input  wire [31:0] i_mem_rd_data_mau,
@@ -34,18 +38,31 @@ reg [3:0] r_mem_req_info_bus;
 reg [31:0] r_wb_data_exu_d1;  // write-back data may load from mem
 reg [`RFIDX_WIDTH-1:0] r_wb_rd_idx_mau;
 reg r_wb_rd_wen_mau;
+reg r_ma_vld;
 
 wire mau_req_load;
 wire [1:0] mau_req_size; // w, h, b
 wire mau_req_usign;
 wire [31:0] mau_load_data;
 
+assign o_ex_ma_rdy = !r_ma_vld | i_ma_wb_rdy;
+assign o_ma_wb_vld = r_ma_vld;
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        r_ma_vld <= 1'b0;
+    end
+    else if (o_ex_ma_rdy) begin
+        r_ma_vld <= i_ex_ma_vld;
+    end
+end
+
 // ----------------        pipe regs        ---------------- //
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_mem_addr_mau <= 32'd0;
     end
-    else begin
+    else if (o_ex_ma_rdy) begin
         r_mem_addr_mau <= i_mem_addr_exu;
     end
 end
@@ -55,7 +72,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_data_exu_d1 <= 32'd0;
     end
-    else begin
+    else if (o_ex_ma_rdy) begin
         r_wb_data_exu_d1 <= i_wb_data_exu;
     end
 end
@@ -65,7 +82,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_idx_mau <= {`RFIDX_WIDTH{1'b0}};
     end
-    else begin
+    else if (o_ex_ma_rdy) begin
         r_wb_rd_idx_mau <= i_wb_rd_idx_exu;
     end
 end
@@ -74,7 +91,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_wen_mau <= 1'd0;
     end
-    else begin
+    else if (o_ex_ma_rdy) begin
         r_wb_rd_wen_mau <= i_wb_rd_wen_exu;
     end
 end
@@ -83,7 +100,7 @@ end
 assign o_wb_data_mau = mau_req_load ? mau_load_data : r_wb_data_exu_d1; // write-back data may load from mem
 assign o_fwd_data_mau = r_wb_data_exu_d1;
 assign o_wb_rd_idx_mau = r_wb_rd_idx_mau;
-assign o_wb_rd_wen_mau = r_wb_rd_wen_mau;
+assign o_wb_rd_wen_mau = r_ma_vld & r_wb_rd_wen_mau;
 
 
 // ----------------        mau logic        ---------------- //
@@ -92,7 +109,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_mem_req_info_bus <= 4'd0;
     end
-    else begin
+    else if (o_ex_ma_rdy) begin
         r_mem_req_info_bus <= i_mem_req_info_bus;
     end
 end
