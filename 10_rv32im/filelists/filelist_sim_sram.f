@@ -4,6 +4,10 @@
 ../10_rv32im/de/periphs/uart.v
 ../10_rv32im/de/periphs/mem_dtcm.sv
 ../10_rv32im/de/core/core.sv
+../10_rv32im/de/core/mul_radix2.sv
+../10_rv32im/de/core/mul_fast17.sv
+../10_rv32im/de/core/div_radix2.sv
+../10_rv32im/de/core/exu_muldiv.sv
 ../10_rv32im/de/core/exu_bru.sv
 ../10_rv32im/de/core/exu.sv
 ../10_rv32im/de/core/regfile.sv

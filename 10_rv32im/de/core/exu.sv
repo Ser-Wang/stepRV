@@ -96,7 +96,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_idx_exu <= 'd0;
     end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_wb_rd_idx_exu <= i_wb_rd_idx_idu;
     end
 end
@@ -107,10 +107,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_wen_exu <= 1'b0;
     end
-    else if (i_flush) begin
-        r_wb_rd_wen_exu <= 1'b0;
-    end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_wb_rd_wen_exu <= i_wb_rd_wen_idu;
     end
 end
@@ -124,7 +121,7 @@ always @(posedge clk or negedge rst_n) begin
         rf_rs1_r_ex <= 32'd0;
         rf_rs2_r_ex <= 32'd0;
     end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         rf_rs1_r_ex <= i_rf_rs1_data;
         rf_rs2_r_ex <= i_rf_rs2_data;
     end
@@ -135,7 +132,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         dec_imm_r_ex <= 32'd0;
     end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         dec_imm_r_ex <= i_dec_imm;
     end
 end
@@ -145,7 +142,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_pc_exu <= 32'b0;
     end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_pc_exu <= i_pc_id;
     end
 end
@@ -155,10 +152,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_dec_info_bus_ex <= {`DECINFO_BUS_WIDTH{1'b0}};
     end
-    else if (i_flush) begin
-        r_dec_info_bus_ex <= 'd0;
-    end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_dec_info_bus_ex <= i_dec_info_bus_id;
     end
 end
@@ -170,11 +164,7 @@ always @(posedge clk or negedge rst_n) begin
         r_need_rs1_exu <= 1'b0;
         r_need_rs2_exu <= 1'b0;
     end
-    else if (i_flush) begin
-        r_need_rs1_exu <= 1'b0;
-        r_need_rs2_exu <= 1'b0;
-    end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_need_rs1_exu <= i_need_rs1_idu;
         r_need_rs2_exu <= i_need_rs2_idu;
     end
@@ -195,7 +185,7 @@ always @(posedge clk or negedge rst_n) begin
         r_rs1idx_exu <= 'd0;
         r_rs2idx_exu <= 'd0;
     end
-    else if (o_id_ex_rdy) begin
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_rs1idx_exu <= i_rs1idx_idu;
         r_rs2idx_exu <= i_rs2idx_idu;
     end

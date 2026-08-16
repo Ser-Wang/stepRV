@@ -62,7 +62,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_instr_id <= 32'b0;
     end
-    else if(o_if_id_rdy) begin
+    else if (i_if_id_vld & o_if_id_rdy & !i_flush) begin
         r_instr_id <= i_instr;
     end
 end
@@ -71,7 +71,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_pc_id <= 32'b0;
     end
-    else if(o_if_id_rdy) begin
+    else if (i_if_id_vld & o_if_id_rdy & !i_flush) begin
         r_pc_id <= i_pc_if;
     end
 end

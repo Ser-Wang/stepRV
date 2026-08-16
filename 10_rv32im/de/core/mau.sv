@@ -62,7 +62,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_mem_addr_mau <= 32'd0;
     end
-    else if (o_ex_ma_rdy) begin
+    else if (i_ex_ma_vld & o_ex_ma_rdy) begin
         r_mem_addr_mau <= i_mem_addr_exu;
     end
 end
@@ -72,7 +72,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_data_exu_d1 <= 32'd0;
     end
-    else if (o_ex_ma_rdy) begin
+    else if (i_ex_ma_vld & o_ex_ma_rdy) begin
         r_wb_data_exu_d1 <= i_wb_data_exu;
     end
 end
@@ -82,7 +82,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_idx_mau <= {`RFIDX_WIDTH{1'b0}};
     end
-    else if (o_ex_ma_rdy) begin
+    else if (i_ex_ma_vld & o_ex_ma_rdy) begin
         r_wb_rd_idx_mau <= i_wb_rd_idx_exu;
     end
 end
@@ -91,7 +91,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_wb_rd_wen_mau <= 1'd0;
     end
-    else if (o_ex_ma_rdy) begin
+    else if (i_ex_ma_vld & o_ex_ma_rdy) begin
         r_wb_rd_wen_mau <= i_wb_rd_wen_exu;
     end
 end
@@ -109,7 +109,7 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         r_mem_req_info_bus <= 4'd0;
     end
-    else if (o_ex_ma_rdy) begin
+    else if (i_ex_ma_vld & o_ex_ma_rdy) begin
         r_mem_req_info_bus <= i_mem_req_info_bus;
     end
 end

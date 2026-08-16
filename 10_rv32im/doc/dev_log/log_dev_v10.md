@@ -1,6 +1,29 @@
 # RV32IM v10 开发日志
 
-## 开发记录
+### 2026-08-14 01:47 CST - 流水级 payload vld/rdy 有效接收语义调整
+
+> 工单：[task_v10_05_pipeline_payload_fire_semantics.md](task_v10_05_pipeline_payload_fire_semantics.md)
+
+**完成内容：**
+
+- 统一 IDU、EXU、MAU、WBU 的流水级 payload 更新条件，直接使用对应接口的
+  `vld & rdy`，IDU、EXU 再直接加入 `!flush`，不抽象 `fire`、`accept` 或 `xfer` 信号。
+- 保持 stage valid 原有 elastic-buffer 语义：在本级 `rdy` 时装载 upstream valid，允许
+  bubble 清空 valid；backpressure、bubble 和 flush/kill 周期不再改写普通 payload。
+- 审计保留的 control payload，确认寄存器写使能、访存、CSR、redirect、forwarding 和
+  MDU 请求等架构副作用均由对应 stage valid 或事务状态限定；MDU/FSM 状态不按普通
+  payload 规则机械修改。
+
+**DV：**
+
+- ISA 回归：`rv32ui` 41/42 PASS（仅允许的既有 `ma_data` FAIL），`rv32um` 8/8 PASS。
+- Compliance 回归：`rv32i` 48/48、`rv32im` 8/8、`rv32Zicsr` 6/6、
+  `rv32Zifencei` 1/1 PASS。
+- 定向测试、SVA/断言日志和静态检查均通过。
+
+**备注：** 本工单未要求综合、时序或功耗分析。
+
+---
 
 ### 2026-07-10 CST - M 扩展乘法器 Phase 2（Fast17）实现
 
