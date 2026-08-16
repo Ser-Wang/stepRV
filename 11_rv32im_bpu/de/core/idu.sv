@@ -22,6 +22,7 @@ module idu(
     input wire i_id_ex_rdy,
     input wire [31:0] i_instr,
     input wire [31:0] i_pc_if,
+    input wire [31:0] i_pred_next_pc_if,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs1idx,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rs2idx,
     output wire [`RFIDX_WIDTH-1:0] o_dec_rd_idx,
@@ -32,17 +33,20 @@ module idu(
     output wire o_need_rs2_idu,
     // Pipeline Reg Output
     output wire [31:0] o_instr_id,
-    output wire [31:0] o_pc_id
+    output wire [31:0] o_pc_id,
+    output wire [31:0] o_pred_next_pc_id
     );
 
 // ===========================================================================
 ////********    Pipeline Regs    ********////
 reg [31:0] r_instr_id;
 reg [31:0] r_pc_id;
+reg [31:0] r_pred_next_pc_id;
 reg        r_id_vld;
 
 assign o_instr_id = r_instr_id;
 assign o_pc_id = r_pc_id;
+assign o_pred_next_pc_id = r_pred_next_pc_id;
 assign o_if_id_rdy = (!r_id_vld | i_id_ex_rdy) & !i_stall;
 assign o_id_ex_vld = r_id_vld;
 
@@ -73,6 +77,15 @@ always @(posedge clk or negedge rst_n) begin
     end
     else if (i_if_id_vld & o_if_id_rdy & !i_flush) begin
         r_pc_id <= i_pc_if;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        r_pred_next_pc_id <= 32'b0;
+    end
+    else if (i_if_id_vld & o_if_id_rdy & !i_flush) begin
+        r_pred_next_pc_id <= i_pred_next_pc_if;
     end
 end
 

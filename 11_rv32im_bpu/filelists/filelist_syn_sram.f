@@ -1,2 +1,2 @@
--f ../10_rv32im/filelists/filelist_rtl.f
--f ../10_rv32im/filelists/filelist_sram_wrapper.f
+-f ../11_rv32im_bpu/filelists/filelist_rtl.f
+-f ../11_rv32im_bpu/filelists/filelist_sram_wrapper.f

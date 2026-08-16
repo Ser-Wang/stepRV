@@ -24,6 +24,7 @@ module exu(
     input  wire [31:0] i_rf_rs2_data,
     input  wire [31:0] i_dec_imm,
     input  wire [31:0] i_pc_id,
+    input  wire [31:0] i_pred_next_pc_id,
     input  wire [`DECINFO_BUS_WIDTH-1:0] i_dec_info_bus_id,
     output wire [31:0] o_wb_data_exu,
     // forwarding
@@ -42,6 +43,12 @@ module exu(
     // redirect
     output wire        o_redirect_req,
     output wire [31:0] o_redirect_pcnext,
+    output wire        o_bp_update_vld,
+    output wire [31:0] o_bp_update_pc,
+    output wire        o_bp_update_is_cond,
+    output wire        o_bp_update_taken,
+    output wire [31:0] o_bp_update_target,
+    output wire        o_bp_invalidate,
     // to mem access unit
     output wire [31:0] o_mem_addr_exu,
     output wire [31:0] o_mem_wr_data_exu,
@@ -74,9 +81,11 @@ module exu(
 // ----------------        Pipeline Regs        ---------------- //
 reg r_ex_vld;
 wire ex_result_done;
+wire ex_commit_fire;
 
 assign o_id_ex_rdy = !r_ex_vld | (i_ex_ma_rdy & ex_result_done & !i_stall);
 assign o_ex_ma_vld = r_ex_vld & ex_result_done;
+assign ex_commit_fire = o_ex_ma_vld & i_ex_ma_rdy;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -144,6 +153,16 @@ always @(posedge clk or negedge rst_n) begin
     end
     else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         r_pc_exu <= i_pc_id;
+    end
+end
+
+reg [31:0] r_pred_next_pc_ex;
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        r_pred_next_pc_ex <= 32'b0;
+    end
+    else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
+        r_pred_next_pc_ex <= i_pred_next_pc_id;
     end
 end
 
@@ -287,6 +306,11 @@ end
 wire redirect_req_bru;
 wire redirect_req_bru_raw;
 wire [31:0] redirect_pcnext_bru;
+wire bru_is_cond;
+wire bru_is_jump;
+wire bru_taken;
+wire [31:0] bru_target;
+wire bru_fence_i;
 // ----------------        Exception        ---------------- //
 wire csr_op_req;
 wire exc_req_ecall;
@@ -325,13 +349,34 @@ assign o_exc_cause = ({32{exc_req_ebreak}} & 32'd3)
 assign o_exc_tval = ({32{exc_req_instr_addr_misaligned_bru}} & exc_tval_instr_addr_misaligned_bru)
                   | ({32{exc_req_load_addr_misaligned_lsu | exc_req_store_addr_misaligned_lsu}} & exc_tval_addr_misaligned_lsu);
 
-// All EX-stage redirect sources are arbitrated here. This keeps the core top
-// level source-agnostic and leaves one expandable redirect port for future cache,
-// debug, interrupt, or prediction-recovery flows.
-assign o_redirect_req = r_ex_vld & (o_exc_req | o_trap_ret_req | redirect_req_bru);
-assign o_redirect_pcnext = o_exc_req       ? i_csr_mtvec         :
-                           o_trap_ret_req  ? i_csr_mepc          :
-                                             redirect_pcnext_bru;
+wire [31:0] sequential_next_pc = r_pc_exu + 32'd4;
+wire bru_is_control = bru_is_cond | bru_is_jump;
+wire [31:0] actual_next_pc = (bru_is_control && bru_taken) ? bru_target : sequential_next_pc;
+wire prediction_recovery_req = ex_commit_fire
+                             & !o_exc_req
+                             & !o_trap_ret_req
+                             & !bru_fence_i
+                             & (r_pred_next_pc_ex != actual_next_pc);
+
+// Redirect and predictor events use the same EX/MA transfer event, so one EX
+// payload cannot recover or train more than once under downstream backpressure.
+assign o_redirect_req = ex_commit_fire
+                      & (o_exc_req | o_trap_ret_req | bru_fence_i
+                         | prediction_recovery_req);
+assign o_redirect_pcnext = o_exc_req      ? i_csr_mtvec        :
+                           o_trap_ret_req ? i_csr_mepc         :
+                           bru_fence_i    ? sequential_next_pc :
+                                            actual_next_pc;
+
+assign o_bp_update_vld = ex_commit_fire
+                       & !o_exc_req
+                       & !o_trap_ret_req
+                       & bru_is_control;
+assign o_bp_update_pc = r_pc_exu;
+assign o_bp_update_is_cond = bru_is_cond;
+assign o_bp_update_taken = bru_taken;
+assign o_bp_update_target = bru_target;
+assign o_bp_invalidate = ex_commit_fire & !o_exc_req & bru_fence_i;
 
 
 // ----------------        Instantiations        ---------------- //
@@ -376,6 +421,11 @@ exu_bru u_exu_bru(
     .o_bru_wb_data    (bru_wb_data      ),
     .o_redirect_pcnext_bru (redirect_pcnext_bru),
     .o_redirect_req_bru (redirect_req_bru_raw),
+    .o_bru_is_cond     (bru_is_cond),
+    .o_bru_is_jump     (bru_is_jump),
+    .o_bru_taken       (bru_taken),
+    .o_bru_target      (bru_target),
+    .o_bru_fence_i     (bru_fence_i),
     .o_exc_req_instr_addr_misaligned_bru  (exc_req_instr_addr_misaligned_bru_raw),
     .o_exc_tval_instr_addr_misaligned_bru (exc_tval_instr_addr_misaligned_bru)
     );

@@ -1,0 +1,60 @@
+# Isolated branch-predictor unit verification. All products stay under bpu_build.
+DV_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR := $(DV_DIR)/bpu_build
+RTL_DIR := $(DV_DIR)/../de
+VCS ?= vcs
+VCS_COMMON := -full64 -sverilog -timescale=1ns/1ps +incdir+$(RTL_DIR)/defines
+
+.PHONY: all unit_bpu unit_bpu_enabled unit_bpu_disabled frontend_bpu clean
+
+all: unit_bpu frontend_bpu
+
+unit_bpu: unit_bpu_enabled unit_bpu_disabled
+
+unit_bpu_enabled: $(BUILD_DIR)/enabled/sim.log
+	@grep -q "PASS: branch_predictor directed test (BPU_ENABLE=1)" $<
+
+unit_bpu_disabled: $(BUILD_DIR)/disabled/sim.log
+	@grep -q "PASS: branch_predictor directed test (BPU_ENABLE=0)" $<
+
+frontend_bpu: $(BUILD_DIR)/enabled/frontend/sim.log
+	@grep -q "PASS: BPU IF/ID alignment and handshake directed test" $<
+
+$(BUILD_DIR)/enabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv
+	@mkdir -p $(BUILD_DIR)/enabled/csrc
+	cd $(BUILD_DIR)/enabled && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/enabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv \
+		-top tb_branch_predictor -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/enabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/disabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv
+	@mkdir -p $(BUILD_DIR)/disabled/csrc
+	cd $(BUILD_DIR)/disabled && $(VCS) $(VCS_COMMON) +define+BPU_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/disabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv \
+		-top tb_branch_predictor -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/enabled/frontend/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ifu.sv \
+		$(RTL_DIR)/core/idu.sv $(DV_DIR)/tb_bpu_frontend.sv $(DV_DIR)/sva_bpu_idu.sv
+	@mkdir -p $(BUILD_DIR)/enabled/frontend/csrc
+	cd $(BUILD_DIR)/enabled/frontend && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/enabled/frontend/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ifu.sv \
+		$(RTL_DIR)/core/idu.sv $(DV_DIR)/sva_bpu_idu.sv $(DV_DIR)/tb_bpu_frontend.sv \
+		-top tb_bpu_frontend -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/enabled/frontend && ./simv > sim.log 2>&1
+
+clean:
+	@if test ! -e "$(BUILD_DIR)"; then exit 0; fi; \
+		test ! -L "$(BUILD_DIR)"; \
+		test "$(notdir $(BUILD_DIR))" = "bpu_build"; \
+		test "$$(realpath "$(BUILD_DIR)")" = "$(DV_DIR)/bpu_build"; \
+		test "$(abspath $(DV_DIR))" = "$(abspath $(RTL_DIR)/../dv)"; \
+		test -z "$$(find "$(BUILD_DIR)" -mindepth 1 -maxdepth 1 \
+			! -name enabled ! -name disabled -print -quit)"; \
+		test -z "$$(find "$(BUILD_DIR)" -type f \
+			\( -name '*.sv' -o -name '*.v' -o -name '*.vh' -o -name '*.md' \) \
+			-print -quit)"; \
+		rm -rf -- "$(BUILD_DIR)"

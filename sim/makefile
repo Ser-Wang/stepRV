@@ -18,7 +18,7 @@ SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 .NOTPARALLEL:
 
-DESIGN_NAME ?= ../10_rv32im
+DESIGN_NAME ?= ../11_rv32im_bpu
 DE_DIR       := $(DESIGN_NAME)/de
 DV_DIR       := $(DESIGN_NAME)/dv
 DEFINES_DIR  := $(DE_DIR)/defines
@@ -31,6 +31,11 @@ SVA_FILES := \
 	$(DV_DIR)/sva_exu_lsu.sv \
 	$(DV_DIR)/sva_soc_bus.sv \
 	$(DV_DIR)/sva_csr.sv
+
+# Version-local optional checkers. wildcard keeps the shared flow usable for
+# design versions that do not implement the corresponding feature.
+SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_idu.sv)
+SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_exu.sv)
 
 # ---- Test Dirs ----
 RVTESTS_DIR  ?= ../tests/rv_tests_isa_new
@@ -244,7 +249,7 @@ _batch_isa: com_isa
 		cp "$$data_file" ./inst.data; \
 		cp "$$dmem_file" ./dmem.data; \
 		./simv > sim.log 2>&1; \
-		if grep -q '\[PASS\]' sim.log; then \
+		if grep -q '\[PASS\]' sim.log && ! grep -q '\[BPU SVA\]' sim.log; then \
 			printf "  %-30s [  PASS  ]\n" "$$test_name"; \
 			pass=$$((pass + 1)); \
 		else \
@@ -286,7 +291,7 @@ _batch_compli: com_compli
 			continue; \
 		fi; \
 		./simv > sim.log 2>&1; \
-		if grep -q '\[PASS\]' sim.log; then \
+		if grep -q '\[PASS\]' sim.log && ! grep -q '\[BPU SVA\]' sim.log; then \
 			printf "  %-30s [  PASS  ]\n" "$$test_name"; \
 			pass=$$((pass + 1)); \
 		else \

@@ -47,6 +47,21 @@
 `define ZERO_WORD 32'b0
 `define INSTR_NOP 32'h00000013
 
+// Basic dynamic branch predictor: direct-mapped BTB plus a 2-bit BHT.
+// Keep these overridable from the compile command line for A/B regression.
+`ifndef BPU_ENABLE
+`define BPU_ENABLE 1
+`endif
+`ifndef BPU_BTB_ENTRIES
+`define BPU_BTB_ENTRIES 16
+`endif
+`ifndef BPU_BHT_ENTRIES
+`define BPU_BHT_ENTRIES 16
+`endif
+`ifndef BPU_BHT_INIT
+`define BPU_BHT_INIT 2'b01
+`endif
+
 
 // ===========================================================================
 // Stall & Flush

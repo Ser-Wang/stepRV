@@ -20,6 +20,11 @@ module exu_bru(
     output wire [31:0] o_bru_wb_data, // jal, jalr write pc+4 to rd.
     output wire [31:0] o_redirect_pcnext_bru,
     output wire o_redirect_req_bru,
+    output wire        o_bru_is_cond,
+    output wire        o_bru_is_jump,
+    output wire        o_bru_taken,
+    output wire [31:0] o_bru_target,
+    output wire        o_bru_fence_i,
     output wire o_exc_req_instr_addr_misaligned_bru,
     output wire [31:0] o_exc_tval_instr_addr_misaligned_bru
     );
@@ -85,7 +90,12 @@ wire [31:0] pc_add4 = i_bru_pc + `XLEN'd4;
 
 // ---- 
 wire jump_taken = (bru_req_info_jump | bru_req_fence_i) ? 1'b1 : comp_res;
-assign o_exc_req_instr_addr_misaligned_bru = jump_taken & (adder_jumpaddr[1:0] != 2'b00) & (~bru_req_fence_i);
+assign o_bru_is_cond = bru_req_info_bxx;
+assign o_bru_is_jump = bru_req_info_jump;
+assign o_bru_taken = bru_req_info_jump ? 1'b1 : comp_res;
+assign o_bru_target = adder_jumpaddr;
+assign o_bru_fence_i = bru_req_fence_i;
+assign o_exc_req_instr_addr_misaligned_bru = o_bru_taken & (adder_jumpaddr[1:0] != 2'b00);
 assign o_exc_tval_instr_addr_misaligned_bru = adder_jumpaddr;
 
 assign o_redirect_req_bru = jump_taken & (~o_exc_req_instr_addr_misaligned_bru);

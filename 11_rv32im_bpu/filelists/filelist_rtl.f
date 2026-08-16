@@ -4,6 +4,7 @@ periphs/mem_itcm.sv
 periphs/uart.v
 periphs/mem_dtcm.sv
 core/core.sv
+core/branch_predictor.sv
 core/ifu.sv
 core/idu.sv
 core/exu.sv

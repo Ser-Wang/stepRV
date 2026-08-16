@@ -41,12 +41,14 @@ wire [31:0] rf_wb_data;
 // if_2_id
 wire [31:0] instr_pc;  // this and above: reg_out
 wire [31:0] fetch_pc;
+wire [31:0] pred_next_pc_if;
 wire        if_id_vld;
 wire        if_id_rdy;
 
 // id_2_ex
 wire [31:0] instr_id;
 wire [31:0] pc_id;      // this and above: reg_out
+wire [31:0] pred_next_pc_id;
 wire        id_ex_vld;
 wire        id_ex_rdy;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_idu;
@@ -104,6 +106,14 @@ wire [31:0] exc_epc_exu;
 wire [31:0] exc_cause_exu;
 wire [31:0] exc_tval_exu;
 
+// branch predictor training / invalidation
+wire        bp_update_vld;
+wire [31:0] bp_update_pc;
+wire        bp_update_is_cond;
+wire        bp_update_taken;
+wire [31:0] bp_update_target;
+wire        bp_invalidate;
+
 // csr
 wire [11:0] csr_idx;
 wire        csr_wr_req;
@@ -155,10 +165,17 @@ ifu u_ifu(
     .i_if_id_rdy    (if_id_rdy),
     .i_redirect_req (redirect_req_exu),
     .i_redirect_pcnext  (redirect_pcnext_exu ),
+    .i_bp_update_vld    (bp_update_vld),
+    .i_bp_update_pc     (bp_update_pc),
+    .i_bp_update_is_cond(bp_update_is_cond),
+    .i_bp_update_taken  (bp_update_taken),
+    .i_bp_update_target (bp_update_target),
+    .i_bp_invalidate    (bp_invalidate),
     .o_fetch_req    (o_fetch_req),
     .o_fetch_pc     (fetch_pc),
     .o_if_id_vld    (if_id_vld),
-    .o_instr_pc     (instr_pc)
+    .o_instr_pc     (instr_pc),
+    .o_pred_next_pc_if (pred_next_pc_if)
     );
 
 idu u_idu(
@@ -172,6 +189,7 @@ idu u_idu(
     .i_id_ex_rdy        (id_ex_rdy      ),
     .i_instr            (i_if_instr     ),
     .i_pc_if            (instr_pc       ),
+    .i_pred_next_pc_if  (pred_next_pc_if),
     .o_dec_rs1idx       (rf_read_rs1_idx),
     .o_dec_rs2idx       (rf_read_rs2_idx),
     .o_dec_rd_idx       (wb_rd_idx_idu  ),
@@ -182,7 +200,8 @@ idu u_idu(
     .o_need_rs2_idu     (need_rs2_idu   ),
     // Pipeline_reg_out
     .o_instr_id         (instr_id       ),    // for pipeline debug
-    .o_pc_id            (pc_id          )
+    .o_pc_id            (pc_id          ),
+    .o_pred_next_pc_id  (pred_next_pc_id)
     );
 
 exu u_exu(
@@ -199,6 +218,7 @@ exu u_exu(
     .i_rf_rs2_data      (rf_read_rs2_data   ),
     .i_dec_imm          (dec_imm            ),
     .i_pc_id            (pc_id              ),
+    .i_pred_next_pc_id  (pred_next_pc_id    ),
     .i_dec_info_bus_id  (dec_info_bus_id    ),
     .o_wb_data_exu      (wb_data_exu        ),
     // forwarding
@@ -217,6 +237,12 @@ exu u_exu(
     // redirect / exception
     .o_redirect_req     (redirect_req_exu   ),
     .o_redirect_pcnext  (redirect_pcnext_exu),
+    .o_bp_update_vld    (bp_update_vld      ),
+    .o_bp_update_pc     (bp_update_pc       ),
+    .o_bp_update_is_cond(bp_update_is_cond  ),
+    .o_bp_update_taken  (bp_update_taken    ),
+    .o_bp_update_target (bp_update_target   ),
+    .o_bp_invalidate    (bp_invalidate      ),
     // mem access
     .o_mem_addr_exu     (mem_addr_exu       ),
     .o_mem_wr_en_exu    (mem_wr_en_exu      ),
