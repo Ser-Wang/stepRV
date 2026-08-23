@@ -1,0 +1,30 @@
+ 
+****************************************
+Report : area
+Design : exu_alu
+Version: O-2018.06-SP1
+Date   : Sun Aug 23 21:45:01 2026
+****************************************
+
+Library(s) Used:
+
+    scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs (File: /home/moxiao/pdk/smic55/lib/scc55ulp_hdlp_rvt_ss_v1p08_125c_ccs.db)
+
+Number of ports:                          176
+Number of nets:                           819
+Number of cells:                          646
+Number of combinational cells:            646
+Number of sequential cells:                 0
+Number of macros/black boxes:               0
+Number of buf/inv:                         68
+Number of references:                      43
+
+Combinational area:               1135.679983
+Buf/Inv area:                       57.119998
+Noncombinational area:               0.000000
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                  1135.679983
+Total area:                 undefined
+1

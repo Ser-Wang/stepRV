@@ -1,0 +1,8 @@
+variant	total_cell_area_um2
+unshared	1560.159974
+shared_no_isolation	1186.639976
+shared_with_isolation	1135.679983
+
+comparison	delta_um2	delta_percent
+sharing_saved_vs_unshared	373.519998	23.941%
+isolation_overhead_vs_no_isolation	-50.959993	-4.294%
