@@ -1,0 +1,2 @@
+periphs/sram_dtcm_1rw_wrapper.sv
+periphs/sram_itcm_1r1rw_wrapper.sv

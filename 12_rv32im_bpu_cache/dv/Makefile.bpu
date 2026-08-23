@@ -1,0 +1,174 @@
+# Isolated branch-predictor unit verification. All products stay under bpu_build.
+DV_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR := $(DV_DIR)/bpu_build
+RTL_DIR := $(DV_DIR)/../de
+VCS ?= vcs
+VCS_COMMON := -full64 -sverilog -timescale=1ns/1ps +incdir+$(RTL_DIR)/defines
+
+.PHONY: all unit_bpu unit_bpu_enabled unit_bpu_disabled unit_ras \
+	unit_ras_enabled unit_ras_ras_disabled unit_ras_bpu_disabled \
+	frontend_bpu frontend_ras frontend_ras_enabled frontend_ras_ras_disabled \
+	frontend_ras_bpu_disabled compile_sva_exu compile_ras_stats clean
+
+all: unit_bpu unit_ras frontend_bpu frontend_ras compile_sva_exu compile_ras_stats
+
+unit_bpu: unit_bpu_enabled unit_bpu_disabled
+
+unit_bpu_enabled: $(BUILD_DIR)/enabled/sim.log
+	@grep -q "PASS: branch_predictor directed test (BPU_ENABLE=1)" $<
+
+unit_bpu_disabled: $(BUILD_DIR)/disabled/sim.log
+	@grep -q "PASS: branch_predictor directed test (BPU_ENABLE=0)" $<
+
+frontend_bpu: $(BUILD_DIR)/enabled/frontend/sim.log
+	@grep -q "PASS: BPU IF/ID alignment and handshake directed test" $<
+
+frontend_ras: frontend_ras_enabled frontend_ras_ras_disabled frontend_ras_bpu_disabled
+
+frontend_ras_enabled: $(BUILD_DIR)/ras_frontend/sim.log
+	@grep -q "PASS: RAS IFU hint, handshake, recovery and arbitration directed test" $<
+
+frontend_ras_ras_disabled: $(BUILD_DIR)/ras_frontend_disabled/sim.log
+	@grep -q "PASS: RAS-disabled IFU fallback directed test" $<
+
+frontend_ras_bpu_disabled: $(BUILD_DIR)/ras_frontend_bpu_disabled/sim.log
+	@grep -q "PASS: RAS-disabled IFU fallback directed test" $<
+
+compile_sva_exu: $(BUILD_DIR)/sva_exu/compile.log
+	@grep -q "CPU time" $<
+
+compile_ras_stats: $(BUILD_DIR)/ras_stats/compile.log
+	@grep -q "CPU time" $<
+
+unit_ras: unit_ras_enabled unit_ras_ras_disabled unit_ras_bpu_disabled
+
+unit_ras_enabled: $(BUILD_DIR)/ras/sim.log
+	@grep -q "PASS: ras_dual_full_stack directed test" $<
+
+unit_ras_ras_disabled: $(BUILD_DIR)/ras_disabled/sim.log
+	@grep -q "PASS: ras_dual_full_stack disabled directed test" $<
+
+unit_ras_bpu_disabled: $(BUILD_DIR)/ras_bpu_disabled/sim.log
+	@grep -q "PASS: ras_dual_full_stack disabled directed test" $<
+
+$(BUILD_DIR)/ras/sim.log: $(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_dual_full_stack.sv
+	@mkdir -p $(BUILD_DIR)/ras/csrc
+	cd $(BUILD_DIR)/ras && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/ras/csrc \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_dual_full_stack.sv \
+		-top tb_ras_dual_full_stack -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ras_disabled/sim.log: $(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_disabled.sv
+	@mkdir -p $(BUILD_DIR)/ras_disabled/csrc
+	cd $(BUILD_DIR)/ras_disabled && $(VCS) $(VCS_COMMON) +define+BPU_RAS_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/ras_disabled/csrc \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_disabled.sv \
+		-top tb_ras_disabled -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras_disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ras_bpu_disabled/sim.log: $(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_disabled.sv
+	@mkdir -p $(BUILD_DIR)/ras_bpu_disabled/csrc
+	cd $(BUILD_DIR)/ras_bpu_disabled && $(VCS) $(VCS_COMMON) +define+BPU_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/ras_bpu_disabled/csrc \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ras_disabled.sv \
+		-top tb_ras_disabled -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras_bpu_disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/enabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv
+	@mkdir -p $(BUILD_DIR)/enabled/csrc
+	cd $(BUILD_DIR)/enabled && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/enabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv \
+		-top tb_branch_predictor -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/enabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/disabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv
+	@mkdir -p $(BUILD_DIR)/disabled/csrc
+	cd $(BUILD_DIR)/disabled && $(VCS) $(VCS_COMMON) +define+BPU_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/disabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(DV_DIR)/tb_branch_predictor.sv \
+		-top tb_branch_predictor -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/enabled/frontend/sim.log: $(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(RTL_DIR)/core/idu.sv $(DV_DIR)/tb_bpu_frontend.sv $(DV_DIR)/sva_bpu_idu.sv
+	@mkdir -p $(BUILD_DIR)/enabled/frontend/csrc
+	cd $(BUILD_DIR)/enabled/frontend && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/enabled/frontend/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(RTL_DIR)/core/idu.sv $(DV_DIR)/sva_bpu_idu.sv $(DV_DIR)/tb_bpu_frontend.sv \
+		-top tb_bpu_frontend -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/enabled/frontend && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ras_frontend/sim.log: $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend.sv
+	@mkdir -p $(BUILD_DIR)/ras_frontend/csrc
+	cd $(BUILD_DIR)/ras_frontend && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/ras_frontend/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ras_dual_full_stack.sv \
+		$(RTL_DIR)/core/ifu.sv $(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend.sv \
+		-top tb_ras_frontend -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras_frontend && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ras_frontend_disabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend_disabled.sv
+	@mkdir -p $(BUILD_DIR)/ras_frontend_disabled/csrc
+	cd $(BUILD_DIR)/ras_frontend_disabled && $(VCS) $(VCS_COMMON) +define+BPU_RAS_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/ras_frontend_disabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ras_dual_full_stack.sv \
+		$(RTL_DIR)/core/ifu.sv $(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend_disabled.sv \
+		-top tb_ras_frontend_disabled -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras_frontend_disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ras_frontend_bpu_disabled/sim.log: $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend_disabled.sv
+	@mkdir -p $(BUILD_DIR)/ras_frontend_bpu_disabled/csrc
+	cd $(BUILD_DIR)/ras_frontend_bpu_disabled && $(VCS) $(VCS_COMMON) +define+BPU_ENABLE=0 \
+		-Mdir=$(BUILD_DIR)/ras_frontend_bpu_disabled/csrc \
+		$(RTL_DIR)/core/branch_predictor.sv $(RTL_DIR)/core/ras_dual_full_stack.sv \
+		$(RTL_DIR)/core/ifu.sv $(DV_DIR)/sva_ras_ifu.sv $(DV_DIR)/tb_ras_frontend_disabled.sv \
+		-top tb_ras_frontend_disabled -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ras_frontend_bpu_disabled && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/sva_exu/compile.log: $(RTL_DIR)/core/exu.sv $(DV_DIR)/sva_bpu_exu.sv
+	@mkdir -p $(BUILD_DIR)/sva_exu/csrc
+	cd $(BUILD_DIR)/sva_exu && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/sva_exu/csrc \
+		$(RTL_DIR)/core/exu.sv $(RTL_DIR)/core/exu_alu.sv \
+		$(RTL_DIR)/core/exu_bru.sv $(RTL_DIR)/core/exu_lsu.sv \
+		$(RTL_DIR)/core/exu_csr.sv $(RTL_DIR)/core/exu_muldiv.sv \
+		$(RTL_DIR)/core/mul_radix2.sv $(RTL_DIR)/core/mul_fast17.sv \
+		$(RTL_DIR)/core/div_radix2.sv $(DV_DIR)/sva_bpu_exu.sv \
+		-top exu -o simv > compile.log 2>&1
+
+$(BUILD_DIR)/ras_stats/compile.log: $(RTL_DIR)/core/exu.sv $(DV_DIR)/monitor_ras_stats.sv
+	@mkdir -p $(BUILD_DIR)/ras_stats/csrc
+	cd $(BUILD_DIR)/ras_stats && $(VCS) $(VCS_COMMON) \
+		-Mdir=$(BUILD_DIR)/ras_stats/csrc \
+		$(RTL_DIR)/core/exu.sv $(RTL_DIR)/core/exu_alu.sv \
+		$(RTL_DIR)/core/exu_bru.sv $(RTL_DIR)/core/exu_lsu.sv \
+		$(RTL_DIR)/core/exu_csr.sv $(RTL_DIR)/core/exu_muldiv.sv \
+		$(RTL_DIR)/core/mul_radix2.sv $(RTL_DIR)/core/mul_fast17.sv \
+		$(RTL_DIR)/core/div_radix2.sv $(DV_DIR)/monitor_ras_stats.sv \
+		-top exu -o simv > compile.log 2>&1
+
+clean:
+	@if test ! -e "$(BUILD_DIR)"; then exit 0; fi; \
+		test ! -L "$(BUILD_DIR)"; \
+		test "$(notdir $(BUILD_DIR))" = "bpu_build"; \
+		test "$$(realpath "$(BUILD_DIR)")" = "$(DV_DIR)/bpu_build"; \
+		test "$(abspath $(DV_DIR))" = "$(abspath $(RTL_DIR)/../dv)"; \
+		test -z "$$(find "$(BUILD_DIR)" -mindepth 1 -maxdepth 1 \
+			! -name enabled ! -name disabled ! -name ras \
+			! -name ras_disabled ! -name ras_bpu_disabled \
+			! -name ras_frontend ! -name ras_frontend_disabled \
+			! -name ras_frontend_bpu_disabled ! -name sva_exu \
+			! -name ras_stats -print -quit)"; \
+		test -z "$$(find "$(BUILD_DIR)" -type f \
+			\( -name '*.sv' -o -name '*.v' -o -name '*.vh' -o -name '*.md' \) \
+			-print -quit)"; \
+		rm -rf -- "$(BUILD_DIR)"
