@@ -17,13 +17,13 @@
 
 
 // ===========================================================================
-// Memory Map Configuration
+//// --------        Memory Map Configuration        -------- ////
+
 // `define ITCM_BASE 32'h0000_0000
 // `define DTCM_BASE 32'h0000_1000
 // 
 // `define ITCM_SIZE 32'h0000_1000  // 4KB, matches link.ld .text before .data ALIGN(0x1000)
 // `define DTCM_SIZE 32'h0000_F000  // Remaining address space for DTCM
-
 
 `define ITCM_BASE 32'h0000_0000
 `define DTCM_BASE 32'h1000_0000
@@ -47,19 +47,26 @@
 `define ZERO_WORD 32'b0
 `define INSTR_NOP 32'h00000013
 
+//// --------        BPU        -------- ////
 // Basic dynamic branch predictor: direct-mapped BTB plus a 2-bit BHT.
 // Keep these overridable from the compile command line for A/B regression.
 `ifndef BPU_ENABLE
 `define BPU_ENABLE 1
 `endif
 `ifndef BPU_BTB_ENTRIES
-`define BPU_BTB_ENTRIES 16
+`define BPU_BTB_ENTRIES 64
 `endif
 `ifndef BPU_BHT_ENTRIES
-`define BPU_BHT_ENTRIES 16
+`define BPU_BHT_ENTRIES 1024
 `endif
 `ifndef BPU_BHT_INIT
 `define BPU_BHT_INIT 2'b01
+`endif
+`ifndef BPU_RAS_ENABLE
+`define BPU_RAS_ENABLE 1
+`endif
+`ifndef BPU_RAS_ENTRIES
+`define BPU_RAS_ENTRIES 4
 `endif
 
 

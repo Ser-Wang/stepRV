@@ -17,7 +17,15 @@ module sva_bpu_exu (
     input wire        o_trap_ret_req,
     input wire        bru_fence_i,
     input wire        bru_is_control,
-    input wire [31:0] actual_next_pc
+    input wire [31:0] actual_next_pc,
+    input wire        ras_effective_enable,
+    input wire        ras_resolve_pop_raw,
+    input wire        ras_resolve_push_raw,
+    input wire        o_ras_resolve_fire,
+    input wire        o_ras_resolve_pop,
+    input wire        o_ras_resolve_push,
+    input wire [31:0] o_ras_resolve_push_addr,
+    input wire [31:0] sequential_next_pc
 );
 
 wire id_ex_fire = i_id_ex_vld && o_id_ex_rdy && !i_flush;
@@ -51,6 +59,32 @@ endproperty
 assert_no_commit_no_redirect: assert property (p_no_commit_no_redirect)
     else $error("[BPU SVA] update, invalidate, or redirect occurred while EX was not committed");
 
+property p_ras_resolve_fire_exact;
+    @(posedge clk) disable iff (!rst_n)
+        o_ras_resolve_fire == (ras_effective_enable && ex_commit_fire
+            && !o_exc_req && !o_trap_ret_req
+            && (ras_resolve_pop_raw || ras_resolve_push_raw));
+endproperty
+assert_ras_resolve_fire_exact: assert property (p_ras_resolve_fire_exact)
+    else $error("[BPU SVA][RAS] resolve fire was not exactly the enabled, non-exception EX/MA transfer event");
+
+property p_ras_resolve_actions_match_decode;
+    @(posedge clk) disable iff (!rst_n)
+        o_ras_resolve_fire |-> (o_ras_resolve_pop == ras_resolve_pop_raw)
+            && (o_ras_resolve_push == ras_resolve_push_raw);
+endproperty
+assert_ras_resolve_actions_match_decode:
+assert property (p_ras_resolve_actions_match_decode)
+    else $error("[BPU SVA][RAS] resolve action disagreed with EX hint decode");
+
+property p_ras_resolve_push_address;
+    @(posedge clk) disable iff (!rst_n)
+        (o_ras_resolve_fire && o_ras_resolve_push)
+        |-> (o_ras_resolve_push_addr == sequential_next_pc);
+endproperty
+assert_ras_resolve_push_address: assert property (p_ras_resolve_push_address)
+    else $error("[BPU SVA][RAS] resolve push address was not current PC+4");
+
 property p_correct_prediction_no_recovery;
     @(posedge clk) disable iff (!rst_n)
         (ex_commit_fire && !o_exc_req && !o_trap_ret_req && !bru_fence_i
@@ -80,6 +114,18 @@ cover_control_correct_prediction: cover property (
         && !o_exc_req && !o_trap_ret_req && !bru_fence_i
         && (r_pred_next_pc_ex == actual_next_pc)
 );
+cover_ras_resolve_push: cover property (
+    @(posedge clk) disable iff (!rst_n)
+        o_ras_resolve_fire && o_ras_resolve_push && !o_ras_resolve_pop
+);
+cover_ras_resolve_pop: cover property (
+    @(posedge clk) disable iff (!rst_n)
+        o_ras_resolve_fire && o_ras_resolve_pop && !o_ras_resolve_push
+);
+cover_ras_resolve_pop_push: cover property (
+    @(posedge clk) disable iff (!rst_n)
+        o_ras_resolve_fire && o_ras_resolve_pop && o_ras_resolve_push
+);
 
 endmodule
 
@@ -100,5 +146,13 @@ bind exu sva_bpu_exu u_sva_bpu_exu (
     .o_trap_ret_req          (o_trap_ret_req),
     .bru_fence_i             (bru_fence_i),
     .bru_is_control          (bru_is_control),
-    .actual_next_pc          (actual_next_pc)
+    .actual_next_pc          (actual_next_pc),
+    .ras_effective_enable    (ras_effective_enable),
+    .ras_resolve_pop_raw     (ras_resolve_pop_raw),
+    .ras_resolve_push_raw    (ras_resolve_push_raw),
+    .o_ras_resolve_fire      (o_ras_resolve_fire),
+    .o_ras_resolve_pop       (o_ras_resolve_pop),
+    .o_ras_resolve_push      (o_ras_resolve_push),
+    .o_ras_resolve_push_addr (o_ras_resolve_push_addr),
+    .sequential_next_pc      (sequential_next_pc)
 );

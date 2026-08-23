@@ -113,6 +113,10 @@ wire        bp_update_is_cond;
 wire        bp_update_taken;
 wire [31:0] bp_update_target;
 wire        bp_invalidate;
+wire        ras_resolve_fire;
+wire        ras_resolve_pop;
+wire        ras_resolve_push;
+wire [31:0] ras_resolve_push_addr;
 
 // csr
 wire [11:0] csr_idx;
@@ -171,6 +175,11 @@ ifu u_ifu(
     .i_bp_update_taken  (bp_update_taken),
     .i_bp_update_target (bp_update_target),
     .i_bp_invalidate    (bp_invalidate),
+    .i_instr_if         (i_if_instr),
+    .i_ras_resolve_fire (ras_resolve_fire),
+    .i_ras_resolve_pop  (ras_resolve_pop),
+    .i_ras_resolve_push (ras_resolve_push),
+    .i_ras_resolve_push_addr (ras_resolve_push_addr),
     .o_fetch_req    (o_fetch_req),
     .o_fetch_pc     (fetch_pc),
     .o_if_id_vld    (if_id_vld),
@@ -243,6 +252,10 @@ exu u_exu(
     .o_bp_update_taken  (bp_update_taken    ),
     .o_bp_update_target (bp_update_target   ),
     .o_bp_invalidate    (bp_invalidate      ),
+    .o_ras_resolve_fire (ras_resolve_fire   ),
+    .o_ras_resolve_pop  (ras_resolve_pop    ),
+    .o_ras_resolve_push (ras_resolve_push   ),
+    .o_ras_resolve_push_addr (ras_resolve_push_addr),
     // mem access
     .o_mem_addr_exu     (mem_addr_exu       ),
     .o_mem_wr_en_exu    (mem_wr_en_exu      ),

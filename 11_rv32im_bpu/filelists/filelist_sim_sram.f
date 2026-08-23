@@ -5,6 +5,7 @@
 ../11_rv32im_bpu/de/periphs/mem_dtcm.sv
 ../11_rv32im_bpu/de/core/core.sv
 ../11_rv32im_bpu/de/core/branch_predictor.sv
+../11_rv32im_bpu/de/core/ras_dual_full_stack.sv
 ../11_rv32im_bpu/de/core/mul_radix2.sv
 ../11_rv32im_bpu/de/core/mul_fast17.sv
 ../11_rv32im_bpu/de/core/div_radix2.sv

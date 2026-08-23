@@ -49,6 +49,10 @@ module exu(
     output wire        o_bp_update_taken,
     output wire [31:0] o_bp_update_target,
     output wire        o_bp_invalidate,
+    output wire        o_ras_resolve_fire,
+    output wire        o_ras_resolve_pop,
+    output wire        o_ras_resolve_push,
+    output wire [31:0] o_ras_resolve_push_addr,
     // to mem access unit
     output wire [31:0] o_mem_addr_exu,
     output wire [31:0] o_mem_wr_data_exu,
@@ -377,6 +381,24 @@ assign o_bp_update_is_cond = bru_is_cond;
 assign o_bp_update_taken = bru_taken;
 assign o_bp_update_target = bru_target;
 assign o_bp_invalidate = ex_commit_fire & !o_exc_req & bru_fence_i;
+
+wire ras_is_jal = dec_info_bus_bru[`DECINFO_BRU_JAL];
+wire ras_is_jalr = dec_info_bus_bru[`DECINFO_BRU_JALR];
+wire ras_rd_is_link = (r_wb_rd_idx_exu == 5'd1) | (r_wb_rd_idx_exu == 5'd5);
+wire ras_rs1_is_link = (r_rs1idx_exu == 5'd1) | (r_rs1idx_exu == 5'd5);
+wire ras_resolve_push_raw = (ras_is_jal & ras_rd_is_link) | (ras_is_jalr & ras_rd_is_link);
+wire ras_resolve_pop_raw = ras_is_jalr & ras_rs1_is_link
+                         & (~ras_rd_is_link | (r_wb_rd_idx_exu != r_rs1idx_exu));
+wire ras_effective_enable = (`BPU_ENABLE != 0) & (`BPU_RAS_ENABLE != 0);
+
+assign o_ras_resolve_fire = ras_effective_enable
+                          & ex_commit_fire
+                          & ~o_exc_req
+                          & ~o_trap_ret_req
+                          & (ras_resolve_pop_raw | ras_resolve_push_raw);
+assign o_ras_resolve_pop = ras_resolve_pop_raw;
+assign o_ras_resolve_push = ras_resolve_push_raw;
+assign o_ras_resolve_push_addr = sequential_next_pc;
 
 
 // ----------------        Instantiations        ---------------- //

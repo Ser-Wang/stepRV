@@ -25,6 +25,11 @@ module ifu(
     input  wire        i_bp_update_taken,
     input  wire [31:0] i_bp_update_target,
     input  wire        i_bp_invalidate,
+    input  wire [31:0] i_instr_if,
+    input  wire        i_ras_resolve_fire,
+    input  wire        i_ras_resolve_pop,
+    input  wire        i_ras_resolve_push,
+    input  wire [31:0] i_ras_resolve_push_addr,
     output wire        o_fetch_req,
     output wire [31:0] o_fetch_pc, // Sent to ITCM
     output wire [31:0] o_instr_pc, // Sent to ID
@@ -72,12 +77,27 @@ assign o_instr_pc = pc_r;
 
 wire bp_btb_hit;
 wire bp_pred_taken;
+wire [31:0] bp_pred_next_pc;
+
+wire if_is_jal = (i_instr_if[6:0] == 7'b1101111);
+wire if_is_jalr = (i_instr_if[6:0] == 7'b1100111) & (i_instr_if[14:12] == 3'b000);
+wire if_rd_is_link = (i_instr_if[11:7] == 5'd1) | (i_instr_if[11:7] == 5'd5);
+wire if_rs1_is_link = (i_instr_if[19:15] == 5'd1) | (i_instr_if[19:15] == 5'd5);
+wire ras_pred_push = (if_is_jal & if_rd_is_link) | (if_is_jalr & if_rd_is_link);
+wire ras_pred_pop = if_is_jalr & if_rs1_is_link & (!if_rd_is_link | (i_instr_if[11:7] != i_instr_if[19:15]));
+wire ras_pred_update_fire = if_accept & (ras_pred_pop | ras_pred_push);
+wire ras_top_vld;
+wire [31:0] ras_top_addr;
+wire ras_pred_hit = (`BPU_ENABLE != 0) & (`BPU_RAS_ENABLE != 0)
+                  & o_if_id_vld & ras_pred_pop & ras_top_vld;
+
+assign o_pred_next_pc_if = ras_pred_hit ? ras_top_addr : bp_pred_next_pc;
 
 branch_predictor u_branch_predictor (
     .clk              (clk),
     .rst_n            (rst_n),
     .i_query_pc       (pc_r),
-    .o_pred_next_pc   (o_pred_next_pc_if),
+    .o_pred_next_pc   (bp_pred_next_pc),
     .o_btb_hit        (bp_btb_hit),
     .o_pred_taken     (bp_pred_taken),
     .i_update_vld     (i_bp_update_vld),
@@ -86,6 +106,22 @@ branch_predictor u_branch_predictor (
     .i_update_taken   (i_bp_update_taken),
     .i_update_target  (i_bp_update_target),
     .i_invalidate     (i_bp_invalidate)
+);
+
+ras_dual_full_stack u_ras_dual_full_stack (
+    .clk                      (clk),
+    .rst_n                    (rst_n),
+    .o_top_vld                (ras_top_vld),
+    .o_top_addr               (ras_top_addr),
+    .i_pred_update_fire       (ras_pred_update_fire),
+    .i_pred_pop               (ras_pred_pop),
+    .i_pred_push              (ras_pred_push),
+    .i_pred_push_addr         (pc_add4),
+    .i_resolve_fire           (i_ras_resolve_fire),
+    .i_resolve_pop            (i_ras_resolve_pop),
+    .i_resolve_push           (i_ras_resolve_push),
+    .i_resolve_push_addr      (i_ras_resolve_push_addr),
+    .i_recover                (i_redirect_req)
 );
 
 endmodule

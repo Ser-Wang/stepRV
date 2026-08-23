@@ -18,6 +18,11 @@ reg         bp_update_is_cond;
 reg         bp_update_taken;
 reg  [31:0] bp_update_target;
 reg         bp_invalidate;
+reg  [31:0] instr_if;
+reg         ras_resolve_fire;
+reg         ras_resolve_pop;
+reg         ras_resolve_push;
+reg  [31:0] ras_resolve_push_addr;
 wire        fetch_req;
 wire [31:0] fetch_pc;
 wire [31:0] instr_pc;
@@ -59,6 +64,11 @@ ifu u_ifu (
     .i_bp_update_taken   (bp_update_taken),
     .i_bp_update_target  (bp_update_target),
     .i_bp_invalidate     (bp_invalidate),
+    .i_instr_if          (instr_if),
+    .i_ras_resolve_fire  (ras_resolve_fire),
+    .i_ras_resolve_pop   (ras_resolve_pop),
+    .i_ras_resolve_push  (ras_resolve_push),
+    .i_ras_resolve_push_addr (ras_resolve_push_addr),
     .o_fetch_req         (fetch_req),
     .o_fetch_pc          (fetch_pc),
     .o_instr_pc          (instr_pc),
@@ -117,6 +127,11 @@ initial begin
     bp_update_taken = 1'b0;
     bp_update_target = 32'b0;
     bp_invalidate = 1'b0;
+    instr_if = 32'h0000_0013;
+    ras_resolve_fire = 1'b0;
+    ras_resolve_pop = 1'b0;
+    ras_resolve_push = 1'b0;
+    ras_resolve_push_addr = 32'b0;
     id_stall = 1'b0;
     id_flush = 1'b0;
     id_if_vld = 1'b0;

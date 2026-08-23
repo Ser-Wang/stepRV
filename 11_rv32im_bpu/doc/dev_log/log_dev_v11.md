@@ -7,6 +7,12 @@
 
 ## 开发记录
 
+### 2026-08-18 23:30 — 双完整栈 RAS
+
+- 按 [`task_v11_02_return_address_stack.md`](task_v11_02_return_address_stack.md) 实现 `ras_dual_full_stack`：默认 4 项前端预测栈 + 4 项后端确认栈，支持 x1/x5 call/return/coroutine hint、IF 接受时投机更新、EX 提交时确认更新，以及 redirect 时用 `resolved_next` 做完整状态恢复。
+- 独立 DV 的 RAS on、RAS off、BPU off 模块/IFU 定向测试全部 PASS，覆盖 overflow、pop+push、同拍 resolve+recover、RAS/BTB 仲裁和握手 exactly-once；DC `make check` PASS。
+- 公共回归带 RAS/BPU SVA 通过：ISA `rv32ui` 41/42（仅既有 `ma_data`）、`rv32um` 8/8；Compliance `rv32i` 48/48、`rv32im` 8/8、`rv32Zicsr` 6/6、`rv32Zifencei` 1/1。
+
 ### 2026-08-16 23:30 — 基础动态分支预测器
 
 - 完成 [`task_v11_01_dynamic_branch_prediction.md`](task_v11_01_dynamic_branch_prediction.md)：实现 16 项 BTB/BHT、预测元数据流水传递、EX/MA fire 一次性训练/恢复、`fence.i` 失效及 v11 filelist 隔离。

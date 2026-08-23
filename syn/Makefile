@@ -4,7 +4,7 @@ SHELL := /bin/bash
 # ------------------------------------------------------------------------------
 # Configurable Variables
 # ------------------------------------------------------------------------------
-DESIGN_NAME   ?= 10_rv32im
+DESIGN_NAME   ?= 11_rv32im_bpu
 DESIGN_TOP    ?= soc_top
 SDC_NAME      ?= soc_top
 
@@ -63,7 +63,8 @@ syn:
 	fi; \
 	if grep -Eiq '(fatal|error)' $(OUT_DIR)/check_error_warning.log; then \
 		exit 1; \
-	fi
+	fi; \
+	ln -sfn "$(OUT_DIR)" "$(CURDIR)/output/latest"
 
 # Run fast front-end checks only: analyze, elaborate, link, check_design,
 # constraints load, check_timing. This skips compile and netlist export.
@@ -89,7 +90,7 @@ clean:
 help:
 	@echo "Usage:"
 	@echo "  make check                Run fast DC analyze/elaborate/link/check_design flow"
-	@echo "  make syn                  Run synthesis with default top 'soc_top' in '10_rv32im'"
+	@echo "  make syn                  Run synthesis with default top 'soc_top' in '11_rv32im_bpu'"
 	@echo "  make syn DESIGN_NAME=... DESIGN_TOP=... SDC_NAME=...  Run synthesis for a different design/top/SDC"
 	@echo "  make syn STD_DB_LIST='...'  Select standard-cell DB corner/library"
 	@echo "  make syn SYN_FILELIST='...' SRAM_MACRO_DBLIST='...'  Configure synthesis filelist and SRAM macro DBs"

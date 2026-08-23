@@ -182,7 +182,8 @@ wire instr_ecall_ebreak_mret = instr_type_system & dec_funct3_000;
 wire instr_lui   = dec_opcode_6_5_01 & dec_opcode_4_2_101 & dec_opcode_1_0_11; // U-type, "lui".
 wire instr_auipc = dec_opcode_6_5_00 & dec_opcode_4_2_101 & dec_opcode_1_0_11; // U-type, "auipc".
 wire instr_jal   = dec_opcode_6_5_11 & dec_opcode_4_2_011 & dec_opcode_1_0_11; // J-type, "jal".
-wire instr_jalr  = dec_opcode_6_5_11 & dec_opcode_4_2_001 & dec_opcode_1_0_11; // J-type, "jalr".
+wire instr_jalr  = dec_opcode_6_5_11 & dec_opcode_4_2_001 & dec_opcode_1_0_11
+                 & dec_funct3_000; // I-type, "jalr".
 
 // Branch Instructions
 wire instr_beq  = instr_type_branch & dec_funct3_000;
