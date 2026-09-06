@@ -1,4 +1,4 @@
-set clk_period 20.0
+set clk_period 16.0
 
 create_clock -name clk -period $clk_period [get_ports clk]
 
