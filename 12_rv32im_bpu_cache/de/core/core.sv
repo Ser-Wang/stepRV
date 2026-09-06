@@ -85,6 +85,8 @@ wire        ma_wb_vld;
 wire        ma_wb_rdy;
 wire [31:0] wb_data_mau;
 wire [31:0] fwd_data_mau;
+wire [`RFIDX_WIDTH-1:0] fwd_rd_idx_mau;
+wire        fwd_rd_wen_mau;
 wire [`RFIDX_WIDTH-1:0] wb_rd_idx_mau;
 wire wb_rd_wen_mau;
 
@@ -305,8 +307,8 @@ ctrl_hazard u_ctrl_hazard(
     .i_need_rs2_exu     (need_rs2_exu       ),
     .i_rs1idx_exu       (rs1idx_exu         ),
     .i_rs2idx_exu       (rs2idx_exu         ),
-    .i_wb_rd_wen_mau    (wb_rd_wen_mau      ),
-    .i_wb_rd_idx_mau    (wb_rd_idx_mau      ),
+    .i_wb_rd_wen_mau    (fwd_rd_wen_mau     ),
+    .i_wb_rd_idx_mau    (fwd_rd_idx_mau     ),
     .i_wb_rd_wen_wbu    (wb_rd_wen_wbu      ),
     .i_wb_rd_idx_wbu    (wb_rd_idx_wbu      ),
     .o_fwding_rs1_sel   (fwding_rs1_sel     ),
@@ -346,6 +348,8 @@ mau u_mau(
     .i_wb_rd_wen_exu    (wb_rd_wen_exu  ),
     .o_wb_data_mau      (wb_data_mau    ),
     .o_fwd_data_mau     (fwd_data_mau   ),
+    .o_fwd_rd_idx_mau   (fwd_rd_idx_mau ),
+    .o_fwd_rd_wen_mau   (fwd_rd_wen_mau ),
     .o_wb_rd_idx_mau    (wb_rd_idx_mau  ),
     .o_wb_rd_wen_mau    (wb_rd_wen_mau  )
     );

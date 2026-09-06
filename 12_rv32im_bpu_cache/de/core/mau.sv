@@ -33,6 +33,8 @@ module mau(
     input  wire        i_wb_rd_wen_exu,
     output wire [31:0] o_wb_data_mau,
     output wire [31:0] o_fwd_data_mau,
+    output wire [`RFIDX_WIDTH-1:0] o_fwd_rd_idx_mau,
+    output wire        o_fwd_rd_wen_mau,
     output wire [`RFIDX_WIDTH-1:0] o_wb_rd_idx_mau,
     output wire        o_wb_rd_wen_mau
 );
@@ -167,7 +169,13 @@ end
 
 assign o_ma_wb_vld = r_completion_vld;
 assign o_wb_data_mau = r_completion_data;
-assign o_fwd_data_mau = r_completion_data;
+// A dependent EX instruction may replace the completing memory request on the
+// same edge. Expose the firing response before it enters the MA/WB holding
+// register; the registered completion remains the source on later cycles.
+assign o_fwd_data_mau = mem_rsp_fire ? response_result : r_completion_data;
+assign o_fwd_rd_idx_mau = mem_rsp_fire ? r_txn_wb_rd_idx : r_completion_rd_idx;
+assign o_fwd_rd_wen_mau = mem_rsp_fire ? r_txn_wb_rd_wen
+                                      : (r_completion_vld && r_completion_rd_wen);
 assign o_wb_rd_idx_mau = r_completion_rd_idx;
 assign o_wb_rd_wen_mau = r_completion_vld & r_completion_rd_wen;
 

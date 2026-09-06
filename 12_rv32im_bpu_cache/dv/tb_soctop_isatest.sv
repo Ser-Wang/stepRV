@@ -129,11 +129,7 @@ function automatic [31:0] read_signature_word;
     input [31:0] addr;
     begin
         if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE))) begin
-`ifdef USE_SRAM_MACRO
-            read_signature_word = u_soc_top.u_dmem.u_dtcm_sram_wrapper.u_smic55_4096x32_1rw.mem_array[(addr - `DTCM_BASE) >> 2];
-`else
-            read_signature_word = u_soc_top.u_dmem.r_dtcm[(addr - `DTCM_BASE) >> 2];
-`endif
+            read_signature_word = u_soc_top.u_backing_dmem.r_backing_dmem[(addr - `DTCM_BASE) >> 2];
         end
         // else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
         //     read_signature_word = u_soc_top.u_backing_imem.r_backing_imem[(addr - `ITCM_BASE) >> 2];
@@ -225,13 +221,8 @@ task automatic load_inst_mem(input string data_path);
 endtask
 
 task automatic load_data_mem(input string data_path);
-`ifdef USE_SRAM_MACRO
-    $display("[Memory Load] DTCM SRAM macro <= %s", data_path);
-    $readmemh(data_path, u_soc_top.u_dmem.u_dtcm_sram_wrapper.u_smic55_4096x32_1rw.mem_array);
-`else
-    $display("[Memory Load] DTCM RTL memory <= %s", data_path);
-    $readmemh(data_path, u_soc_top.u_dmem.r_dtcm);
-`endif
+    $display("[Memory Load] backing DMEM RTL memory <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_backing_dmem.r_backing_dmem);
 endtask
 
 initial begin
@@ -268,8 +259,8 @@ bind soc_bus sva_soc_bus u_sva_soc_bus (
     .mem_req_rdy(o_mem_req_rdy),
     .mem_req_write(i_mem_wr_en),
     .mem_req_addr(i_mem_addr),
-    .itcm_write(o_itcm_p1_we),
-    .dtcm_write(o_dtcm_wr_en),
+    .imem_write(o_imem_p1_we),
+    .dcache_store_fire(o_dcache_req_vld && i_dcache_req_rdy && o_dcache_req_write),
     .uart_write(o_uart_wr_en)
 );
 

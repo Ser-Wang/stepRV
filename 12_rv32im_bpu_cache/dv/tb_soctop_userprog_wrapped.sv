@@ -53,7 +53,7 @@ wrapper_soc_top u_wrapper_soc_top(
 initial begin
     // $readmemh(INST_DATA_PATH, `DUT_SOC.u_backing_imem.r_backing_imem);
     
-    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_dmem.r_dtcm);
+    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_backing_dmem.r_backing_dmem);
 end
 
 // ---------------- Clock & Reset ----------------
@@ -152,8 +152,8 @@ bind soc_bus sva_soc_bus u_sva_soc_bus (
     .mem_req_rdy(o_mem_req_rdy),
     .mem_req_write(i_mem_wr_en),
     .mem_req_addr(i_mem_addr),
-    .itcm_write(o_itcm_p1_we),
-    .dtcm_write(o_dtcm_wr_en),
+    .imem_write(o_imem_p1_we),
+    .dcache_store_fire(o_dcache_req_vld && i_dcache_req_rdy && o_dcache_req_write),
     .uart_write(o_uart_wr_en)
 );
 

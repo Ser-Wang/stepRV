@@ -2,9 +2,10 @@
 ../12_rv32im_bpu_cache/de/soc/soc_bus.sv
 ../12_rv32im_bpu_cache/de/periphs/backing_imem.sv
 ../12_rv32im_bpu_cache/de/periphs/uart.v
-../12_rv32im_bpu_cache/de/periphs/mem_dtcm.sv
+../12_rv32im_bpu_cache/de/periphs/backing_dmem.sv
 ../12_rv32im_bpu_cache/de/core/core.sv
 ../12_rv32im_bpu_cache/de/core/icache.sv
+../12_rv32im_bpu_cache/de/core/dcache.sv
 ../12_rv32im_bpu_cache/de/core/branch_predictor.sv
 ../12_rv32im_bpu_cache/de/core/ras_dual_full_stack.sv
 ../12_rv32im_bpu_cache/de/core/ifu.sv

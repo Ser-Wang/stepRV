@@ -2,10 +2,12 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-07 00:50
-**Current Version**: v1.0
-**Status**: Ready for Review (2026-09-07 00:50)
+**Current Version**: v1.2
+**Status**: Completed (2026-09-07 01:21) | Implementation Complete — Public Acceptance Pending User Run (2026-09-07 01:08) | Ready for Execution (2026-09-07 00:58) | Ready for Review (2026-09-07 00:50)
 
 **Version Changelog**:
+- **v1.2** (2026-09-07 01:21): 记录用户完成公共ISA、Compliance与synthesis验收，并补记 `coremark_10` 运行成绩103 ms；任务关闭为Completed。
+- **v1.1** (2026-09-07 01:08): 完成Phase 2 D-Cache、属性路由、backing DMEM重构、依赖forwarding修复、核心定向及两个SoC smoke；公共验收等待用户运行。
 - **v1.0** (2026-09-07 00:50): 定义4 KiB direct-mapped write-through/no-write-allocate D-Cache、cacheable/uncached路由、backing DMEM重构、核心定向验证和用户保留的公共验收。
 
 ---
@@ -299,7 +301,55 @@ Part I任务定义混排，也不得把多轮结果堆在同一级连续编号�
 - 新增deferred边界及其pending文档链接；
 - 本轮结束状态和下一执行责任人。
 
-## Execution Round 1 — 初始实现（尚未开始）
+## Execution Round 1 — 初始实现（2026-09-07 00:58）
 
-任务Review通过并开始执行后，在此记录第一轮实现；若用户验收发现问题，新增
-`Execution Round 2 — <bugfix>`，不回写或混合到Round 1。
+### E1.1 实现
+
+- 新增 `de/core/dcache.sv`：4 KiB、128-line、32 B line direct-mapped blocking D-Cache；实现
+  load hit/miss、8-word refill、原子install、WT store hit、NWA store miss、byte mask更新、response
+  holding及response/request同拍replacement。
+- 将 `mem_dtcm.sv` 重构/重命名为valid-ready `backing_dmem.sv`，保留16 KiB RTL array并为read/write
+  transaction统一返回一次response。
+- 将 `soc_bus.sv` 重构为LSU属性router：DMEM进入D-Cache，executable IMEM data access走
+  `backing_imem` uncached port，UART作为Device bypass，unmapped保持benign completion；router保存目标
+  ownership并归并response。
+- 更新 `soc_top.sv`、sim/syn filelist、SoC TB preload/signature路径、transaction SVA和memory配置文档；
+  新增 `dv/tb_dcache_basic.sv` 及统一 `sim/makefile` 的 `sim_phase2_dcache` 目标。
+- `ld_st`首轮在test #2失败：首个错误序列为load response A与依赖store B同拍replacement，B在A写入
+  MA/WB holding前取得旧store operand `0`。根因是MAU forwarding只暴露已寄存completion，没有暴露
+  当拍fire的memory response。`mau.sv`新增独立response-fire forwarding data/index/wen，`core.sv`
+  将hazard forwarding选择接到该通路；不新增pipeline stage、FIFO或transaction resource。
+
+### E1.2 最小验证
+
+均于 `work/my-RISCV-Projs/sim` 执行：
+
+- `make sim_phase2_dcache DESIGN_NAME=../12_rv32im_bpu_cache`：PASS；覆盖cold load miss、8个有序
+  refill、warm hit、byte/halfword/word WT store、NWA conflict store、cache更新、exactly-once write、
+  response backpressure/replacement、IMEM/UART bypass及unmapped benign completion。
+- `make sim_isa test=ld_st DESIGN_NAME=../12_rv32im_bpu_cache`：修复后PASS，`66_490_000 ps`，
+  无新增SVA/Assertion error。
+- `make sim_isa test=jal DESIGN_NAME=../12_rv32im_bpu_cache`：PASS，`2_410_000 ps`，无新增
+  SVA/Assertion error。
+
+### E1.3 Deferred / 已知边界
+
+本轮未新增deferred项。A6既定的backend error、精确地址/access fault、32 KiB backing DMEM、
+SRAM/BRAM、随机corner matrix与self-modifying-code coherence继续保持deferred，本轮未扩验。
+
+### E1.4 结果与状态
+
+Phase 2 RTL及A9.1最小验证完成。状态为
+`Implementation Complete — Public Acceptance Pending User Run`；完整ISA/Compliance与synthesis check
+由用户按A9.2手动运行，满足标准后再更新为`Completed`。
+
+### E1.5 用户公共验收（2026-09-07 01:21）
+
+用户反馈A9.2手动验收全部通过：
+
+- ISA：`rv32ui` 41/42 PASS（仅允许的既有 `ma_data` FAIL），`rv32um` 8/8 PASS；
+- Compliance：`rv32i` 48/48、`rv32im` 8/8、`rv32Zicsr` 6/6、`rv32Zifencei` 1/1 PASS；
+- synthesis check：PASS；
+- `coremark_10`：运行成绩 `103 ms`（用户报告）。
+
+任务状态更新为`Completed`。

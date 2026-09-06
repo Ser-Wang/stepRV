@@ -69,19 +69,33 @@ core u_core(
     );
 
 
-wire        itcm_p1_en;
-wire        itcm_p1_we;
-wire [31:0] itcm_p1_addr;
-wire [ 3:0] itcm_p1_wmask;
-wire [31:0] itcm_p1_wdata;
-wire [31:0] itcm_p1_rdata;
+wire        imem_p1_en;
+wire        imem_p1_we;
+wire [31:0] imem_p1_addr;
+wire [ 3:0] imem_p1_wmask;
+wire [31:0] imem_p1_wdata;
+wire [31:0] imem_p1_rdata;
 
-wire [31:0] dtcm_addr;
-wire        dtcm_en;
-wire        dtcm_wr_en;
-wire [ 3:0] dtcm_wr_mask;
-wire [31:0] dtcm_wr_data;
-wire [31:0] dtcm_rd_data;
+wire        dcache_req_vld;
+wire        dcache_req_rdy;
+wire [31:0] dcache_req_addr;
+wire        dcache_req_load;
+wire        dcache_req_write;
+wire [ 3:0] dcache_req_wmask;
+wire [31:0] dcache_req_wdata;
+wire        dcache_rsp_vld;
+wire        dcache_rsp_rdy;
+wire [31:0] dcache_rsp_data;
+
+wire        dmem_req_vld;
+wire        dmem_req_rdy;
+wire [31:0] dmem_req_addr;
+wire        dmem_req_write;
+wire [ 3:0] dmem_req_wmask;
+wire [31:0] dmem_req_wdata;
+wire        dmem_rsp_vld;
+wire        dmem_rsp_rdy;
+wire [31:0] dmem_rsp_data;
 
 wire [31:0] uart_addr;
 wire        uart_wr_en;
@@ -105,21 +119,25 @@ soc_bus u_soc_bus (
     .i_mem_rsp_rdy  (mem_rsp_rdy ),
     .o_mem_rd_data  (mem_rd_data  ),
 
-    // ITCM interface
-    .o_itcm_p1_en   (itcm_p1_en   ),
-    .o_itcm_p1_we   (itcm_p1_we   ),
-    .o_itcm_p1_addr (itcm_p1_addr ),
-    .o_itcm_p1_wmask(itcm_p1_wmask),
-    .o_itcm_p1_wdata(itcm_p1_wdata),
-    .i_itcm_p1_rdata(itcm_p1_rdata),
+    // Cacheable DMEM interface
+    .o_dcache_req_vld  (dcache_req_vld  ),
+    .i_dcache_req_rdy  (dcache_req_rdy  ),
+    .o_dcache_req_addr (dcache_req_addr ),
+    .o_dcache_req_load (dcache_req_load ),
+    .o_dcache_req_write(dcache_req_write),
+    .o_dcache_req_wmask(dcache_req_wmask),
+    .o_dcache_req_wdata(dcache_req_wdata),
+    .i_dcache_rsp_vld  (dcache_rsp_vld  ),
+    .o_dcache_rsp_rdy  (dcache_rsp_rdy  ),
+    .i_dcache_rsp_data (dcache_rsp_data ),
 
-    // DTCM interface
-    .o_dtcm_en      (dtcm_en      ),
-    .o_dtcm_addr    (dtcm_addr    ),
-    .o_dtcm_wr_en   (dtcm_wr_en   ),
-    .o_dtcm_wr_mask (dtcm_wr_mask ),
-    .o_dtcm_wr_data (dtcm_wr_data ),
-    .i_dtcm_rd_data (dtcm_rd_data ),
+    // Uncached executable IMEM data interface
+    .o_imem_p1_en   (imem_p1_en   ),
+    .o_imem_p1_we   (imem_p1_we   ),
+    .o_imem_p1_addr (imem_p1_addr ),
+    .o_imem_p1_wmask(imem_p1_wmask),
+    .o_imem_p1_wdata(imem_p1_wdata),
+    .i_imem_p1_rdata(imem_p1_rdata),
 
     // UART interface
     .o_uart_addr    (uart_addr    ),
@@ -156,23 +174,50 @@ backing_imem u_backing_imem (
     .i_p0_rsp_rdy       (imem_rsp_rdy   ),
     .o_p0_rsp_data      (imem_rsp_data  ),
     // Data Write (Self-modifying support)
-    .i_p1_en            (itcm_p1_en     ),
-    .i_p1_we            (itcm_p1_we     ),
-    .i_p1_addr          (itcm_p1_addr   ),
-    .i_p1_wmask         (itcm_p1_wmask  ),
-    .i_p1_wdata         (itcm_p1_wdata  ),
-    .o_p1_rdata         (itcm_p1_rdata  )
+    .i_p1_en            (imem_p1_en     ),
+    .i_p1_we            (imem_p1_we     ),
+    .i_p1_addr          (imem_p1_addr   ),
+    .i_p1_wmask         (imem_p1_wmask  ),
+    .i_p1_wdata         (imem_p1_wdata  ),
+    .o_p1_rdata         (imem_p1_rdata  )
     );
 
-mem_dtcm u_dmem(
-    .clk        (clk            ),
-    .rst_n      (rst_n          ),
-    .i_en       (dtcm_en        ),
-    .i_addr     (dtcm_addr      ),
-    .i_wr_en    (dtcm_wr_en     ),
-    .i_wr_mask  (dtcm_wr_mask   ),
-    .i_wr_data  (dtcm_wr_data   ),
-    .o_rd_data  (dtcm_rd_data   )
+dcache u_dcache (
+    .clk                (clk               ),
+    .rst_n              (rst_n             ),
+    .i_cpu_req_vld      (dcache_req_vld    ),
+    .o_cpu_req_rdy      (dcache_req_rdy    ),
+    .i_cpu_req_addr     (dcache_req_addr   ),
+    .i_cpu_req_load     (dcache_req_load   ),
+    .i_cpu_req_write    (dcache_req_write  ),
+    .i_cpu_req_wmask    (dcache_req_wmask  ),
+    .i_cpu_req_wdata    (dcache_req_wdata  ),
+    .o_cpu_rsp_vld      (dcache_rsp_vld    ),
+    .i_cpu_rsp_rdy      (dcache_rsp_rdy    ),
+    .o_cpu_rsp_data     (dcache_rsp_data   ),
+    .o_mem_req_vld      (dmem_req_vld      ),
+    .i_mem_req_rdy      (dmem_req_rdy      ),
+    .o_mem_req_addr     (dmem_req_addr     ),
+    .o_mem_req_write    (dmem_req_write    ),
+    .o_mem_req_wmask    (dmem_req_wmask    ),
+    .o_mem_req_wdata    (dmem_req_wdata    ),
+    .i_mem_rsp_vld      (dmem_rsp_vld      ),
+    .o_mem_rsp_rdy      (dmem_rsp_rdy      ),
+    .i_mem_rsp_data     (dmem_rsp_data     )
+    );
+
+backing_dmem u_backing_dmem (
+    .clk                (clk               ),
+    .rst_n              (rst_n             ),
+    .i_req_vld          (dmem_req_vld      ),
+    .o_req_rdy          (dmem_req_rdy      ),
+    .i_req_addr         (dmem_req_addr     ),
+    .i_req_write        (dmem_req_write    ),
+    .i_req_wmask        (dmem_req_wmask    ),
+    .i_req_wdata        (dmem_req_wdata    ),
+    .o_rsp_vld          (dmem_rsp_vld      ),
+    .i_rsp_rdy          (dmem_rsp_rdy      ),
+    .o_rsp_data         (dmem_rsp_data     )
     );
 
 uart u_uart(

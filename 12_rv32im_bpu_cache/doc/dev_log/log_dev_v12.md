@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-07 01:08 — Phase 2 Basic D-Cache + MMIO Bypass
+
+- 工单：[`task_v12_04_phase2_basic_dcache_mmio_bypass.md`](task_v12_04_phase2_basic_dcache_mmio_bypass.md)
+- 实现4 KiB direct-mapped blocking D-Cache：8-word load refill、WT store hit、NWA store miss、byte mask、
+  response holding/replacement；`mem_dtcm`重构为16 KiB事务化 `backing_dmem`。
+- LSU router现将DMEM送入D-Cache，将executable IMEM data access和UART分别作为uncached/Device bypass，
+  unmapped保持benign completion；preload/signature与filelist同步新层次。
+- 修复 `ld_st` 暴露的load response/dependent store同拍replacement forwarding窗口：MAU直接暴露当拍
+  response result及metadata给EX forwarding，不增加pipeline resource。
+- 最小验证：Phase 2核心定向、`ld_st`、`jal`均PASS，无新增SVA/Assertion error。
+- 用户公共验收：ISA `rv32ui` 41/42 PASS（仅既有允许项 `ma_data` FAIL）、`rv32um` 8/8 PASS；
+  Compliance `rv32i` 48/48、`rv32im` 8/8、`rv32Zicsr` 6/6、`rv32Zifencei` 1/1 PASS；
+  synthesis check PASS；`coremark_10` 运行成绩为用户报告的 `103 ms`。任务Completed。
+
 ## 2026-09-07 00:42 — Phase 1 Basic I-Cache
 
 - 工单：[`task_v12_03_phase1_basic_icache.md`](task_v12_03_phase1_basic_icache.md)

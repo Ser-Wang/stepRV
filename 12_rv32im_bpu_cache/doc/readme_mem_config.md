@@ -2,17 +2,18 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-06 11:04
-**Current Version**: v1.2
+**Current Version**: v1.3
 
 **Version Changelog**:
+- **v1.3** (2026-09-07 01:08): 记录Phase 2 4 KiB WT/NWA D-Cache、cacheable/uncached/Device路由、事务化backing DMEM与新preload层次。
 - **v1.2** (2026-09-07 00:42): 记录 Phase 1 4 KiB blocking I-Cache、32 KiB backing IMEM、refill合同与新preload层次；移除取指侧过渡 `mem_itcm`。
 - **v1.1** (2026-09-06 14:09): 明确当前 ITCM/DTCM 是 Cache 加入前的过渡 backend；最终采用 I/D Cache + backing memory 并移除 TCM 模块与语义。
 - **v1.0** (2026-09-06 11:04): 记录 Phase 0 RTL memory wrapper、容量、事务接口与已搁置的 macro/扩容范围。
 
 ---
 
-当前版本的 `icache`、`backing_imem`、`mem_dtcm` 均使用可综合 RTL array。`USE_BRAM` 与
-`USE_SRAM_MACRO` 不参与 Phase 1 构建；已有 macro wrapper 文件保留在仓库中，但不进入
+当前版本的 `icache`、`dcache`、`backing_imem`、`backing_dmem` 均使用可综合RTL array。
+`USE_BRAM`与 `USE_SRAM_MACRO` 不参与Phase 2构建；已有macro wrapper文件保留在仓库中，但不进入
 `filelist_sim_sram.f` 或 `filelist_syn_sram.f`。
 
 这些模块不是最终 TCM 架构。确定的演进关系为：
@@ -20,12 +21,12 @@
 ```text
 IFU -> I-Cache -> backing IMEM  (Phase 1 current)
 
-MAU -> soc_bus -> mem_dtcm                 (Phase 0 transitional)
-MAU -> D-Cache/routing -> backing DMEM/MMIO (Phase 2+ target)
+MAU -> LSU router -> D-Cache -> backing DMEM (Phase 2 cacheable DMEM)
+                  -> backing IMEM data port   (Phase 2 uncached IMEM)
+                  -> UART                     (Phase 2 Device bypass)
 ```
 
-I-Cache 已直接继承 Phase 0 定义的 IF req/rsp 合同，取指不再具有 `mem_itcm` bypass。
-`mem_dtcm` 仍等待 Phase 2 由 D-Cache 与 backing DMEM 接管。
+I/D Cache直接继承Phase 0定义的IF/LSU req/rsp合同。取指侧和data侧过渡TCM模块均已移除。
 
 ## 当前容量与映射
 
@@ -33,10 +34,11 @@ I-Cache 已直接继承 Phase 0 定义的 IF req/rsp 合同，取指不再具有
 |---|---:|---:|---:|---|
 | backing IMEM | `0x0000_0000` | 32 KiB | 8192 x 32 | 地址高 nibble 为 `0x0` |
 | I-Cache | CPU请求地址 | 4 KiB | 128 lines x 8 words | tag `[31:12]`、index `[11:5]`、word `[4:2]` |
-| 过渡 DTCM model / 最终 backing DMEM | `0x1000_0000` | 16 KiB | 4096 x 32 | 地址高 nibble 为 `0x1` |
+| backing DMEM | `0x1000_0000` | 16 KiB | 4096 x 32 | 地址高 nibble 为 `0x1` |
+| D-Cache | DMEM请求地址 | 4 KiB | 128 lines x 8 words | tag `[31:12]`、index `[11:5]`、word `[4:2]` |
 | UART | `0x3000_0000` | 既有寄存器窗口 | 不适用 | 地址高 nibble 为 `0x3` |
 
-高 nibble decode 与过渡 DTCM model 越界 alias 是已接受的临时行为。精确范围、access fault、
+高nibble decode与16 KiB backing DMEM越界alias是已接受的临时行为。精确范围、access fault、
 backing DMEM 32 KiB 扩展及 SRAM/BRAM 替换见
 [`dev_log/pending_v12_cache_mem_subsys_deferred_scope.md`](dev_log/pending_v12_cache_mem_subsys_deferred_scope.md)。
 
@@ -61,7 +63,7 @@ response = if_rsp_vld && if_rsp_rdy
 backing IMEM port 1保留给LSU executable-region路径，使用同步RTL 1RW enable/write-mask接口；
 该data port不经过I-Cache。
 
-## LSU transaction
+## D-Cache / LSU transaction
 
 MAU/MEM 是 LSU transaction owner，状态语义为：
 
@@ -76,13 +78,22 @@ EMPTY -> REQ -> WAIT_RSP -> DONE -> EMPTY
 - byte/halfword 的 sign/zero extension 在 MAU 使用已捕获 response data 完成；
 - 当前 unmapped LSU request 返回零数据/无写副作用的 benign completion。
 
-当前过渡 DTCM array 不由 reset 清零；reset 只清 transaction/output 状态。byte mask bit 0 对应
-`[7:0]`，bit 3 对应 `[31:24]`。
+LSU router使用当前粗粒度属性分流：
+
+- `0x1xxx_xxxx` DMEM为cacheable，进入4 KiB direct-mapped blocking D-Cache；
+- D-Cache load miss执行8个word whole-line refill，完整接收后原子install；
+- store hit采用write-through并以byte mask同步更新cache line；
+- store miss采用no-write-allocate，只写一次backing DMEM且不驱逐resident line；
+- `0x0xxx_xxxx` executable IMEM data access走backing IMEM uncached data port；
+- `0x3xxx_xxxx` UART为Device并绕过D-Cache；其他地址临时benign completion。
+
+backing DMEM array不由reset清零；reset清D-Cache valid及transaction/output状态。byte mask bit 0
+对应 `[7:0]`，bit 3对应 `[31:24]`。
 
 ## 构建与初始化
 
 - 仿真入口：`filelists/filelist_sim_sram.f`，其路径显式指向 v12 RTL；
 - 综合入口：`filelists/filelist_syn_sram.f` -> `filelist_rtl.f`；
 - `.data` 文件一行一个32-bit hex word，testbench直接preload
-  `u_backing_imem.r_backing_imem` / `u_dmem.r_dtcm`；
+  `u_backing_imem.r_backing_imem` / `u_backing_dmem.r_backing_dmem`；
 - 当前 filelist 不包含 PDK SRAM model、SRAM wrapper 或 Vivado BRAM IP。
