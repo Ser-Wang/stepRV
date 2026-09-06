@@ -99,11 +99,14 @@ wire [31:0] x27 = u_soc_top.u_core.u_regfile.r_regfile[27];
 
 initial begin
     $display("ISA Test: [riscv-tests] running...");
+    // Observe the architectural terminal write itself.  Waiting a fixed number
+    // of cycles after x26 is unsafe once the pass/fail sequence can cross an
+    // I-cache line and incur a refill; sampling x27 on its write edge also races
+    // the register file's nonblocking assignment.
     wait(x26 == 32'h1);
-    // The variable-latency IF baseline no longer promises an adjacent-cycle
-    // write of x27 after the terminal x26 marker.
-    repeat (20) @(posedge clk);
-    if (x27 == 32'h1) begin
+    wait(u_soc_top.u_core.rf_wb_rd_wen
+         && (u_soc_top.u_core.rf_wb_rd_idx == 5'd27));
+    if (u_soc_top.u_core.rf_wb_data == 32'h1) begin
         report_result(1, "ISA");
     end else begin
         report_result(0, "ISA");
@@ -127,9 +130,35 @@ wire [31:0] mem_wr_data = u_soc_top.u_core.o_mem_wr_data;
 
 function automatic [31:0] read_signature_word;
     input [31:0] addr;
+    integer cache_set;
+    integer cache_entry;
+    reg [19:0] cache_tag;
+    reg [63:0] cache_chunk;
     begin
         if ((addr >= `DTCM_BASE) && (addr < (`DTCM_BASE + `DTCM_SIZE))) begin
-            read_signature_word = u_soc_top.u_backing_dmem.r_backing_dmem[(addr - `DTCM_BASE) >> 2];
+            cache_set = addr[11:5];
+            cache_entry = {addr[11:5], addr[4:3]};
+            cache_tag = addr[31:12];
+
+            // A write-back D-cache may still own the newest signature word.
+            // The compliance checker therefore takes a coherent DV snapshot:
+            // matching valid cache way first, backing memory otherwise.
+            if (u_soc_top.u_dcache.r_valid_way0[cache_set]
+                    && (u_soc_top.u_dcache.u_tag_way0.r_tag[cache_set]
+                        == cache_tag)) begin
+                cache_chunk = u_soc_top.u_dcache.u_data_way0.r_data[cache_entry];
+                read_signature_word = addr[2]
+                                    ? cache_chunk[63:32] : cache_chunk[31:0];
+            end else if (u_soc_top.u_dcache.r_valid_way1[cache_set]
+                    && (u_soc_top.u_dcache.u_tag_way1.r_tag[cache_set]
+                        == cache_tag)) begin
+                cache_chunk = u_soc_top.u_dcache.u_data_way1.r_data[cache_entry];
+                read_signature_word = addr[2]
+                                    ? cache_chunk[63:32] : cache_chunk[31:0];
+            end else begin
+                read_signature_word =
+                    u_soc_top.u_backing_dmem.r_backing_dmem[(addr - `DTCM_BASE) >> 2];
+            end
         end
         // else if ((addr >= `ITCM_BASE) && (addr < (`ITCM_BASE + `ITCM_SIZE)))
         //     read_signature_word = u_soc_top.u_backing_imem.r_backing_imem[(addr - `ITCM_BASE) >> 2];

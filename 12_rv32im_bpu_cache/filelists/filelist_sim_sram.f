@@ -4,6 +4,8 @@
 ../12_rv32im_bpu_cache/de/periphs/uart.v
 ../12_rv32im_bpu_cache/de/periphs/backing_dmem.sv
 ../12_rv32im_bpu_cache/de/core/core.sv
+../12_rv32im_bpu_cache/de/core/cache_data_array_1rw.sv
+../12_rv32im_bpu_cache/de/core/cache_tag_array_1rw.sv
 ../12_rv32im_bpu_cache/de/core/icache.sv
 ../12_rv32im_bpu_cache/de/core/dcache.sv
 ../12_rv32im_bpu_cache/de/core/branch_predictor.sv

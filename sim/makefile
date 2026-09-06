@@ -27,8 +27,8 @@ DEFINES_DIR  := $(DE_DIR)/defines
 FILELIST_DIR := $(DESIGN_NAME)/filelists
 TB_FILE      := $(DV_DIR)/tb_soctop_isatest.sv
 SIM_FILELIST := $(FILELIST_DIR)/filelist_sim_sram.f
-ICACHE_TB_FILE := $(DV_DIR)/tb_icache_basic.sv
-DCACHE_TB_FILE := $(DV_DIR)/tb_dcache_basic.sv
+ICACHE_FINAL_TB_FILE := $(DV_DIR)/tb_icache_final.sv
+DCACHE_FINAL_TB_FILE := $(DV_DIR)/tb_dcache_final.sv
 
 FILELIST_OUT ?= filelist.f
 SVA_FILES := \
@@ -86,17 +86,22 @@ sim: com
 
 sim_run_all: sim verdi
 
-# Phase 1 focused I-Cache test. Build products stay in the shared sim folder.
-sim_phase1_icache:
-	vcs $(DE_DIR)/core/icache.sv $(ICACHE_TB_FILE) \
-		$(VCS_FLAGS) $(VCS_DEFINES) -top tb_icache_basic \
+# Phase 3 final L1 focused tests. Build products stay in the shared sim folder.
+sim_phase3_icache:
+	vcs $(DE_DIR)/core/cache_data_array_1rw.sv \
+		$(DE_DIR)/core/cache_tag_array_1rw.sv \
+		$(DE_DIR)/core/icache.sv $(ICACHE_FINAL_TB_FILE) \
+		$(VCS_FLAGS) $(VCS_DEFINES) -top tb_icache_final \
 		|tee vcs.log
 	./simv |tee sim.log
 
-sim_phase2_dcache:
-	vcs $(DE_DIR)/soc/soc_bus.sv $(DE_DIR)/core/dcache.sv \
-		$(DE_DIR)/periphs/backing_dmem.sv $(DCACHE_TB_FILE) \
-		$(VCS_FLAGS) $(VCS_DEFINES) -top tb_dcache_basic \
+sim_phase3_dcache:
+	vcs $(DE_DIR)/soc/soc_bus.sv \
+		$(DE_DIR)/core/cache_data_array_1rw.sv \
+		$(DE_DIR)/core/cache_tag_array_1rw.sv \
+		$(DE_DIR)/core/dcache.sv \
+		$(DE_DIR)/periphs/backing_dmem.sv $(DCACHE_FINAL_TB_FILE) \
+		$(VCS_FLAGS) $(VCS_DEFINES) -top tb_dcache_final \
 		|tee vcs.log
 	./simv |tee sim.log
 
@@ -347,4 +352,4 @@ sva_log:
 .PHONY: all filelist filelist_cfig \
         com com_isa com_compli com_userprog sim sim_run_all \
         sim_isa sim_compli sim_userprog sim_user sim_isa_all _batch_isa \
-        _batch_compli verdi clean sva_log sim_phase1_icache sim_phase2_dcache
+        _batch_compli verdi clean sva_log sim_phase3_icache sim_phase3_dcache

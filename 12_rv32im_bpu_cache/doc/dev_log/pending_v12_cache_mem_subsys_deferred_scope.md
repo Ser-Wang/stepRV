@@ -2,9 +2,10 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-06 03:37
-**Current Version**: v1.2
+**Current Version**: v1.3
 
 **Version Changelog**:
+- **v1.3** (2026-09-07 02:12): 按用户决定记录Phase 3暂不实现performance counters和 `fence.i` I-Cache invalidate，并明确当前可见限制与后续恢复条件。
 - **v1.2** (2026-09-06 16:27): 收录 Phase 0 S2 为快速功能迭代而搁置的长流、随机反压、RAS/dependency corner matrix、完整性能计数与严格 CoreMark 对比。
 - **v1.1** (2026-09-06 14:09): 记录 Cache + backing memory 最终决策；撤销独立 DTCM 扩容/双 bank 作为目标，改为移除过渡 TCM wrapper，并在 backing-memory/cache-array 边界完成容量与物理实现收口。
 - **v1.0** (2026-09-06 03:37): 从 Phase 0 工单迁入精确地址、Unmapped error、32 KiB DTCM 和 SRAM macro 分析，记录当前接受偏差、后续 Phase 归属与验收要点。
@@ -212,3 +213,29 @@ bubble；pending load数据不可用时必须保留现有interlock。搁置的�
 
 若后续性能异常、准备签核当前Feature，或进入更复杂Cache hit/miss/refill优化时，应重新建立独立DV/
 性能收口工单纳入这些项目。在执行前，记录为 `Deferred/Not Run`，不得写成 PASS。
+
+## 8. Phase 3 用户决定的暂时搁置项
+
+2026-09-07 02:03，用户决定从当前Phase 3实现与验收范围移除以下两项：
+
+### 8.1 Performance counters
+
+当前不实现I/D Cache access/hit/miss、dirty writeback、uncached access或miss stall cycle计数，也不新增
+CSR/MMIO/debug output。后续恢复时需要单独固定：
+
+- counter宽度、wrap/saturate语义及reset/clear规则；
+- 每个counter唯一递增事件，避免request等待、response反压或8个writeback word重复计数；
+- I/D并行miss的stall归因；
+- 软件可见性、快照及CoreMark统计口径。
+
+在恢复并执行定向测试前，以上计数能力统一标记为 `Deferred/Not Run`。
+
+### 8.2 `fence.i` I-Cache invalidate
+
+当前 `fence.i`仍在commit时执行流水线redirect和branch predictor invalidate，但不清I-Cache valid，也不
+抑制invalidate期间的in-flight refill install。因此LSU通过uncached IMEM data port修改backing IMEM后，
+I-Cache已有副本可能继续返回stale instruction。
+
+后续恢复时至少需要覆盖：commit-qualified invalidate、全valid清除、hit response stale drain、mid-refill
+fill suppression、invalidate与最后refill/install同拍优先级，以及self-modifying-code directed test。在
+这些功能真正实现前，不得把 `fence.i` Cache coherence写成PASS。

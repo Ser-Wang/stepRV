@@ -2,9 +2,10 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-05 15:52
-**Current Version**: v1.4
+**Current Version**: v1.5
 
 **Version Changelog**:
+- **v1.5** (2026-09-07 02:14): 按用户决定将Phase 3 performance counters继续标为Pending；`fence.i` invalidate维持Phase 1以来的Pending状态，不纳入当前Phase 3执行。
 - **v1.4** (2026-09-06 16:27): 收紧 Phase 0 S2 为不扩大事务资源/流水级的最小 elastic 优化；明确每拍吞吐成立条件，并将长流、corner matrix和完整性能计数标为 Pending。
 - **v1.3** (2026-09-06 16:05): 新增 Phase 0 S2 吞吐收口阶段；在保持单 unanswered request 与可变延迟正确性的同时，要求一拍 backend 上的独立 IF/LSU stream 达到稳态每拍一笔。
 - **v1.2** (2026-09-06 14:09): 固化 Cache + backing memory 路线；当前 TCM wrapper 仅为过渡实现，Phase 1/2 由 I/D Cache 直接接管既有 CPU-side 事务接口，最终移除 ITCM/DTCM。
@@ -168,18 +169,18 @@ valid-ready 接口是后续 I/D Cache 的 CPU-side 接口；当前 `mem_itcm`/`m
 - 64-bit Data Array access granularity;
 - per-way target organization: `512 × 64bit`.
 
-### Performance Features
+### Performance Features（Pending~，排除出当前Phase 3）
 
-- I-Cache access/hit/miss counters;
-- D-Cache access/hit/miss counters;
-- dirty writeback counter;
-- uncached access counter;
-- miss stall cycle counter.
+- I-Cache access/hit/miss counters；(Pending~)
+- D-Cache access/hit/miss counters；(Pending~)
+- dirty writeback counter；(Pending~)
+- uncached access counter；(Pending~)
+- miss stall cycle counter。(Pending~)
 
 ---
 
 ## 6. Phase 4 — BIU + 64-bit AXI
-
+计划分为两个子step，1. BIU，2. AXI
 ### Feature Goal
 
 将 I/D Cache 与 uncached/MMIO 后端访问统一收敛到 BIU。

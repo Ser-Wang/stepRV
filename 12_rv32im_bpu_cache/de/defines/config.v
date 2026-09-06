@@ -11,8 +11,8 @@
 // `define USE_BRAM
 // `define USE_SRAM_MACRO
 
-// Phase 2 uses synthesizable RTL I/D Caches plus backing_imem/backing_dmem
-// arrays. SRAM/BRAM mapping remains deferred.
+// Phase 3 uses 8 KiB 2-way I/D Caches with generic synchronous 1RW tag/data
+// arrays plus backing_imem/backing_dmem. SRAM/BRAM mapping remains deferred.
 
 
 // ===========================================================================

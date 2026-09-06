@@ -2,9 +2,10 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-06 11:04
-**Current Version**: v1.3
+**Current Version**: v1.4
 
 **Version Changelog**:
+- **v1.4** (2026-09-07 02:12): 记录Phase 3 8 KiB 2-way同步1RW I/D Cache、round-robin replacement及D$ write-back/write-allocate dirty eviction；performance counters与 `fence.i` invalidate继续deferred。
 - **v1.3** (2026-09-07 01:08): 记录Phase 2 4 KiB WT/NWA D-Cache、cacheable/uncached/Device路由、事务化backing DMEM与新preload层次。
 - **v1.2** (2026-09-07 00:42): 记录 Phase 1 4 KiB blocking I-Cache、32 KiB backing IMEM、refill合同与新preload层次；移除取指侧过渡 `mem_itcm`。
 - **v1.1** (2026-09-06 14:09): 明确当前 ITCM/DTCM 是 Cache 加入前的过渡 backend；最终采用 I/D Cache + backing memory 并移除 TCM 模块与语义。
@@ -13,17 +14,18 @@
 ---
 
 当前版本的 `icache`、`dcache`、`backing_imem`、`backing_dmem` 均使用可综合RTL array。
-`USE_BRAM`与 `USE_SRAM_MACRO` 不参与Phase 2构建；已有macro wrapper文件保留在仓库中，但不进入
+Cache tag/data通过generic synchronous 1RW wrapper访问。`USE_BRAM`与 `USE_SRAM_MACRO` 不参与Phase 3
+构建；已有macro wrapper文件保留在仓库中，但不进入
 `filelist_sim_sram.f` 或 `filelist_syn_sram.f`。
 
 这些模块不是最终 TCM 架构。确定的演进关系为：
 
 ```text
-IFU -> I-Cache -> backing IMEM  (Phase 1 current)
+IFU -> 8 KiB 2-way I-Cache -> backing IMEM
 
-MAU -> LSU router -> D-Cache -> backing DMEM (Phase 2 cacheable DMEM)
-                  -> backing IMEM data port   (Phase 2 uncached IMEM)
-                  -> UART                     (Phase 2 Device bypass)
+MAU -> LSU router -> 8 KiB 2-way WB/WA D-Cache -> backing DMEM
+                  -> backing IMEM data port          (uncached IMEM)
+                  -> UART                            (Device bypass)
 ```
 
 I/D Cache直接继承Phase 0定义的IF/LSU req/rsp合同。取指侧和data侧过渡TCM模块均已移除。
@@ -33,9 +35,9 @@ I/D Cache直接继承Phase 0定义的IF/LSU req/rsp合同。取指侧和data侧�
 | 存储 | Base | 逻辑容量 | RTL depth | Phase 0 decode |
 |---|---:|---:|---:|---|
 | backing IMEM | `0x0000_0000` | 32 KiB | 8192 x 32 | 地址高 nibble 为 `0x0` |
-| I-Cache | CPU请求地址 | 4 KiB | 128 lines x 8 words | tag `[31:12]`、index `[11:5]`、word `[4:2]` |
+| I-Cache | CPU请求地址 | 8 KiB | 2 ways × 128 sets × 32 B | tag `[31:12]`、set `[11:5]`、word `[4:2]` |
 | backing DMEM | `0x1000_0000` | 16 KiB | 4096 x 32 | 地址高 nibble 为 `0x1` |
-| D-Cache | DMEM请求地址 | 4 KiB | 128 lines x 8 words | tag `[31:12]`、index `[11:5]`、word `[4:2]` |
+| D-Cache | DMEM请求地址 | 8 KiB | 2 ways × 128 sets × 32 B | tag `[31:12]`、set `[11:5]`、word `[4:2]` |
 | UART | `0x3000_0000` | 既有寄存器窗口 | 不适用 | 地址高 nibble 为 `0x3` |
 
 高nibble decode与16 KiB backing DMEM越界alias是已接受的临时行为。精确范围、access fault、
@@ -51,14 +53,20 @@ request  = if_req_vld && if_req_rdy
 response = if_rsp_vld && if_rsp_rdy
 ```
 
-- I-Cache为4 KiB、32 B line、128-line direct-mapped只读blocking cache；
-- cold/conflict miss从32 B对齐地址开始发出8次32-bit word transaction，完整接收后原子安装valid/tag；
+- I-Cache为8 KiB、2-way、128-set、32 B line只读blocking cache；
+- invalid way优先；两way均valid时按每set 1-bit round-robin选择victim，hit不更新replacement bit；
+- cold/conflict miss从32 B对齐地址开始发出8次32-bit word transaction，收集后写入4个64-bit chunk，
+  完整安装data/tag后才原子置valid；
+- 每way Data Array逻辑组织为 `512 × 64 bit`，Tag Array为 `128 × 20 bit`，均使用synchronous 1RW
+  generic wrapper；CPU request fire发起lookup，下一拍使用同步输出判定hit；
 - miss期间不接受第二个CPU request；hit response在消费前保持稳定；
 - warm hit response被消费时可同拍接受下一个CPU request；
 - backing IMEM只有一个response slot，请求fire后同步读array，并保持response直到fire；
 - IFU 同时最多保留一个 outstanding request；redirect 后已发出的旧 response 会被接收并丢弃；
 - reset清除全部cache valid和控制状态，但不清cache data/tag或backing IMEM内容；
 - 未映射refill request以NOP benign completion返回，本阶段不产生access fault。
+- `fence.i` I-Cache invalidate按当前Phase 3范围决定继续deferred，现有 `fence.i`只执行流水线redirect和
+  branch predictor invalidate。
 
 backing IMEM port 1保留给LSU executable-region路径，使用同步RTL 1RW enable/write-mask接口；
 该data port不经过I-Cache。
@@ -80,15 +88,20 @@ EMPTY -> REQ -> WAIT_RSP -> DONE -> EMPTY
 
 LSU router使用当前粗粒度属性分流：
 
-- `0x1xxx_xxxx` DMEM为cacheable，进入4 KiB direct-mapped blocking D-Cache；
-- D-Cache load miss执行8个word whole-line refill，完整接收后原子install；
-- store hit采用write-through并以byte mask同步更新cache line；
-- store miss采用no-write-allocate，只写一次backing DMEM且不驱逐resident line；
+- `0x1xxx_xxxx` DMEM为cacheable，进入8 KiB、2-way blocking D-Cache；
+- D-Cache使用与I$相同的invalid-first/per-set 1-bit round-robin及同步1RW 64-bit Data Array组织；
+- load miss和store miss均执行8-word whole-line refill；store miss在refill line中做byte-mask merge后
+  write-allocate并置dirty；
+- store hit只更新命中64-bit chunk的目标byte并置dirty，不执行write-through；
+- valid+dirty victim先通过4次同步64-bit read保存整条line，再按地址升序完成8次32-bit full-word
+  writeback response，之后才能开始新line refill；clean/invalid victim不writeback；
 - `0x0xxx_xxxx` executable IMEM data access走backing IMEM uncached data port；
 - `0x3xxx_xxxx` UART为Device并绕过D-Cache；其他地址临时benign completion。
 
 backing DMEM array不由reset清零；reset清D-Cache valid及transaction/output状态。byte mask bit 0
 对应 `[7:0]`，bit 3对应 `[31:24]`。
+
+Phase 3 performance counters按用户决定暂不实现；当前没有Cache counter CSR、MMIO或debug output。
 
 ## 构建与初始化
 

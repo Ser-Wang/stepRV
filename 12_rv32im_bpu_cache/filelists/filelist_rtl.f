@@ -4,6 +4,8 @@ periphs/backing_imem.sv
 periphs/uart.v
 periphs/backing_dmem.sv
 core/core.sv
+core/cache_data_array_1rw.sv
+core/cache_tag_array_1rw.sv
 core/icache.sv
 core/dcache.sv
 core/branch_predictor.sv
