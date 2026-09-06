@@ -51,7 +51,7 @@ wrapper_soc_top u_wrapper_soc_top(
 
 // ---------------- Memory Loading ----------------
 initial begin
-    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_imem.r_itcm);
+    // $readmemh(INST_DATA_PATH, `DUT_SOC.u_backing_imem.r_backing_imem);
     
     // $readmemh(INST_DATA_PATH, `DUT_SOC.u_dmem.r_dtcm);
 end

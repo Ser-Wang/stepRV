@@ -1,9 +1,10 @@
 soc/soc_top.sv
 soc/soc_bus.sv
-periphs/mem_itcm.sv
+periphs/backing_imem.sv
 periphs/uart.v
 periphs/mem_dtcm.sv
 core/core.sv
+core/icache.sv
 core/branch_predictor.sv
 core/ras_dual_full_stack.sv
 core/ifu.sv

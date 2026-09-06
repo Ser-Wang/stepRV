@@ -148,13 +148,8 @@ soc_top u_soc_top(
 
 // ---------------- Memory Loading ----------------
 task automatic load_inst_mem(input string data_path);
-`ifdef USE_SRAM_MACRO
-    $display("[Memory Load] ITCM SRAM macro <= %s", data_path);
-    $readmemh(data_path, u_soc_top.u_imem.u_itcm_sram_wrapper.u_smic55_8192x32_2p.mem_array);
-`else
-    $display("[Memory Load] ITCM RTL memory <= %s", data_path);
-    $readmemh(data_path, u_soc_top.u_imem.r_itcm);
-`endif
+    $display("[Memory Load] backing IMEM RTL memory <= %s", data_path);
+    $readmemh(data_path, u_soc_top.u_backing_imem.r_backing_imem);
 endtask
 
 initial begin

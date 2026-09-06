@@ -23,7 +23,14 @@ wire [31:0] fetch_pc;
 wire        fetch_req_rdy;
 wire        if_rsp_vld;
 wire        if_rsp_rdy;
-wire [31:0] itcm_rd_data;
+wire [31:0] if_rsp_data;
+
+wire        imem_req_vld;
+wire        imem_req_rdy;
+wire [31:0] imem_req_addr;
+wire        imem_rsp_vld;
+wire        imem_rsp_rdy;
+wire [31:0] imem_rsp_data;
 
 wire mem_req_vld;
 wire mem_req_rdy;
@@ -46,7 +53,7 @@ core u_core(
     .i_fetch_req_rdy(fetch_req_rdy  ),
     .i_if_rsp_vld   (if_rsp_vld     ),
     .o_if_rsp_rdy   (if_rsp_rdy     ),
-    .i_if_instr     (itcm_rd_data   ),
+    .i_if_instr     (if_rsp_data    ),
     // mem access
     .o_mem_req_vld  (mem_req_vld   ),
     .i_mem_req_rdy  (mem_req_rdy   ),
@@ -121,16 +128,33 @@ soc_bus u_soc_bus (
     .i_uart_rd_data (uart_rd_data )
 );
 
-mem_itcm u_imem(
+icache u_icache (
     .clk                (clk            ),
     .rst_n              (rst_n          ),
-    // Instruction Fetch transaction
-    .i_p0_req_vld       (fetch_req      ),
-    .o_p0_req_rdy       (fetch_req_rdy  ),
-    .i_p0_req_addr      (fetch_pc       ),
-    .o_p0_rsp_vld       (if_rsp_vld     ),
-    .i_p0_rsp_rdy       (if_rsp_rdy     ),
-    .o_p0_rsp_data      (itcm_rd_data   ),
+    .i_cpu_req_vld      (fetch_req      ),
+    .o_cpu_req_rdy      (fetch_req_rdy  ),
+    .i_cpu_req_addr     (fetch_pc       ),
+    .o_cpu_rsp_vld      (if_rsp_vld     ),
+    .i_cpu_rsp_rdy      (if_rsp_rdy     ),
+    .o_cpu_rsp_data     (if_rsp_data    ),
+    .o_mem_req_vld      (imem_req_vld   ),
+    .i_mem_req_rdy      (imem_req_rdy   ),
+    .o_mem_req_addr     (imem_req_addr  ),
+    .i_mem_rsp_vld      (imem_rsp_vld   ),
+    .o_mem_rsp_rdy      (imem_rsp_rdy   ),
+    .i_mem_rsp_data     (imem_rsp_data  )
+    );
+
+backing_imem u_backing_imem (
+    .clk                (clk            ),
+    .rst_n              (rst_n          ),
+    // I-Cache refill transaction
+    .i_p0_req_vld       (imem_req_vld   ),
+    .o_p0_req_rdy       (imem_req_rdy   ),
+    .i_p0_req_addr      (imem_req_addr  ),
+    .o_p0_rsp_vld       (imem_rsp_vld   ),
+    .i_p0_rsp_rdy       (imem_rsp_rdy   ),
+    .o_p0_rsp_data      (imem_rsp_data  ),
     // Data Write (Self-modifying support)
     .i_p1_en            (itcm_p1_en     ),
     .i_p1_we            (itcm_p1_we     ),

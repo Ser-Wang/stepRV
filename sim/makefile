@@ -27,6 +27,7 @@ DEFINES_DIR  := $(DE_DIR)/defines
 FILELIST_DIR := $(DESIGN_NAME)/filelists
 TB_FILE      := $(DV_DIR)/tb_soctop_isatest.sv
 SIM_FILELIST := $(FILELIST_DIR)/filelist_sim_sram.f
+ICACHE_TB_FILE := $(DV_DIR)/tb_icache_basic.sv
 
 FILELIST_OUT ?= filelist.f
 SVA_FILES := \
@@ -83,6 +84,13 @@ sim: com
 	@$(MAKE) --no-print-directory sva_log
 
 sim_run_all: sim verdi
+
+# Phase 1 focused I-Cache test. Build products stay in the shared sim folder.
+sim_phase1_icache:
+	vcs $(DE_DIR)/core/icache.sv $(ICACHE_TB_FILE) \
+		$(VCS_FLAGS) $(VCS_DEFINES) -top tb_icache_basic \
+		|tee vcs.log
+	./simv |tee sim.log
 
 verdi:
 	verdi -f $(FILELIST_OUT) -ssf tb_top.fsdb -play ./scripts/verdi.tcl &
@@ -331,4 +339,4 @@ sva_log:
 .PHONY: all filelist filelist_cfig \
         com com_isa com_compli com_userprog sim sim_run_all \
         sim_isa sim_compli sim_userprog sim_user sim_isa_all _batch_isa \
-        _batch_compli verdi clean sva_log
+        _batch_compli verdi clean sva_log sim_phase1_icache

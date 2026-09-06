@@ -11,9 +11,9 @@
 // `define USE_BRAM
 // `define USE_SRAM_MACRO
 
-// Phase 0 uses transitional synthesizable RTL arrays in mem_itcm/mem_dtcm.
-// Phase 1/2 replace their CPU-facing role with I/D Cache and migrate the arrays
-// behind backing-memory adapters. SRAM/BRAM mapping remains deferred.
+// Phase 1 uses a synthesizable RTL I-Cache plus backing_imem array. The data
+// side remains on its Phase-0 transitional backend until Phase 2. SRAM/BRAM
+// mapping remains deferred.
 
 
 // ===========================================================================

@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-07 00:42 — Phase 1 Basic I-Cache
+
+- 工单：[`task_v12_03_phase1_basic_icache.md`](task_v12_03_phase1_basic_icache.md)
+- 实现4 KiB、32 B line、128-line direct-mapped read-only blocking I-Cache；miss执行8个word whole-line
+  refill，完整接收后原子install；hit response支持反压保持和response/request同拍replacement。
+- 将取指侧过渡 `mem_itcm` 重构为32 KiB `backing_imem`，SoC、filelist及TB preload统一切换到
+  I-Cache + backing IMEM，LSU executable-region data port保持直达backing array。
+- 最小验证：I-Cache核心定向PASS；`add`、`jal` SoC smoke均PASS且无新增SVA/Assertion error。
+- 用户公共验收：ISA `rv32ui` 41/42 PASS（仅既有允许项 `ma_data` FAIL）、`rv32um` 8/8 PASS；
+  Compliance `rv32i` 48/48、`rv32im` 8/8、`rv32Zicsr` 6/6、`rv32Zifencei` 1/1 PASS；
+  synthesis check PASS；`coremark_10` 运行成绩为用户报告的 `81 ms`。任务Completed。
+
 ## 2026-09-06 20:10 — 修复 Phase 0 S2 两项公共回归
 
 - 用户重跑rv32ui确认仅既有允许项 `ma_data` FAIL，`ld_st` 已通过组级验证。
