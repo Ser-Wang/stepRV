@@ -5,27 +5,32 @@
 
 ---
 
-## 2026-09-06 19:45 — Phase 0 S2 验证未闭环，`rv32ui-p-ld_st` 暂时搁置
+## 2026-09-06 20:10 — 修复 Phase 0 S2 两项公共回归
 
-- 用户手动运行 `type=isa group=rv32ui`，反馈新增 `rv32ui-p-ld_st` FAIL；公共验收要求只允许既有
-  `ma_data` FAIL，因此当前S2工单不能标记Completed。
-- AI在规定的 `work/my-RISCV-Projs/sim` 路径单独运行 `ld_st`，用例在
-  `1_000_000_000 ps` timeout，未进入其PASS/FAIL handler。
-- 调试期间发现初版S2 MAU把逻辑MA ingress误做成实际新增register，导致普通ALU forwarding晚一拍；
-  已删除该寄存级，memory request改为直接使用EX现有valid-ready holding，non-memory恢复原五级时序。
-- 修正后Phase0与S2短流、BPU/RAS用例曾作诊断性运行并通过，但因错误地在设计 `dv` 路径生成结果，
-  build目录已全部清理，这些结果不作为最终公共验收证据；后续只在统一 `sim` 路径执行。
-- `ld_st` 剩余根因尚未确认，按用户决策暂时搁置；工单状态更新为
-  `Implementation Frozen — Acceptance Incomplete`，具体见
-  [`pending_v12_cache_mem_subsys_deferred_scope.md`](pending_v12_cache_mem_subsys_deferred_scope.md)。
-- `rv32um`、Compliance、CoreMark和DC check无新结果，记为 `Not Run/Not Reported`。
+- 用户重跑rv32ui确认仅既有允许项 `ma_data` FAIL，`ld_st` 已通过组级验证。
+- `rv32ui-p-ld_st` 首错定位到test 2的 `PC=0x00000044`：`lw tp,8(sp)`已正确返回 `0x10000050`，随后依赖store也发出
+  正确请求；branch在EX受LSU backpressure保持时只短暂看到WBU forwarding，producer离开后退回进入EX
+  时捕获的旧 `tp=0`，错误跳往fail。
+- `de/core/exu.sv` 现会在EX payload保持期间把有效MAU/WBU forwarding值吸收到现有operand holding
+  registers；未增加pipeline stage、FIFO或MAU transaction resource。
+- 在 `work/my-RISCV-Projs/sim` 运行标准单例
+  `make sim_isa test=ld_st DESIGN_NAME=../12_rv32im_bpu_cache`，结果 `[PASS]`，结束时间
+  `23_970_000 ps`，无新增SVA/Assertion error。
+- `I-MISALIGN_LDST-01` 首错为 `PC=0x000000b4` 的非对齐load：已产生cause=4/mtval，但在
+  `ex_ma_rdy=0` 时被下一条依赖指令触发的无条件 `FLUSH_ID_EX` 清除，未能commit或进入trap handler。
+- `ctrl_hazard.sv` 的load-use flush现以EX/MA ready为条件；MA backpressure期间继续使用现有EX holding
+  保存load/exception，未增加pipeline stage、FIFO或transaction resource；`core.sv` 仅新增ready连接。
+- 标准单例 `I-MISALIGN_LDST-01` PASS（`7_770_000 ps`），`ld_st` 复测PASS（`23_970_000 ps`）。完整
+  rv32i Compliance group仍待用户重跑，其他公共验收无新增结果。
+- 用户已确认完整rv32ui只剩既有允许项 `ma_data`；rv32um、完整Compliance、CoreMark和DC check未由
+  AI运行。
 
 ## 2026-09-06 16:47 — Phase 0 S2 IFU / LSU Transaction Throughput
 
 - 工单：[`task_v12_02_phase0_s2_memory_throughput.md`](task_v12_02_phase0_s2_memory_throughput.md)
 - 实现：IFU response-derived successor request与response-buffer elastic replacement；RAS-dependent return局部bubble；MAU复用EX现有valid-ready holding并拆分single-outstanding metadata和MA/WB completion，实现同拍replacement且不新增流水级/FIFO/MSHR。
-- 诊断性定向：Phase0 bus/IFU/MAU及两个16-entry throughput短流PASS；IF和LSU request/response/output均达到steady-state 1/cycle；BPU/RAS轻量回归PASS；v12全SoC VCS compile PASS。其后发现公共回归问题，且DV路径生成物已清理，最终状态以上方19:45记录为准。
-- 用户手动验收待运行：rvtests ISA、Compliance、CoreMark耗时对比、DC check及其他完整签核；当前工单不标记Completed。
+- 诊断性定向：Phase0 bus/IFU/MAU及两个16-entry throughput短流PASS；IF和LSU request/response/output均达到steady-state 1/cycle；BPU/RAS轻量回归PASS；v12全SoC VCS compile PASS。其后发现的两项公共回归已修复，且DV路径生成物已清理，最终状态以上方20:10记录为准。
+- 用户已确认完整rv32ui除既有允许项 `ma_data` 外均通过；完整ISA/Compliance、CoreMark耗时对比、DC check及其他签核仍由用户手动验收。
 
 ## 2026-09-06 14:09 — Phase 0 review - Cache + Backing Memory 架构决策
 

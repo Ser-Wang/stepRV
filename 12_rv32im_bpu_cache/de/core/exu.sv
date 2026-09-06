@@ -129,6 +129,12 @@ assign o_wb_rd_wen_exu = o_ex_ma_vld & r_wb_rd_wen_exu & (~o_exc_req) & (~o_trap
 
 // Comb in, reg 
 reg [31:0] rf_rs1_r_ex, rf_rs2_r_ex;
+wire rs1_forwarding_vld = i_fwding_rs1_sel[1];
+wire rs2_forwarding_vld = i_fwding_rs2_sel[1];
+wire [31:0] rs1_forwarding_data = i_fwding_rs1_sel[0]
+                                      ? i_fwd_wb_data_wbu : i_fwd_wb_data_mau;
+wire [31:0] rs2_forwarding_data = i_fwding_rs2_sel[0]
+                                      ? i_fwd_wb_data_wbu : i_fwd_wb_data_mau;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         rf_rs1_r_ex <= 32'd0;
@@ -137,6 +143,17 @@ always @(posedge clk or negedge rst_n) begin
     else if (i_id_ex_vld & o_id_ex_rdy & !i_flush) begin
         rf_rs1_r_ex <= i_rf_rs1_data;
         rf_rs2_r_ex <= i_rf_rs2_data;
+    end
+    // Forwarding is a transient view of an older result.  When downstream
+    // backpressure holds the current EX payload, absorb that result into the
+    // existing EX operand holding registers so it remains available after the
+    // producer leaves MA/WB.  This is holding-state maintenance, not another
+    // pipeline stage or FIFO.
+    else if (r_ex_vld & !o_id_ex_rdy & !i_flush) begin
+        if (o_need_rs1_exu & rs1_forwarding_vld)
+            rf_rs1_r_ex <= rs1_forwarding_data;
+        if (o_need_rs2_exu & rs2_forwarding_vld)
+            rf_rs2_r_ex <= rs2_forwarding_data;
     end
 end
 
@@ -221,9 +238,9 @@ assign o_rs2idx_exu = r_rs2idx_exu;
 // ----------------        Data Forwarding        ---------------- //
 wire [`XLEN-1:0] rs1_fwded, rs2_fwded;
 assign rs1_fwded = (~i_fwding_rs1_sel[1]) ? rf_rs1_r_ex : 
-                   ( i_fwding_rs1_sel[0]) ? i_fwd_wb_data_wbu : i_fwd_wb_data_mau;
+                   rs1_forwarding_data;
 assign rs2_fwded = (~i_fwding_rs2_sel[1]) ? rf_rs2_r_ex : 
-                   ( i_fwding_rs2_sel[0]) ? i_fwd_wb_data_wbu : i_fwd_wb_data_mau;
+                   rs2_forwarding_data;
 
 
 

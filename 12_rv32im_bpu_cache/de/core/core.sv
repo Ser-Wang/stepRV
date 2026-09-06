@@ -299,6 +299,7 @@ ctrl_hazard u_ctrl_hazard(
     .i_rs2idx_idu       (rf_read_rs2_idx    ),
     .i_is_load_req_exu  (is_load_req_exu    ),
     .i_wb_rd_idx_exu    (wb_rd_idx_exu      ),
+    .i_ex_ma_rdy        (ex_ma_rdy           ),
     // for forwarding
     .i_need_rs1_exu     (need_rs1_exu       ),
     .i_need_rs2_exu     (need_rs2_exu       ),

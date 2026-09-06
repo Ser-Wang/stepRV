@@ -22,6 +22,7 @@ module ctrl_hazard(
     input  wire [`RFIDX_WIDTH-1:0] i_rs2idx_idu,
     input  wire i_is_load_req_exu,
     input  wire [`RFIDX_WIDTH-1:0] i_wb_rd_idx_exu,
+    input  wire i_ex_ma_rdy,
     // for forwarding
     input  wire i_need_rs1_exu,
     input  wire i_need_rs2_exu,
@@ -96,7 +97,10 @@ always @(*) begin
     if (i_redirect_req) begin
         flush = 4'b0011;    // MEM_WB | EX_MEM | ID_EX | IF_ID
     end
-    else if (stall_req_lduse_id) begin
+    else if (stall_req_lduse_id & i_ex_ma_rdy) begin
+        // Only inject the dependency bubble when the older EX load can leave.
+        // Under MA backpressure the load/exception must remain in EX instead
+        // of being flushed before its request or trap commits.
         flush = 4'b0010;
     end
     else begin

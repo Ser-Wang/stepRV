@@ -2,10 +2,9 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-09-06 03:37
-**Current Version**: v1.3
+**Current Version**: v1.2
 
 **Version Changelog**:
-- **v1.3** (2026-09-06 19:45): 记录Phase0 S2后 `rv32ui-p-ld_st` 新增FAIL/timeout、验收影响与后续恢复入口；按用户决策暂时不继续debug。
 - **v1.2** (2026-09-06 16:27): 收录 Phase 0 S2 为快速功能迭代而搁置的长流、随机反压、RAS/dependency corner matrix、完整性能计数与严格 CoreMark 对比。
 - **v1.1** (2026-09-06 14:09): 记录 Cache + backing memory 最终决策；撤销独立 DTCM 扩容/双 bank 作为目标，改为移除过渡 TCM wrapper，并在 backing-memory/cache-array 边界完成容量与物理实现收口。
 - **v1.0** (2026-09-06 03:37): 从 Phase 0 工单迁入精确地址、Unmapped error、32 KiB DTCM 和 SRAM macro 分析，记录当前接受偏差、后续 Phase 归属与验收要点。
@@ -213,38 +212,3 @@ bubble；pending load数据不可用时必须保留现有interlock。搁置的�
 
 若后续性能异常、准备签核当前Feature，或进入更复杂Cache hit/miss/refill优化时，应重新建立独立DV/
 性能收口工单纳入这些项目。在执行前，记录为 `Deferred/Not Run`，不得写成 PASS。
-
-## 8. Phase 0 S2 已知功能问题：`rv32ui-p-ld_st`
-
-### 8.1 当前现象
-
-- 用户于2026-09-06手动运行 `type=isa group=rv32ui`，反馈 `rv32ui-p-ld_st` FAIL。
-- AI在统一 `work/my-RISCV-Projs/sim` 路径运行单例时，用例在仿真时间
-  `1_000_000_000 ps` timeout，未进入PASS/FAIL handler。
-- 该结果是超出允许项 `ma_data` 的新增failure，因此Phase0 S2不满足公共验收，不得记录为PASS或
-  Completed。
-
-用例内容简介见
-[`../../../tests/rv_tests_isa_new/README_cases.md`](../../../tests/rv_tests_isa_new/README_cases.md)。它主要覆盖
-对齐byte/halfword/word load/store、符号/零扩展、write mask，以及紧邻store→load、load→store和
-load result立即作为下一访存地址/数据的依赖链。
-
-### 8.2 已排除与尚未确认
-
-- 初版S2 MAU曾误增加实际ingress register，造成普通ALU结果和forwarding晚一拍；该问题已经通过删除
-  `r_ingress_*`、直接复用EX existing valid-ready holding修正，不能把它当作当前 `ld_st` 已知根因。
-- Phase0/S2短流与BPU/RAS诊断性定向曾通过，但没有覆盖 `ld_st` 的完整load-use/store-load序列；且其
-  DV路径生成物已经清理，不能替代公共回归。
-- 当前尚未确认卡住的具体PC，也未确认根因位于same-cycle store/load replacement、load-use
-  interlock/forwarding、response metadata/data对齐或其他流水控制。
-
-### 8.3 后续恢复条件与最小调试入口
-
-按用户决策，本bug当前停止debug。恢复时至少应：
-
-1. 只在 `work/my-RISCV-Projs/sim` 路径运行 `ld_st` 单例并取得卡住PC及IF/EX/MA/WB valid-ready状态；
-2. 从 `test_2` 的 `sb -> lb -> sb -> lb` 和加载指针后立即作为store/load base的序列开始逐拍检查；
-3. 对照每笔 `mem_req_fire`、`mem_rsp_fire`、MA/WB rd/data以及DTCM target write，定位首个偏差；
-4. 修复后先确认 `ld_st` PASS，再由用户重跑 `rv32ui`，且只允许既有 `ma_data` FAIL。
-
-在用户明确恢复该问题前，状态保持 `Deferred — Known Functional Regression`。
