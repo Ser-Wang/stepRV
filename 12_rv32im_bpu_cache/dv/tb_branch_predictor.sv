@@ -5,6 +5,9 @@ module tb_branch_predictor;
 
 localparam integer BTB_ENTRIES = `BPU_BTB_ENTRIES;
 localparam integer BHT_ENTRIES = `BPU_BHT_ENTRIES;
+localparam [31:0] TEST_PC = 32'h0000_0100;
+localparam [31:0] ALIAS_PC = TEST_PC + (BTB_ENTRIES * 4);
+localparam integer TEST_BHT_IDX = (TEST_PC >> 2) & (BHT_ENTRIES - 1);
 
 reg         clk;
 reg         rst_n;
@@ -98,8 +101,8 @@ initial begin
     #1 rst_n = 1'b1;
     #1;
 
-    check(BTB_ENTRIES == 16, "v11 default BTB depth must be 16");
-    check(BHT_ENTRIES == 16, "v11 default BHT depth must be 16");
+    check(BTB_ENTRIES >= 2, "configured BTB depth must be valid");
+    check(BHT_ENTRIES >= 2, "configured BHT depth must be valid");
     for (idx = 0; idx < BTB_ENTRIES; idx = idx + 1)
         check(dut.btb_valid[idx] === 1'b0, "reset must invalidate every BTB entry");
     for (idx = 0; idx < BHT_ENTRIES; idx = idx + 1)
@@ -122,33 +125,33 @@ initial begin
         drive_update(32'h0000_0100, 1'b1, 1'b0, 32'h0000_0080);
         check_query(32'h0000_0100, 1'b1, 1'b0, 32'h0000_0104,
                     "not-taken conditional update must install BTB but predict sequentially");
-        check(dut.bht_counter[0] === 2'b00, "01 not-taken transition must produce 00");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b00, "01 not-taken transition must produce 00");
 
         drive_update(32'h0000_0100, 1'b1, 1'b0, 32'h0000_0080);
-        check(dut.bht_counter[0] === 2'b00, "not-taken counter must saturate at 00");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b00, "not-taken counter must saturate at 00");
         drive_update(32'h0000_0100, 1'b1, 1'b1, 32'h0000_0080);
-        check(dut.bht_counter[0] === 2'b01, "00 taken transition must produce 01");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b01, "00 taken transition must produce 01");
         drive_update(32'h0000_0100, 1'b1, 1'b1, 32'h0000_0080);
-        check(dut.bht_counter[0] === 2'b10, "01 taken transition must produce 10");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b10, "01 taken transition must produce 10");
         check_query(32'h0000_0100, 1'b1, 1'b1, 32'h0000_0080,
                     "conditional counter MSB one must select trained target");
         drive_update(32'h0000_0100, 1'b1, 1'b1, 32'h0000_0080);
         drive_update(32'h0000_0100, 1'b1, 1'b1, 32'h0000_0080);
-        check(dut.bht_counter[0] === 2'b11, "taken counter must saturate at 11");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b11, "taken counter must saturate at 11");
 
         // Same index, different tag replaces the old direct-mapped entry.
-        drive_update(32'h0000_0140, 1'b0, 1'b1, 32'h0000_0200);
+        drive_update(ALIAS_PC, 1'b0, 1'b1, 32'h0000_0200);
         check_query(32'h0000_0100, 1'b0, 1'b0, 32'h0000_0104,
                     "same-index different-tag replacement must make old PC miss");
-        check_query(32'h0000_0140, 1'b1, 1'b1, 32'h0000_0200,
+        check_query(ALIAS_PC, 1'b1, 1'b1, 32'h0000_0200,
                     "unconditional BTB entry must always predict taken");
-        check(dut.bht_counter[0] === 2'b11, "unconditional update must not alter BHT");
+        check(dut.bht_counter[TEST_BHT_IDX] === 2'b11, "unconditional update must not alter BHT");
 
         // Query/update collision observes the old entry until the active edge.
-        query_pc = 32'h0000_0140;
+        query_pc = ALIAS_PC;
         @(negedge clk);
         update_vld = 1'b1;
-        update_pc = 32'h0000_0140;
+        update_pc = ALIAS_PC;
         update_is_cond = 1'b0;
         update_taken = 1'b1;
         update_target = 32'h0000_0240;
@@ -165,15 +168,15 @@ initial begin
         drive_update(32'h0000_0114, 1'b0, 1'b1, 32'h0000_0300);
         check_query(32'h0000_0114, 1'b1, 1'b1, 32'h0000_0300,
                     "non-zero BTB index must train and query independently");
-        check_query(32'h0000_0140, 1'b1, 1'b1, 32'h0000_0240,
+        check_query(ALIAS_PC, 1'b1, 1'b1, 32'h0000_0240,
                     "training another index must preserve existing entry");
 
         // invalidate has priority over a simultaneous update and resets all state.
-        query_pc = 32'h0000_0140;
+        query_pc = ALIAS_PC;
         @(negedge clk);
         invalidate = 1'b1;
         update_vld = 1'b1;
-        update_pc = 32'h0000_0140;
+        update_pc = ALIAS_PC;
         update_is_cond = 1'b0;
         update_taken = 1'b1;
         update_target = 32'h0000_0400;
@@ -181,7 +184,7 @@ initial begin
         #1;
         invalidate = 1'b0;
         update_vld = 1'b0;
-        check_query(32'h0000_0140, 1'b0, 1'b0, 32'h0000_0144,
+        check_query(ALIAS_PC, 1'b0, 1'b0, ALIAS_PC + 32'd4,
                     "invalidate must clear BTB and win over simultaneous update");
         for (idx = 0; idx < BTB_ENTRIES; idx = idx + 1)
             check(dut.btb_valid[idx] === 1'b0, "invalidate must clear every BTB valid bit");

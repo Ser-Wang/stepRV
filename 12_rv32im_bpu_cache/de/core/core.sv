@@ -17,13 +17,21 @@ module core(
     // if
     output wire        o_fetch_req,
     output wire [31:0] o_fetch_pc,
+    input  wire        i_fetch_req_rdy,
+    input  wire        i_if_rsp_vld,
+    output wire        o_if_rsp_rdy,
     input  wire [31:0] i_if_instr,
     // mem access
+    output wire o_mem_req_vld,
+    input  wire i_mem_req_rdy,
     output wire [31:0] o_mem_addr,
     output wire o_mem_req_load,
     output wire o_mem_wr_en,
+    output wire [1:0] o_mem_size,
     output wire [3:0] o_mem_wr_mask,
     output wire [31:0] o_mem_wr_data,
+    input  wire i_mem_rsp_vld,
+    output wire o_mem_rsp_rdy,
     input  wire [31:0] i_mem_rd_data
     );
 
@@ -40,6 +48,7 @@ wire [31:0] rf_wb_data;
 //-------- pipe data flow
 // if_2_id
 wire [31:0] instr_pc;  // this and above: reg_out
+wire [31:0] instr_if;
 wire [31:0] fetch_pc;
 wire [31:0] pred_next_pc_if;
 wire        if_id_vld;
@@ -64,7 +73,6 @@ wire        ex_ma_rdy;
 wire [31:0] mem_addr_exu;
 wire mem_wr_en_exu;
 wire [31:0] mem_wr_data_exu;
-wire       mem_req_load_exu;
 wire [3:0] mem_wr_mask_exu;
 wire [3:0] mem_req_info_bus;
 
@@ -134,14 +142,7 @@ wire [3:0] flush;
 
 ////********    IO Insts    ********////
 assign o_fetch_pc = fetch_pc;
-assign mem_req_load_exu = mem_req_info_bus[3];
 assign wb_rdy = 1'b1;
-
-assign o_mem_addr    = mem_addr_exu;
-assign o_mem_req_load = mem_req_load_exu;
-assign o_mem_wr_en   = mem_wr_en_exu;
-assign o_mem_wr_mask = mem_wr_mask_exu;
-assign o_mem_wr_data = mem_wr_data_exu;
 
 
 regfile u_regfile(
@@ -175,15 +176,19 @@ ifu u_ifu(
     .i_bp_update_taken  (bp_update_taken),
     .i_bp_update_target (bp_update_target),
     .i_bp_invalidate    (bp_invalidate),
-    .i_instr_if         (i_if_instr),
     .i_ras_resolve_fire (ras_resolve_fire),
     .i_ras_resolve_pop  (ras_resolve_pop),
     .i_ras_resolve_push (ras_resolve_push),
     .i_ras_resolve_push_addr (ras_resolve_push_addr),
-    .o_fetch_req    (o_fetch_req),
-    .o_fetch_pc     (fetch_pc),
+    .o_if_req_vld   (o_fetch_req),
+    .i_if_req_rdy   (i_fetch_req_rdy),
+    .o_if_req_addr  (fetch_pc),
+    .i_if_rsp_vld   (i_if_rsp_vld),
+    .o_if_rsp_rdy   (o_if_rsp_rdy),
+    .i_if_rsp_data  (i_if_instr),
     .o_if_id_vld    (if_id_vld),
     .o_instr_pc     (instr_pc),
+    .o_instr_if     (instr_if),
     .o_pred_next_pc_if (pred_next_pc_if)
     );
 
@@ -196,7 +201,7 @@ idu u_idu(
     .o_if_id_rdy        (if_id_rdy      ),
     .o_id_ex_vld        (id_ex_vld      ),
     .i_id_ex_rdy        (id_ex_rdy      ),
-    .i_instr            (i_if_instr     ),
+    .i_instr            (instr_if       ),
     .i_pc_if            (instr_pc       ),
     .i_pred_next_pc_if  (pred_next_pc_if),
     .o_dec_rs1idx       (rf_read_rs1_idx),
@@ -319,8 +324,21 @@ mau u_mau(
     .o_ma_wb_vld        (ma_wb_vld      ),
     .i_ma_wb_rdy        (ma_wb_rdy      ),
     .i_mem_addr_exu     (mem_addr_exu       ),
+    .i_mem_wr_data_exu  (mem_wr_data_exu    ),
+    .i_mem_wr_en_exu    (mem_wr_en_exu      ),
+    .i_mem_wr_mask_exu  (mem_wr_mask_exu    ),
     .i_mem_req_info_bus (mem_req_info_bus   ),
-    .i_mem_rd_data_mau  (i_mem_rd_data      ),
+    .o_mem_req_vld      (o_mem_req_vld      ),
+    .i_mem_req_rdy      (i_mem_req_rdy      ),
+    .o_mem_addr         (o_mem_addr         ),
+    .o_mem_req_load     (o_mem_req_load     ),
+    .o_mem_wr_en        (o_mem_wr_en        ),
+    .o_mem_size         (o_mem_size         ),
+    .o_mem_wr_mask      (o_mem_wr_mask      ),
+    .o_mem_wr_data      (o_mem_wr_data      ),
+    .i_mem_rsp_vld      (i_mem_rsp_vld      ),
+    .o_mem_rsp_rdy      (o_mem_rsp_rdy      ),
+    .i_mem_rsp_data     (i_mem_rd_data      ),
     // pass by
     .i_wb_data_exu      (wb_data_exu    ),
     .i_wb_rd_idx_exu    (wb_rd_idx_exu  ),
@@ -359,11 +377,11 @@ csr_regs u_csr_regs(
     .o_csr_illegal_access_raw (csr_illegal_access_raw),
     .o_mtvec        (csr_mtvec      ),
     .o_mepc         (csr_mepc       ),
-    .i_exc_req      (exc_req_exu    ),
+    .i_exc_req      (exc_req_exu & ex_ma_vld & ex_ma_rdy),
     .i_exc_epc      (exc_epc_exu    ),
     .i_exc_cause    (exc_cause_exu  ),
     .i_exc_tval     (exc_tval_exu   ),
-    .i_trap_ret_req (trap_ret_req_exu ),
+    .i_trap_ret_req (trap_ret_req_exu & ex_ma_vld & ex_ma_rdy),
     .i_instr_ret_en (1'b0           ) // Tied to 0 for now
     );
 

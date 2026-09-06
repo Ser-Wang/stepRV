@@ -751,9 +751,13 @@ end
 bind soc_bus sva_soc_bus u_sva_soc_bus (
     .clk(clk),
     .rst_n(rst_n),
-    .mem_req_load_exu(i_mem_req_load),
-    .sel_itcm_bus(sel_itcm),
-    .mem_addr_bus(i_mem_addr)
+    .mem_req_vld(i_mem_req_vld),
+    .mem_req_rdy(o_mem_req_rdy),
+    .mem_req_write(i_mem_wr_en),
+    .mem_req_addr(i_mem_addr),
+    .itcm_write(o_itcm_p1_we),
+    .dtcm_write(o_dtcm_wr_en),
+    .uart_write(o_uart_wr_en)
 );
 
 bind exu sva_exu_lsu u_sva_exu_lsu (

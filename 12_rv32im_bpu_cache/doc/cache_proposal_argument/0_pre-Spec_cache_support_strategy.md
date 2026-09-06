@@ -2,9 +2,10 @@
 
 **Author**: Wang Jianghao, Codex, GPT-5.6-Solar
 **Created**: 2026-08-17 02:00
-**Current Version**: v1.0
+**Current Version**: v1.1
 
 **Version Changelog**:
+- **v1.1** (2026-08-23 23:12): 补充 OpenC906 demo SoC 的统一 SRAM、链接分区和外设窗口分析；论证分离高地址 IMEM/DMEM 可通过稀疏地址译码映射到两个小容量 SRAM，并指出当前高 4-bit 粗译码造成的地址镜像问题。
 - **v1.0** (2026-08-17 02:00): 基于 OpenC906 Cache RTL 与 RV32IM BPU 核当前存储、流水和分支预测实现，给出面向校招项目的分阶段 Cache 架构、接口改造、验证和简历表述建议。
 
 ---
@@ -19,6 +20,8 @@
 4. Phase 3 将 I/D Cache 都升级为 **8 KiB、2-way、32 B line、每组 1-bit round-robin**，D-Cache 升级为 **write-back + write-allocate**，加入 dirty eviction；仍保持 blocking、单 outstanding。
 5. Phase 3 同步加入基础性能计数；把 AXI burst bridge、critical-word-first 作为可选加分项。不做 MSHR、多未完成 miss、预取、Victim Buffer、复杂 Store Buffer、MMU 别名处理和硬件一致性。
 
+当前 `ITCM_BASE=0x0000_0000`、`DTCM_BASE=0x1000_0000` 的大间隔可以保留。地址空间中的空洞不占用 SRAM：通过精确范围译码，两个窗口可以分别映射到独立的 32 KiB 或 64 KiB 后备存储体，物理容量只是两者之和，而不是从 IMEM 起点连续铺到 DMEM 末尾。
+
 最终推荐配置兼具 tag/data 阵列、组相联、替换、回写、写分配、refill/eviction 状态机、流水反压、MMIO 属性和验证等内容，复杂度足以形成有辨识度的校招项目，但不会进入 OpenC906 那种高并发 LSU 的验证规模。
 
 另一个必须明确的结论是：**当前 ITCM/DTCM 本身就是 1 cycle 的片上 SRAM，Cache 不会天然加速它们。** 应通过可配置后备存储延迟或外部存储接口建立合理性能场景，再比较 no-cache 与 cache；否则 Cache 只会增加面积、miss 代价和控制复杂度，性能数据没有说服力。
@@ -29,9 +32,9 @@
 
 - OpenC906：`C906_RTL_FACTORY/gen_rtl/cpu/rtl/cpu_cfig.h`、`ifu/rtl/aq_ifu_icache*.v`、`lsu/rtl/aq_lsu_{dc,rdl,lfb,stb,vb}.v`、`cp0/rtl/aq_cp0_{ext_csr,info_csr}.v`。
 - OpenC906 已有分析：`work/openc906/my_docs/C906_Cache_Architecture.md` 与 `Riscv_Core_Cache_Design_Proposal.md`。
-- 当前核：`11_rv32im_bpu/de/core/{ifu,core,exu,mau}.sv`、`de/soc/{soc_top,soc_bus}.sv`、`de/periphs/mem_{itcm,dtcm}.sv`、`de/defines/config.v` 及 v11 BPU 规格和开发日志。
+- 当前核：`12_rv32im_bpu_cache/de/core/{ifu,core,exu,mau}.sv`、`de/soc/{soc_top,soc_bus}.sv`、`de/periphs/mem_{itcm,dtcm}.sv`、`de/defines/config.v` 及现有 BPU/RAS 文档和开发日志。
 
-本文是未来架构建议，不表示这些 Cache 功能已经存在于 `11_rv32im_bpu`。
+本文是未来架构建议，不表示这些 Cache 功能已经存在于 `12_rv32im_bpu_cache`。
 
 ## 3. OpenC906 的 Cache 支持情况
 
@@ -87,12 +90,50 @@ D-Cache 不只是一个 tag/data lookup 模块：
 - MMU/VIPT alias、AMO、向量访存和硬件一致性；
 - T-Head 私有 Cache 维护指令集合。
 
+### 3.4 OpenC906 的 IMEM/DMEM 地址分配实况
+
+OpenC906 核采用分离的 I-Cache 和 D-Cache，但这不等于 demo SoC 在外层也有独立 IMEM 和 DMEM。IFU miss、LSU miss 和 D-Cache writeback 最终都经 BIU/AXI 访问同一个系统物理地址空间。`smart_run` 的默认实现是“split L1 Cache + unified backing memory”，不是“独立指令 SRAM + 独立数据 SRAM”。
+
+#### 3.4.1 demo SoC 的硬件地址译码
+
+`smart_run/logical/axi/axi_interconnect128.v` 对 40-bit AXI 地址的主要分配为：
+
+| 物理地址范围 | AXI 目标 | 说明 |
+|---|---|---|
+| `0x0000_0000`–`0x00FF_FFFF` | `axi_slave128` | 16 MiB 统一 SRAM，指令和普通数据均可访问 |
+| `0x0100_0000`–`0x0FFF_FFFF` | error slave | 未实现存储区域 |
+| `0x1000_0000`–`0x1FFF_FFFF` | APB bridge | 外设窗口，桥内继续做子地址译码 |
+| `0x2000_0000`–`0xFF_FFFF_FFFF` | error slave | 其余高地址空间 |
+
+统一 SRAM 由 `axi_slave128.v` 中两个 `524288 x 128-bit` 存储体组成：每个存储体容量为 8 MiB，以 `mem_addr[23]` 选择低 8 MiB 或高 8 MiB，以 `mem_addr[22:4]` 作为 128-bit word 索引。因此两个实例合计 16 MiB；它们是同一连续 SRAM 窗口的低/高 bank，不是 IMEM/DMEM。
+
+CPU reset base `pad_cpu_rvba` 在 demo SoC 中接为 0，所以从 `0x0000_0000` 开始取指。
+
+#### 3.4.2 链接脚本中的“指令区/数据区”
+
+`smart_run/tests/lib/linker.lcf` 在上述统一 SRAM 的前 1 MiB 内进行软件分区：
+
+| 链接区 | 地址范围 | 放置内容 |
+|---|---|---|
+| `MEM1` | `0x0000_0000`–`0x0003_FFFF`，256 KiB | `.text`、`.rodata` |
+| `MEM2` | `0x0004_0000`–`0x000F_FFFF`，768 KiB | `.data`、`.bss` |
+
+testbench 把 `inst.pat` 装到 SRAM 偏移 0，把 `data.pat` 装到偏移 `0x40000`，与链接脚本一致。但两类数据仍位于同一个物理 SRAM；I-Cache 与 D-Cache 也都可以依据访问类型和内存属性缓存这段统一地址空间。
+
+因此，分析 C906 时应区分三件事：
+
+1. I-Cache/D-Cache 是核内访问路径和副本的分离；
+2. `.text/.data` 是链接脚本的软件布局；
+3. SRAM/APB/error slave 是 SoC 的物理地址译码。
+
+三者可以采用不同的边界。软件把代码和数据分开，不要求物理上存在两个存储体；反过来，物理上使用两个 SRAM，也不要求它们在 CPU 地址空间连续。
+
 ## 4. 当前 RV32IM BPU 核的状态与 Cache 接入约束
 
 ### 4.1 已具备的有利基础
 
 - 五级顺序单发射流水已经采用 valid/ready 语义，EX 中的多周期 MDU 也已有 request issued 和一次性 `fire` 思路，可复用于 Cache 请求。
-- 取指端已经完成固定 1 拍同步 ITCM 对齐；BPU 使用 16-entry BTB/BHT，预测 next-PC 随指令流水传递，EX/MA fire 时训练和恢复。
+- 取指端已经完成固定 1 拍同步 ITCM 对齐；当前配置为 64-entry BTB、1024-entry BHT 和 4-entry RAS，预测 next-PC 随指令流水传递，EX/MA fire 时训练和恢复。
 - ITCM 为 32 KiB 双端口结构：取指侧只读，LSU 侧可读写；DTCM 为 16 KiB；两者都支持 32-bit、1 cycle 同步读和 byte write mask。
 - 地址空间天然可以提供简单属性：ITCM `0x0...`、DTCM `0x1...`、UART `0x3...`，且没有 MMU，因此 Cache 可采用 PIPT，不存在虚实地址 synonym 问题。
 - `fence.i` 已在 EX 形成重定向，并使 BPU 失效，可扩展为等待 I-Cache invalidate 完成后再提交。
@@ -130,6 +171,109 @@ EX redirect 可能在一个年轻的 I-Cache miss 尚未完成时发生。首版
 | 未映射地址 | Access error | 后续补充 load/store/instruction access fault |
 
 因为 LSU 对 ITCM 的写保持 uncached，软件修改代码后，写已经到达后备 ITCM；`fence.i` 只需等待所有先前数据写完成、全局失效 I-Cache 和 BPU，再从 `PC+4` 取指。这样无需在 Phase 3 为 `fence.i` 扫描并 clean 全部 D-Cache dirty line。
+
+### 4.5 保持现有高间隔基址而使用小容量后备存储
+
+#### 4.5.1 可以做到，且是常规 SoC 做法
+
+地址宽度描述 CPU 可以表达的位置，存储深度描述芯片真正实例化的 bit 数；两者没有“地址跨度必须等于物理容量”的关系。以下地址图完全合法：
+
+```text
+0x0000_0000 ┌──────────────────────┐
+            │ IMEM/ITCM 32 KiB     │ 0x0000_0000–0x0000_7FFF
+0x0000_8000 └──────────────────────┘
+            │ unmapped hole        │ 不实例化存储 bit
+0x1000_0000 ┌──────────────────────┐
+            │ DMEM/DTCM 32 KiB     │ 0x1000_0000–0x1000_7FFF
+0x1000_8000 └──────────────────────┘
+            │ unmapped hole        │
+0x3000_0000 ┌──────────────────────┐
+            │ UART 4 KiB           │ 0x3000_0000–0x3000_0FFF
+0x3000_1000 └──────────────────────┘
+```
+
+这个方案只实例化 32 KiB IMEM + 32 KiB DMEM。若两者改为 64 KiB，则窗口末地址分别变为 `0x0000_FFFF` 和 `0x1000_FFFF`，物理容量也只是 128 KiB，不是约 256 MiB。
+
+精确译码应使用半开区间：
+
+```systemverilog
+imem_hit = (addr >= IMEM_BASE) && (addr < IMEM_BASE + IMEM_SIZE);
+dmem_hit = (addr >= DMEM_BASE) && (addr < DMEM_BASE + DMEM_SIZE);
+uart_hit = (addr >= UART_BASE) && (addr < UART_BASE + UART_SIZE);
+```
+
+命中后再把系统地址转换成存储体局部地址：
+
+```systemverilog
+imem_local_addr = addr - IMEM_BASE;
+dmem_local_addr = addr - DMEM_BASE;
+imem_word_index = imem_local_addr[IMEM_ADDR_WIDTH+1:2];
+dmem_word_index = dmem_local_addr[DMEM_ADDR_WIDTH+1:2];
+```
+
+对于 2 的幂大小且自然对齐的窗口，综合器通常会把范围判断和减基址简化。以本项目基址为例：
+
+| 容量 | 精确命中等价形式 | 32-bit word index |
+|---|---|---|
+| 32 KiB IMEM | `(addr & 32'hFFFF_8000) == 32'h0000_0000` | `addr[14:2]` |
+| 32 KiB DMEM | `(addr & 32'hFFFF_8000) == 32'h1000_0000` | `addr[14:2]` |
+| 64 KiB IMEM | `(addr & 32'hFFFF_0000) == 32'h0000_0000` | `addr[15:2]` |
+| 64 KiB DMEM | `(addr & 32'hFFFF_0000) == 32'h1000_0000` | `addr[15:2]` |
+
+不能只截取低位索引而省略精确 hit 判断，否则空洞中的许多地址会镜像到同一 SRAM word。
+
+#### 4.5.2 当前 `soc_bus` 已存在过宽译码和镜像
+
+当前 `12_rv32im_bpu_cache/de/soc/soc_bus.sv` 只比较 `i_mem_addr[31:28]`：
+
+- 所有 `0x0000_0000`–`0x0FFF_FFFF` 地址都会选择 ITCM；
+- 所有 `0x1000_0000`–`0x1FFF_FFFF` 地址都会选择 DTCM；
+- 所有 `0x3000_0000`–`0x3FFF_FFFF` 地址都会选择 UART。
+
+下游 SRAM 又只使用与深度相符的低位作为 index，所以超出声明容量的地址会被折回并与合法地址 alias。例如默认 32 KiB ITCM 下，`0x0000_0000` 与 `0x0000_8000` 会访问同一局部 word；默认 16 KiB DTCM 下，`0x1000_0000` 与 `0x1000_4000` 也会 alias。这与 `config.v` 和文档宣称的 32 KiB/16 KiB 精确窗口不一致。
+
+Cache Phase 0 应把译码修正为 `BASE <= addr < BASE + SIZE`，并让未命中任何窗口的访问产生 error response，最终接入 instruction/load/store access fault。至少在异常支持完成前，也必须返回确定错误并禁止 SRAM/UART 副作用，不能继续静默镜像。
+
+#### 4.5.3 Cache 外层的推荐连接
+
+Cache 本身不应负责用一个巨大数组覆盖两个基址之间的空洞。推荐连接是：
+
+```text
+I-Cache miss/refill ───────────────┐
+                                   v
+                            backend address router
+                                   │
+                 ┌─────────────────┼─────────────────┐
+                 v                 v                 v
+        IMEM 32/64 KiB      DMEM 32/64 KiB      MMIO/error
+        base 0x0000_0000    base 0x1000_0000    base 0x3000_0000
+                 ^                 ^
+                 │                 │
+uncached LSU -----┘   D-Cache refill/writeback
+```
+
+- I-Cache tag 使用完整系统地址的 tag；miss line address 送 router，只允许 IMEM 精确窗口 refill。
+- D-Cache 同样保留完整 tag，但只把 DTCM 精确窗口标为 cacheable。
+- LSU 对 IMEM 的访问走 uncached 路径，以保留装载、签名区兼容和自修改代码支持。
+- UART 与未映射区域永远不能分配 Cache line。
+- refill/writeback 地址由完整 line address 译码，再减去对应 SRAM base 形成局部地址。
+- 32 B Cache line 能整除 32/64 KiB 窗口；只要 CPU 地址先通过范围检查，合法 line refill 不会跨越存储体边界。
+
+这种稀疏映射只增加很小的范围比较和地址路由逻辑，不增加 Cache data array 或后备 SRAM 的容量。Cache 容量仍由 set × way × line size 决定，后备存储容量仍由各自 SRAM depth 决定，二者都与两个 base 之间的数值距离无关。
+
+#### 4.5.4 32 KiB 还是 64 KiB
+
+建议 Phase 0–3 默认采用 **32 KiB IMEM + 32 KiB DMEM**：
+
+- 与现有 32 KiB ITCM 配置接近；DTCM 的地址窗口和链接布局需从当前 16 KiB 扩到 32 KiB；
+- 对 ISA、Compliance 和小型 CoreMark 足够，仿真初始化与 SRAM 综合规模较小；
+- 8 KiB I/D Cache 相对 32 KiB backing memory 有合理的容量层次。
+
+如果软件镜像、CoreMark 数据集或后续程序明确超过 32 KiB，再把对应窗口参数化到 64 KiB。无需为追求参数对称而一开始扩大两者；应分别用链接 map 文件检查 `.text/.rodata` 和 `.data/.bss/stack` 峰值决定容量。
+
+当前 ASIC wrapper 并不是任意深度模型：ITCM 固定例化 `smic55_8192x32_2p`，恰好为 32 KiB；DTCM 固定例化 `smic55_4096x32_1rw`，恰好为 16 KiB。因此把 DTCM 改成 32 KiB 时，需要换成 `8192x32` macro，或用两个 `4096x32` macro 按局部地址最高位做 bank select 并对读数据选择打一拍对齐；不能只修改 `DTCM_SIZE`，否则宽于 macro 地址端口的 index 会被截断并继续产生镜像。64 KiB 同理，需要更深 macro 或多 bank 组合。
+
+无论选择 32 KiB 还是 64 KiB，都应同步更新 `config.v`、链接脚本 `MEMORY`、testbench preload/signature 边界、SRAM wrapper/banking、filelist 与 SRAM `.db`、FPGA BRAM 配置和地址范围 SVA，避免软件布局与 RTL 实际窗口漂移。
 
 ## 5. 推荐的目标微架构
 
@@ -324,7 +468,7 @@ Phase 3 同时增加只读性能计数：I/D access、hit、miss、dirty writeba
 | 3 | 2-way、RR、WB/WA、dirty eviction | miss/writeback 覆盖率、CoreMark、综合对比 |
 | 4 可选 | AXI bridge 或 early restart | back-pressure/error 定向与性能增益 |
 
-版本目录建议沿用项目当前的阶段化方式，例如以新版本目录承载 Phase 0/1，而不是在已经完成 BPU 验收的 v11 中同时大改取指和存储协议。具体版本号应在实施 work order 中确定。
+`12_rv32im_bpu_cache` 已作为 Cache 开发版本建立，建议在该目录内按独立 work order 依次实施 Phase 0、Phase 1，保留 `11_rv32im_bpu` 作为 BPU/RAS 功能基线；不要把全部 Phase 合并成一次不可独立回归的大改动。
 
 ## 10. 简历与面试表述
 

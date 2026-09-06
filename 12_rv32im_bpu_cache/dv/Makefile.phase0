@@ -1,0 +1,81 @@
+DV_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+RTL_DIR := $(DV_DIR)/../de
+BUILD_DIR := $(DV_DIR)/phase0_build
+VCS ?= vcs
+
+.PHONY: all bus ifu mau ifu_throughput mau_throughput clean
+all: bus ifu mau ifu_throughput mau_throughput
+bus: $(BUILD_DIR)/bus/sim.log
+	@grep -q "PASS: Phase0 bus completion and store exactly-once directed test" $<
+	@! grep -Eq "(Error-|\[Phase0 SVA\].*Error|FAIL:)" $<
+ifu: $(BUILD_DIR)/ifu/sim.log
+	@grep -q "PASS: Phase0 IFU variable-latency, backpressure and stale-response directed test" $<
+	@! grep -Eq "(Error-|\[Phase0 SVA\].*Error|FAIL:)" $<
+mau: $(BUILD_DIR)/mau/sim.log
+	@grep -q "PASS: Phase0 MAU variable-latency and exactly-once directed test" $<
+	@! grep -Eq "(Error-|\[Phase0 SVA\].*Error|FAIL:)" $<
+ifu_throughput: $(BUILD_DIR)/ifu_throughput/sim.log
+	@grep -q "PASS: Phase0 S2 IFU sixteen-entry one-cycle throughput test" $<
+	@! grep -Eq "(Error-|\[Phase0 SVA\].*Error|FAIL:)" $<
+mau_throughput: $(BUILD_DIR)/mau_throughput/sim.log
+	@grep -q "PASS: Phase0 S2 MAU sixteen-entry one-cycle throughput test" $<
+	@! grep -Eq "(Error-|\[Phase0 SVA\].*Error|FAIL:)" $<
+
+$(BUILD_DIR)/mau/sim.log: $(RTL_DIR)/core/mau.sv $(DV_DIR)/tb_mau_variable_latency.sv $(DV_DIR)/sva_mem_transaction.sv
+	@mkdir -p $(BUILD_DIR)/mau/csrc
+	cd $(BUILD_DIR)/mau && $(VCS) -full64 -sverilog -timescale=1ns/1ps \
+		+incdir+$(RTL_DIR)/defines +define+PHASE0_MAU_ONLY \
+		-Mdir=$(BUILD_DIR)/mau/csrc $(RTL_DIR)/core/mau.sv \
+		$(DV_DIR)/sva_mem_transaction.sv $(DV_DIR)/tb_mau_variable_latency.sv \
+		-top tb_mau_variable_latency -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/mau && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ifu/sim.log: $(RTL_DIR)/core/ifu.sv $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ifu_variable_latency.sv $(DV_DIR)/sva_mem_transaction.sv
+	@mkdir -p $(BUILD_DIR)/ifu/csrc
+	cd $(BUILD_DIR)/ifu && $(VCS) -full64 -sverilog -timescale=1ns/1ps \
+		+incdir+$(RTL_DIR)/defines +define+PHASE0_IF_ONLY \
+		-Mdir=$(BUILD_DIR)/ifu/csrc $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(DV_DIR)/sva_mem_transaction.sv $(DV_DIR)/tb_ifu_variable_latency.sv \
+		-top tb_ifu_variable_latency -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ifu && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/bus/sim.log: $(RTL_DIR)/soc/soc_bus.sv $(DV_DIR)/tb_soc_bus_transaction.sv $(DV_DIR)/sva_soc_bus.sv
+	@mkdir -p $(BUILD_DIR)/bus/csrc
+	cd $(BUILD_DIR)/bus && $(VCS) -full64 -sverilog -timescale=1ns/1ps \
+		+incdir+$(RTL_DIR)/defines -Mdir=$(BUILD_DIR)/bus/csrc \
+		$(RTL_DIR)/soc/soc_bus.sv $(DV_DIR)/sva_soc_bus.sv \
+		$(DV_DIR)/tb_soc_bus_transaction.sv -top tb_soc_bus_transaction \
+		-o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/bus && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/ifu_throughput/sim.log: $(RTL_DIR)/core/ifu.sv $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(DV_DIR)/tb_ifu_throughput.sv $(DV_DIR)/sva_mem_transaction.sv
+	@mkdir -p $(BUILD_DIR)/ifu_throughput/csrc
+	cd $(BUILD_DIR)/ifu_throughput && $(VCS) -full64 -sverilog -timescale=1ns/1ps \
+		+incdir+$(RTL_DIR)/defines +define+PHASE0_IF_ONLY \
+		-Mdir=$(BUILD_DIR)/ifu_throughput/csrc $(RTL_DIR)/core/branch_predictor.sv \
+		$(RTL_DIR)/core/ras_dual_full_stack.sv $(RTL_DIR)/core/ifu.sv \
+		$(DV_DIR)/sva_mem_transaction.sv $(DV_DIR)/tb_ifu_throughput.sv \
+		-top tb_ifu_throughput -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/ifu_throughput && ./simv > sim.log 2>&1
+
+$(BUILD_DIR)/mau_throughput/sim.log: $(RTL_DIR)/core/mau.sv $(DV_DIR)/tb_mau_throughput.sv $(DV_DIR)/sva_mem_transaction.sv
+	@mkdir -p $(BUILD_DIR)/mau_throughput/csrc
+	cd $(BUILD_DIR)/mau_throughput && $(VCS) -full64 -sverilog -timescale=1ns/1ps \
+		+incdir+$(RTL_DIR)/defines +define+PHASE0_MAU_ONLY \
+		-Mdir=$(BUILD_DIR)/mau_throughput/csrc $(RTL_DIR)/core/mau.sv \
+		$(DV_DIR)/sva_mem_transaction.sv $(DV_DIR)/tb_mau_throughput.sv \
+		-top tb_mau_throughput -o simv > compile.log 2>&1
+	cd $(BUILD_DIR)/mau_throughput && ./simv > sim.log 2>&1
+
+clean:
+	@if test ! -e "$(BUILD_DIR)"; then exit 0; fi; \
+		test ! -L "$(BUILD_DIR)"; \
+		test "$$(realpath "$(BUILD_DIR)")" = "$(DV_DIR)/phase0_build"; \
+		test -z "$$(find "$(BUILD_DIR)" -mindepth 1 -maxdepth 1 ! -name bus ! -name ifu ! -name mau ! -name ifu_throughput ! -name mau_throughput -print -quit)"; \
+		test -z "$$(find "$(BUILD_DIR)" -type f \
+			\( -name '*.sv' -o -name '*.v' -o -name '*.vh' -o -name '*.md' -o -name 'Makefile*' \) \
+			-print -quit)"; \
+		rm -rf -- "$(BUILD_DIR)"

@@ -1,35 +1,29 @@
 `timescale 1ns / 1ps
-//--------------------------------------------------------------------------------
-// Engineer: Wang Jianghao
-// Create Date: 2026/05/18
-// Design Name: StepRV_v0
-// Module Name: sva_soc_bus
-// Description:
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-//--------------------------------------------------------------------------------
-
 
 module sva_soc_bus (
     input wire clk,
     input wire rst_n,
-    // From EXU LSU request
-    input wire mem_req_load_exu,
-    // From BUS (soc_bus)
-    input wire sel_itcm_bus,
-    input wire [31:0] mem_addr_bus
+    input wire mem_req_vld,
+    input wire mem_req_rdy,
+    input wire mem_req_write,
+    input wire [31:0] mem_req_addr,
+    input wire itcm_write,
+    input wire dtcm_write,
+    input wire uart_write
 );
 
-    // SVA: ITCM does not support Data Load (only Data Write for SMC)
-    property p_no_itcm_load;
-        @(posedge clk) disable iff (!rst_n)
-        (mem_req_load_exu && sel_itcm_bus) |-> 1'b0;
-    endproperty
+wire mem_req_fire = mem_req_vld && mem_req_rdy;
 
-    assert_no_itcm_load: assert property (p_no_itcm_load) else begin
-        $display("\n[SVA Warning] Detected load from ITCM. Addr: 0x%h", $sampled(mem_addr_bus));
-        // $fatal
-    end
+assert_target_write_has_request:
+assert property (@(posedge clk) disable iff (!rst_n)
+    (itcm_write || dtcm_write || uart_write) |->
+        (mem_req_fire && mem_req_write))
+else $error("[Phase0 SVA][BUS] target write without store request fire at %h",
+            mem_req_addr);
+
+assert_at_most_one_write_target:
+assert property (@(posedge clk) disable iff (!rst_n)
+    $onehot0({itcm_write, dtcm_write, uart_write}))
+else $error("[Phase0 SVA][BUS] multiple write targets selected");
 
 endmodule

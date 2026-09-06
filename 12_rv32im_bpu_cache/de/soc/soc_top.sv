@@ -20,14 +20,21 @@ module soc_top(
 
 wire        fetch_req;
 wire [31:0] fetch_pc;
-
+wire        fetch_req_rdy;
+wire        if_rsp_vld;
+wire        if_rsp_rdy;
 wire [31:0] itcm_rd_data;
 
+wire mem_req_vld;
+wire mem_req_rdy;
 wire [31:0] mem_addr;
 wire mem_req_load;
 wire mem_wr_en;
+wire [1:0] mem_size;
 wire [3:0] mem_wr_mask;
 wire [31:0] mem_wr_data;
+wire mem_rsp_vld;
+wire mem_rsp_rdy;
 wire [31:0] mem_rd_data;
 
 core u_core(
@@ -36,13 +43,21 @@ core u_core(
     // if
     .o_fetch_req    (fetch_req      ),
     .o_fetch_pc     (fetch_pc       ),
+    .i_fetch_req_rdy(fetch_req_rdy  ),
+    .i_if_rsp_vld   (if_rsp_vld     ),
+    .o_if_rsp_rdy   (if_rsp_rdy     ),
     .i_if_instr     (itcm_rd_data   ),
     // mem access
+    .o_mem_req_vld  (mem_req_vld   ),
+    .i_mem_req_rdy  (mem_req_rdy   ),
     .o_mem_addr     (mem_addr       ),
     .o_mem_req_load (mem_req_load   ),
     .o_mem_wr_en    (mem_wr_en      ),
+    .o_mem_size     (mem_size       ),
     .o_mem_wr_mask  (mem_wr_mask    ),
     .o_mem_wr_data  (mem_wr_data    ),
+    .i_mem_rsp_vld  (mem_rsp_vld   ),
+    .o_mem_rsp_rdy  (mem_rsp_rdy   ),
     .i_mem_rd_data  (mem_rd_data    )
     );
 
@@ -55,6 +70,7 @@ wire [31:0] itcm_p1_wdata;
 wire [31:0] itcm_p1_rdata;
 
 wire [31:0] dtcm_addr;
+wire        dtcm_en;
 wire        dtcm_wr_en;
 wire [ 3:0] dtcm_wr_mask;
 wire [31:0] dtcm_wr_data;
@@ -70,11 +86,16 @@ soc_bus u_soc_bus (
     .clk            (clk          ),
     .rst_n          (rst_n        ),
     // Core interface
+    .i_mem_req_vld  (mem_req_vld ),
+    .o_mem_req_rdy  (mem_req_rdy ),
     .i_mem_addr     (mem_addr     ),
     .i_mem_req_load (mem_req_load ),
     .i_mem_wr_en    (mem_wr_en    ),
+    .i_mem_size     (mem_size     ),
     .i_mem_wr_mask  (mem_wr_mask  ),
     .i_mem_wr_data  (mem_wr_data  ),
+    .o_mem_rsp_vld  (mem_rsp_vld ),
+    .i_mem_rsp_rdy  (mem_rsp_rdy ),
     .o_mem_rd_data  (mem_rd_data  ),
 
     // ITCM interface
@@ -86,6 +107,7 @@ soc_bus u_soc_bus (
     .i_itcm_p1_rdata(itcm_p1_rdata),
 
     // DTCM interface
+    .o_dtcm_en      (dtcm_en      ),
     .o_dtcm_addr    (dtcm_addr    ),
     .o_dtcm_wr_en   (dtcm_wr_en   ),
     .o_dtcm_wr_mask (dtcm_wr_mask ),
@@ -102,10 +124,13 @@ soc_bus u_soc_bus (
 mem_itcm u_imem(
     .clk                (clk            ),
     .rst_n              (rst_n          ),
-    // Instruction Fetch (Read-Only)
-    .i_p0_en            (fetch_req      ),
-    .i_p0_addr          (fetch_pc       ),
-    .o_p0_rdata         (itcm_rd_data   ),
+    // Instruction Fetch transaction
+    .i_p0_req_vld       (fetch_req      ),
+    .o_p0_req_rdy       (fetch_req_rdy  ),
+    .i_p0_req_addr      (fetch_pc       ),
+    .o_p0_rsp_vld       (if_rsp_vld     ),
+    .i_p0_rsp_rdy       (if_rsp_rdy     ),
+    .o_p0_rsp_data      (itcm_rd_data   ),
     // Data Write (Self-modifying support)
     .i_p1_en            (itcm_p1_en     ),
     .i_p1_we            (itcm_p1_we     ),
@@ -118,6 +143,7 @@ mem_itcm u_imem(
 mem_dtcm u_dmem(
     .clk        (clk            ),
     .rst_n      (rst_n          ),
+    .i_en       (dtcm_en        ),
     .i_addr     (dtcm_addr      ),
     .i_wr_en    (dtcm_wr_en     ),
     .i_wr_mask  (dtcm_wr_mask   ),

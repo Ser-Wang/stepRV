@@ -100,7 +100,9 @@ wire [31:0] x27 = u_soc_top.u_core.u_regfile.r_regfile[27];
 initial begin
     $display("ISA Test: [riscv-tests] running...");
     wait(x26 == 32'h1);
-    #25;
+    // The variable-latency IF baseline no longer promises an adjacent-cycle
+    // write of x27 after the terminal x26 marker.
+    repeat (20) @(posedge clk);
     if (x27 == 32'h1) begin
         report_result(1, "ISA");
     end else begin
@@ -119,6 +121,8 @@ reg [31:0] end_signature   = 0;
 
 wire [31:0] mem_addr    = u_soc_top.u_core.o_mem_addr;
 wire        mem_wr_en    = u_soc_top.u_core.o_mem_wr_en;
+wire        mem_req_fire = u_soc_top.u_core.o_mem_req_vld
+                         && u_soc_top.u_core.i_mem_req_rdy;
 wire [31:0] mem_wr_data = u_soc_top.u_core.o_mem_wr_data;
 
 function automatic [31:0] read_signature_word;
@@ -140,7 +144,7 @@ endfunction
 
 // Bus snoop: Capture compliance test control registers
 always @(posedge clk) begin : p_compliance_bus_snoop
-    if (rst_n && mem_wr_en) begin
+    if (rst_n && mem_req_fire && mem_wr_en) begin
         if (mem_addr == 32'h10000008)      begin_signature <= mem_wr_data;
         else if (mem_addr == 32'h1000000c) end_signature   <= mem_wr_data;
         else if (mem_addr == 32'h10000010) ex_end_flag     <= mem_wr_data;
@@ -265,9 +269,13 @@ end
 bind soc_bus sva_soc_bus u_sva_soc_bus (
     .clk(u_soc_top.clk),
     .rst_n(u_soc_top.rst_n),
-    .mem_req_load_exu(u_soc_top.u_core.o_mem_req_load),
-    .sel_itcm_bus(sel_itcm),
-    .mem_addr_bus(i_mem_addr)
+    .mem_req_vld(i_mem_req_vld),
+    .mem_req_rdy(o_mem_req_rdy),
+    .mem_req_write(i_mem_wr_en),
+    .mem_req_addr(i_mem_addr),
+    .itcm_write(o_itcm_p1_we),
+    .dtcm_write(o_dtcm_wr_en),
+    .uart_write(o_uart_wr_en)
 );
 
 bind exu sva_exu_lsu u_sva_exu_lsu (

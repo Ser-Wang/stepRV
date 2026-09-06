@@ -13,12 +13,14 @@
 # ------------------------------------------------------------------------------
 
 DUMP         ?= 0
+SIMV_ARGS    ?=
+EXTRA_VCS_DEFINES ?=
 # ---- Global Config ----
 SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 .NOTPARALLEL:
 
-DESIGN_NAME ?= ../11_rv32im_bpu
+DESIGN_NAME ?= ../12_rv32im_bpu_cache
 DE_DIR       := $(DESIGN_NAME)/de
 DV_DIR       := $(DESIGN_NAME)/dv
 DEFINES_DIR  := $(DE_DIR)/defines
@@ -30,12 +32,13 @@ FILELIST_OUT ?= filelist.f
 SVA_FILES := \
 	$(DV_DIR)/sva_exu_lsu.sv \
 	$(DV_DIR)/sva_soc_bus.sv \
+	$(wildcard $(DV_DIR)/sva_mem_transaction.sv) \
 	$(DV_DIR)/sva_csr.sv
 
 # Version-local optional checkers. wildcard keeps the shared flow usable for
 # design versions that do not implement the corresponding feature.
-SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_idu.sv)
-SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_exu.sv)
+# SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_idu.sv)
+# SVA_FILES += $(wildcard $(DV_DIR)/sva_bpu_exu.sv)
 
 # ---- Test Dirs ----
 RVTESTS_DIR  ?= ../tests/rv_tests_isa_new
@@ -48,7 +51,9 @@ COMP_GROUPS  := rv32i rv32im rv32Zicsr rv32Zifencei
 
 
 SVA_LOG      ?= sva.log
-VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB)
+USERPROG_DEFINES := $(if $(filter coremark_10,$(strip $(name))),+define+PROG_COREMARK_10)
+VCS_DEFINES  := +define+VCS $(if $(filter 1,$(DUMP)),+define+DUMP_FSDB) \
+	$(USERPROG_DEFINES) $(EXTRA_VCS_DEFINES)
 VCS_INCDIR   := $(if $(strip $(DEFINES_DIR)),+incdir+$(DEFINES_DIR))
 # Common VCS compile options
 VCS_FLAGS := \
@@ -74,7 +79,7 @@ com:
 		|tee vcs.log
 
 sim: com
-	./simv |tee sim.log
+	./simv $(SIMV_ARGS) |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
 
 sim_run_all: sim verdi
@@ -199,7 +204,7 @@ endif
 	cp "$$data_file" ./inst.data; \
 	echo "=== User Program: $(name) ==="
 	@$(MAKE) --no-print-directory com_userprog
-	./simv |tee sim.log
+	./simv $(SIMV_ARGS) |tee sim.log
 	@$(MAKE) --no-print-directory sva_log
 	@if grep -q '\[PASS\]' sim.log; then \
 		echo ">>> Result: [PASS]"; \

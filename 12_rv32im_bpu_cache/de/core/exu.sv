@@ -489,6 +489,8 @@ assign exc_req_store_addr_misaligned_lsu = r_ex_vld & exc_req_store_addr_misalig
 assign o_mem_wr_en_exu = r_ex_vld & mem_wr_en_exu_raw;
 assign o_mem_wr_mask_exu = {4{r_ex_vld}} & mem_wr_mask_exu_raw;
 assign o_mem_req_info_bus = {4{r_ex_vld}} & mem_req_info_bus_raw;
-assign o_csr_wr_req = r_ex_vld & csr_wr_req_raw;
+// CSR side effects must follow the same unique EX/MA transfer event. This is
+// required once an older variable-latency memory operation can backpressure EX.
+assign o_csr_wr_req = ex_commit_fire & csr_wr_req_raw;
 
 endmodule

@@ -1,75 +1,82 @@
 # Memory 实现配置
 
-本文档记录 `mem_itcm` 和 `mem_dtcm` 在不同实现方式下的关键配置，便于复现当前 SRAM/BRAM wrapper 行为。
+**Author**: Wang Jianghao, Codex, GPT-5.6-Solar
+**Created**: 2026-09-06 11:04
+**Current Version**: v1.1
 
-## 宏选择
+**Version Changelog**:
+- **v1.1** (2026-09-06 14:09): 明确当前 ITCM/DTCM 是 Cache 加入前的过渡 backend；最终采用 I/D Cache + backing memory 并移除 TCM 模块与语义。
+- **v1.0** (2026-09-06 11:04): 记录 Phase 0 RTL memory wrapper、容量、事务接口与已搁置的 macro/扩容范围。
 
-`mem_itcm` 和 `mem_dtcm` 是 SoC 侧稳定 wrapper。具体实现由 `de/defines/config.v` 中的宏选择：
+---
 
-- 不定义宏：使用通用可综合 RTL memory model
-- `USE_BRAM`：例化 Vivado Block Memory Generator IP
-- `USE_SRAM_MACRO`：例化 ASIC SRAM macro wrapper
+当前版本的 `mem_itcm`、`mem_dtcm` 均使用可综合 RTL array。`USE_BRAM` 与
+`USE_SRAM_MACRO` 不参与 Phase 0 构建；已有 macro wrapper 文件保留在仓库中，但不进入
+`filelist_sim_sram.f` 或 `filelist_syn_sram.f`。
 
-如果 `USE_SRAM_MACRO` 和 `USE_BRAM` 同时定义，wrapper 优先选择 `USE_SRAM_MACRO`。这样可以降低 DC 综合时忘记关闭 `USE_BRAM`、误例化 Vivado IP 的风险。
-
-## 共同约定
-
-- 时钟：读写均在 `clk` 上升沿采样。
-- 读延迟：固定 1 cycle。
-- 写粒度：32-bit word，带 4-bit byte write mask。
-- byte mask 映射：bit 0 写 `[7:0]`，bit 3 写 `[31:24]`。
-- reset：memory 内容不由 reset 清零；reset 只约束 wrapper 输出。
-- 同端口同地址读写：按 READ_FIRST 约定，读返回写入前的旧值。
-- ITCM 跨端口同地址读写不作为架构保证。Port 0 读某地址、Port 1 同拍写同一地址时，RTL 和软件都不能依赖 Port 0 读到旧值还是新值。
-
-## Vivado BRAM IP
-
-使用 Block Memory Generator，Native port，读延迟固定为 1 cycle。
-
-### ITCM IP
-
-wrapper 实例名：`imem_bram_singleport`
-
-- Memory type：true dual port RAM
-- Common clock：yes
-- Width/depth：`8192 x 32`
-- Port A：IFU read-only
-- Port B：LSU/preload read/write
-- Byte write enable：两个端口都打开，4 bits
-- Port A write enable 接法：`4'b0000`
-- Port B write enable 接法：`i_p1_we ? i_p1_wmask : 4'b0000`
-- Write mode A/B：READ_FIRST
-- Output register：Port A/B 的 Primitive Output Register 和 Core Output Register 均关闭。当前 SoC 依赖 1 cycle 同步读返回；打开输出寄存器会多引入一级读数据延迟，导致取指或 LSU load 数据与流水线错位。
-- ECC：disabled
-
-### DTCM IP
-
-wrapper 实例名：`dmem_bram_truedualport`
-
-- Memory type：single port RAM
-- Width/depth：`4096 x 32`
-- Byte write enable：打开，4 bits
-- Write enable 接法：`i_wr_en ? i_wr_mask : 4'b0000`
-- Write mode：READ_FIRST
-- Output register：Port A 的 Primitive Output Register 和 Core Output Register 均关闭。当前 SoC 依赖 1 cycle 同步读返回。
-- ECC：disabled
-
-## 初始化文件
-
-RTL 仿真使用 `.data` 文件，一行一个 32-bit hex word。Vivado BRAM IP 初始化使用 `.coe` 文件：
+这些模块不是最终 TCM 架构。确定的演进关系为：
 
 ```text
-memory_initialization_radix=16;
-memory_initialization_vector=
-10001197,
-87018193,
-00000013;
+IFU -> mem_itcm                 (Phase 0 transitional)
+IFU -> I-Cache -> backing IMEM  (Phase 1+ target)
+
+MAU -> soc_bus -> mem_dtcm                 (Phase 0 transitional)
+MAU -> D-Cache/routing -> backing DMEM/MMIO (Phase 2+ target)
 ```
 
-在程序目录下执行：
+I/D Cache 直接继承 Phase 0 已定义的 CPU-side req/rsp 合同。当前 RTL arrays 后续只作为
+下游 backing-memory model 复用或被 adapter 替换；最终删除 `mem_itcm`/`mem_dtcm` 名称，
+不提供 software-visible TCM bypass path。
 
-```sh
-make coe
+## 当前容量与映射
+
+| 存储 | Base | 逻辑容量 | RTL depth | Phase 0 decode |
+|---|---:|---:|---:|---|
+| 过渡 ITCM model / 最终 backing IMEM | `0x0000_0000` | 32 KiB | 8192 x 32 | 地址高 nibble 为 `0x0` |
+| 过渡 DTCM model / 最终 backing DMEM | `0x1000_0000` | 16 KiB | 4096 x 32 | 地址高 nibble 为 `0x1` |
+| UART | `0x3000_0000` | 既有寄存器窗口 | 不适用 | 地址高 nibble 为 `0x3` |
+
+高 nibble decode 与过渡 DTCM model 越界 alias 是已接受的临时行为。精确范围、access fault、
+backing DMEM 32 KiB 扩展及 SRAM/BRAM 替换见
+[`dev_log/pending_v12_cache_mem_subsys_deferred_scope.md`](dev_log/pending_v12_cache_mem_subsys_deferred_scope.md)。
+
+## IF transaction
+
+ITCM port 0 使用 request/response valid-ready：
+
+```text
+request  = if_req_vld && if_req_rdy
+response = if_rsp_vld && if_rsp_rdy
 ```
 
-该命令调用 `tools/scripts/BinToCoe_CLI.py`，从 `$(TARGET).bin` 生成 `$(TARGET).coe`。该脚本也可以直接把已有 `.data` 文件转换为 `.coe`。
+- wrapper 内只有一个 response slot；slot 空闲或当拍被消费时可接受新 request；
+- request fire 后同步读取 RTL array，并从下一拍起保持 response valid/data，直到 response fire；
+- IFU 同时最多保留一个 outstanding request；redirect 后已发出的旧 response 会被接收并丢弃；
+- 未映射 IF request 以 NOP benign completion 返回，本阶段不产生 access fault。
+
+ITCM port 1 保留给 LSU/self-modifying-code 路径，使用同步 RTL 1RW enable/write-mask 接口。
+
+## LSU transaction
+
+MAU/MEM 是 LSU transaction owner，状态语义为：
+
+```text
+EMPTY -> REQ -> WAIT_RSP -> DONE -> EMPTY
+```
+
+- `REQ` 在 backend ready 前保持地址、读写类型、size、mask 与 write data；
+- `WAIT_RSP` 不重复发 request，也不提前完成 MA/WB；
+- `DONE` 保存 load 格式化结果与 rd metadata，在 WB backpressure 下保持稳定；
+- store 写副作用只发生在 `mem_req_vld && mem_req_rdy && mem_req_write` 的唯一 fire；
+- byte/halfword 的 sign/zero extension 在 MAU 使用已捕获 response data 完成；
+- 当前 unmapped LSU request 返回零数据/无写副作用的 benign completion。
+
+当前过渡 DTCM array 不由 reset 清零；reset 只清 transaction/output 状态。byte mask bit 0 对应
+`[7:0]`，bit 3 对应 `[31:24]`。
+
+## 构建与初始化
+
+- 仿真入口：`filelists/filelist_sim_sram.f`，其路径显式指向 v12 RTL；
+- 综合入口：`filelists/filelist_syn_sram.f` -> `filelist_rtl.f`；
+- `.data` 文件一行一个 32-bit hex word，testbench 直接 preload `r_itcm`/`r_dtcm`；
+- 当前 filelist 不包含 PDK SRAM model、SRAM wrapper 或 Vivado BRAM IP。

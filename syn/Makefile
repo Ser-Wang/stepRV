@@ -4,7 +4,7 @@ SHELL := /bin/bash
 # ------------------------------------------------------------------------------
 # Configurable Variables
 # ------------------------------------------------------------------------------
-DESIGN_NAME   ?= 11_rv32im_bpu
+DESIGN_NAME   ?= 12_rv32im_bpu_cache
 DESIGN_TOP    ?= soc_top
 SDC_NAME      ?= soc_top
 

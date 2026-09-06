@@ -9,7 +9,11 @@
 //
 // Vivado users can enable BRAM IP instantiation by uncommenting USE_BRAM here.
 // `define USE_BRAM
-`define USE_SRAM_MACRO
+// `define USE_SRAM_MACRO
+
+// Phase 0 uses transitional synthesizable RTL arrays in mem_itcm/mem_dtcm.
+// Phase 1/2 replace their CPU-facing role with I/D Cache and migrate the arrays
+// behind backing-memory adapters. SRAM/BRAM mapping remains deferred.
 
 
 // ===========================================================================

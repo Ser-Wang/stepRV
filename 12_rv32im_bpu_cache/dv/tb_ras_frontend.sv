@@ -16,12 +16,17 @@ reg         bp_update_taken;
 reg  [31:0] bp_update_target;
 reg         bp_invalidate;
 reg  [31:0] instr_if;
+wire        if_req_vld;
+wire [31:0] if_req_addr;
+reg         if_req_rdy;
+reg         if_rsp_vld;
+reg  [31:0] if_rsp_data;
 reg         ras_resolve_fire;
 reg         ras_resolve_pop;
 reg         ras_resolve_push;
 reg  [31:0] ras_resolve_push_addr;
-wire        fetch_req;
-wire [31:0] fetch_pc;
+wire        fetch_req = if_req_vld;
+wire [31:0] fetch_pc = if_req_addr;
 wire [31:0] instr_pc;
 wire [31:0] pred_next_pc;
 integer     failures;
@@ -50,18 +55,33 @@ ifu u_ifu (
     .i_bp_update_taken        (bp_update_taken),
     .i_bp_update_target       (bp_update_target),
     .i_bp_invalidate          (bp_invalidate),
-    .i_instr_if               (instr_if),
     .i_ras_resolve_fire       (ras_resolve_fire),
     .i_ras_resolve_pop        (ras_resolve_pop),
     .i_ras_resolve_push       (ras_resolve_push),
     .i_ras_resolve_push_addr  (ras_resolve_push_addr),
-    .o_fetch_req              (fetch_req),
-    .o_fetch_pc               (fetch_pc),
+    .o_if_req_vld             (if_req_vld),
+    .i_if_req_rdy             (if_req_rdy),
+    .o_if_req_addr            (if_req_addr),
+    .i_if_rsp_vld             (if_rsp_vld),
+    .o_if_rsp_rdy             (),
+    .i_if_rsp_data            (if_rsp_data),
     .o_instr_pc               (instr_pc),
+    .o_instr_if               (),
     .o_pred_next_pc_if        (pred_next_pc)
 );
 
 always #5 clk = ~clk;
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        if_rsp_vld <= 1'b0;
+        if_rsp_data <= 32'h0000_0013;
+    end else begin
+        if_rsp_vld <= if_req_vld & if_req_rdy;
+        if (if_req_vld & if_req_rdy)
+            if_rsp_data <= instr_if;
+    end
+end
 
 task automatic check;
     input condition;
@@ -84,19 +104,49 @@ task automatic redirect_to;
         #1;
         redirect_req = 1'b0;
         stall = 1'b1;
+        // A request that existed before redirect is accepted and drained stale.
+        wait(if_req_vld === 1'b1);
+        @(negedge clk);
+        instr_if = 32'h0000_0013;
+        if_req_rdy = 1'b1;
+        @(posedge clk);
+        #1 if_req_rdy = 1'b0;
+        @(posedge clk);
+        #1;
+    end
+endtask
+
+task automatic present_instr;
+    input [31:0] instr;
+    begin
+        wait(if_req_vld === 1'b1);
+        @(negedge clk);
+        instr_if = instr;
+        if_req_rdy = 1'b1;
+        @(posedge clk);
+        #1 if_req_rdy = 1'b0;
+        @(posedge clk);
+        #1;
+        check(if_id_vld, "memory response must publish an IF payload");
+    end
+endtask
+
+task automatic consume_instr;
+    begin
+        @(negedge clk);
+        stall = 1'b0;
+        if_id_rdy = 1'b1;
+        @(posedge clk);
+        #1;
+        stall = 1'b1;
     end
 endtask
 
 task automatic accept_instr;
     input [31:0] instr;
     begin
-        @(negedge clk);
-        instr_if = instr;
-        stall = 1'b0;
-        if_id_rdy = 1'b1;
-        @(posedge clk);
-        #1;
-        stall = 1'b1;
+        present_instr(instr);
+        consume_instr();
     end
 endtask
 
@@ -124,6 +174,7 @@ initial begin
     bp_update_target = 32'b0;
     bp_invalidate = 1'b0;
     instr_if = 32'h0000_0013;
+    if_req_rdy = 1'b0;
     ras_resolve_fire = 1'b0;
     ras_resolve_pop = 1'b0;
     ras_resolve_push = 1'b0;
@@ -132,37 +183,40 @@ initial begin
 
     repeat (2) @(posedge clk);
     #1 rst_n = 1'b1;
-    @(posedge clk);
-    #1;
+    present_instr(32'h0000_0013);
     check(if_id_vld && instr_pc == 32'h0, "IFU must present reset PC payload");
+    consume_instr();
 
     // Held call must not update; one accept must push exactly once.
-    instr_if = JAL_X1;
+    present_instr(JAL_X1);
     repeat (3) begin
         @(posedge clk);
         #1;
         check(!u_ifu.ras_top_vld, "stalled JAL x1 must not update prediction stack");
     end
-    accept_instr(JAL_X1);
-    check(u_ifu.ras_top_vld && u_ifu.ras_top_addr == 32'h4,
+    consume_instr();
+    check(u_ifu.ras_top_vld && u_ifu.ras_top_addr == 32'h8,
           "accepted JAL x1 must push aligned PC+4");
 
-    // Train a conflicting BTB target at the held return PC. RAS must win.
-    instr_if = RET_X1;
+    // Train before request acceptance.  RAS must win over the captured BTB target.
     @(negedge clk);
     bp_update_vld = 1'b1;
-    bp_update_pc = instr_pc;
+    bp_update_pc = 32'h8;
     bp_update_is_cond = 1'b0;
     bp_update_taken = 1'b1;
     bp_update_target = 32'h88;
     @(posedge clk);
     #1 bp_update_vld = 1'b0;
-    check(pred_next_pc == 32'h4,
+    present_instr(RET_X1);
+    check(pred_next_pc == 32'h8,
           "non-empty return must select RAS target over conflicting BTB target");
-    accept_instr(RET_X1);
+    consume_instr();
     check_empty_with_ret(RET_X1, "single accepted return must pop exactly once");
+    redirect_to(32'h8);
+    present_instr(RET_X1);
     check(pred_next_pc == 32'h88,
           "empty return must fall back to the existing BTB prediction");
+    consume_instr();
 
     // x5 is a link register; JAL x0 and illegal-funct3 JALR are not hints.
     redirect_to(32'h100);
@@ -204,8 +258,16 @@ initial begin
     ras_resolve_fire = 1'b0;
     ras_resolve_push = 1'b0;
     redirect_req = 1'b0;
-    instr_if = RET_X1;
+    // Drain the pre-redirect request, then return the redirect target instruction.
+    wait(if_req_vld === 1'b1);
+    @(negedge clk);
+    if_req_rdy = 1'b1;
+    instr_if = 32'h0000_0013;
+    @(posedge clk);
+    #1 if_req_rdy = 1'b0;
+    @(posedge clk);
     #1;
+    present_instr(RET_X1);
     check(u_ifu.ras_top_vld && u_ifu.ras_top_addr == 32'h4444_0004,
           "same-cycle resolve+redirect must recover post-resolve top");
     check(pred_next_pc == 32'h4444_0004,

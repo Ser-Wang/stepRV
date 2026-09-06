@@ -19,12 +19,17 @@ reg         bp_update_taken;
 reg  [31:0] bp_update_target;
 reg         bp_invalidate;
 reg  [31:0] instr_if;
+wire        if_req_vld;
+wire [31:0] if_req_addr;
+reg         if_req_rdy;
+reg         if_rsp_vld;
+reg  [31:0] if_rsp_data;
 reg         ras_resolve_fire;
 reg         ras_resolve_pop;
 reg         ras_resolve_push;
 reg  [31:0] ras_resolve_push_addr;
-wire        fetch_req;
-wire [31:0] fetch_pc;
+wire        fetch_req = if_req_vld;
+wire [31:0] fetch_pc = if_req_addr;
 wire [31:0] instr_pc;
 wire [31:0] pred_next_pc_if;
 
@@ -64,14 +69,18 @@ ifu u_ifu (
     .i_bp_update_taken   (bp_update_taken),
     .i_bp_update_target  (bp_update_target),
     .i_bp_invalidate     (bp_invalidate),
-    .i_instr_if          (instr_if),
     .i_ras_resolve_fire  (ras_resolve_fire),
     .i_ras_resolve_pop   (ras_resolve_pop),
     .i_ras_resolve_push  (ras_resolve_push),
     .i_ras_resolve_push_addr (ras_resolve_push_addr),
-    .o_fetch_req         (fetch_req),
-    .o_fetch_pc          (fetch_pc),
+    .o_if_req_vld        (if_req_vld),
+    .i_if_req_rdy        (if_req_rdy),
+    .o_if_req_addr       (if_req_addr),
+    .i_if_rsp_vld        (if_rsp_vld),
+    .o_if_rsp_rdy        (),
+    .i_if_rsp_data       (if_rsp_data),
     .o_instr_pc          (instr_pc),
+    .o_instr_if          (),
     .o_pred_next_pc_if   (pred_next_pc_if)
 );
 
@@ -102,6 +111,18 @@ idu u_idu (
 
 always #5 clk = ~clk;
 
+// One-cycle response model.  The instruction value is sampled with request fire.
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        if_rsp_vld <= 1'b0;
+        if_rsp_data <= 32'h0000_0013;
+    end else begin
+        if_rsp_vld <= if_req_vld & if_req_rdy;
+        if (if_req_vld & if_req_rdy)
+            if_rsp_data <= instr_if;
+    end
+end
+
 task automatic check;
     input condition;
     input [8*96-1:0] message;
@@ -113,12 +134,27 @@ task automatic check;
     end
 endtask
 
+task automatic return_instr;
+    input [31:0] instr;
+    begin
+        wait(if_req_vld === 1'b1);
+        @(negedge clk);
+        instr_if = instr;
+        if_req_rdy = 1'b1;
+        @(posedge clk);
+        #1 if_req_rdy = 1'b0;
+        @(posedge clk);
+        #1;
+    end
+endtask
+
 initial begin
     clk = 1'b0;
     rst_n = 1'b0;
     failures = 0;
     if_stall = 1'b0;
-    if_id_rdy = 1'b1;
+    if_id_rdy = 1'b0;
+    if_req_rdy = 1'b0;
     redirect_req = 1'b0;
     redirect_pc = 32'b0;
     bp_update_vld = 1'b0;
@@ -142,20 +178,21 @@ initial begin
 
     repeat (2) @(posedge clk);
     #1 rst_n = 1'b1;
-    @(posedge clk);
-    #1;
-    check(fetch_req && if_id_vld, "IFU must become valid after reset warm-up");
+    return_instr(32'h0000_0013);
+    check(if_id_vld, "IFU must present payload only after a memory response");
     check(instr_pc == 32'h0 && pred_next_pc_if == 32'h4,
           "IFU prediction must align with returned instruction PC, not request PC");
 
+    @(negedge clk);
+    if_id_rdy = 1'b1;
     @(posedge clk);
     #1;
-    check(instr_pc == 32'h4 && pred_next_pc_if == 32'h8,
-          "accepted cold payload must advance sequentially");
-
-    // Hold PC while training the currently returned PC as an unconditional jump.
-    @(negedge clk);
     if_id_rdy = 1'b0;
+    check(fetch_req && fetch_pc == 32'h4,
+          "accepted cold payload must issue the sequential request");
+
+    // Train before accepting the held request so its transaction captures the target.
+    @(negedge clk);
     bp_update_vld = 1'b1;
     bp_update_pc = 32'h4;
     bp_update_is_cond = 1'b0;
@@ -164,29 +201,33 @@ initial begin
     @(posedge clk);
     #1;
     bp_update_vld = 1'b0;
-    check(instr_pc == 32'h4 && fetch_pc == 32'h4,
-          "IFU backpressure must hold current and request PC");
-    check(pred_next_pc_if == 32'h40,
-          "IFU must query predictor with held instruction PC");
+    check(fetch_req && fetch_pc == 32'h4,
+          "request backpressure must hold valid and address");
+    return_instr(32'h0000_0013);
+    check(instr_pc == 32'h4 && pred_next_pc_if == 32'h40,
+          "transaction must retain the prediction sampled for its request PC");
 
     @(negedge clk);
     if_id_rdy = 1'b1;
     @(posedge clk);
-    #1;
-    check(instr_pc == 32'h40, "accepted prediction must become next instruction PC");
+    #1 if_id_rdy = 1'b0;
+    check(fetch_req && fetch_pc == 32'h40,
+          "accepted prediction must become the next request PC");
 
-    // Redirect beats an otherwise accepted prediction and suppresses old payload valid.
+    // Redirect makes an unaccepted old request stale; it is drained before target issue.
     @(negedge clk);
     redirect_req = 1'b1;
     redirect_pc = 32'h100;
     #1;
-    check(fetch_pc == 32'h100 && !if_id_vld,
-          "redirect must override predicted request and suppress old IF payload");
+    check(fetch_pc == 32'h40 && !if_id_vld,
+          "redirect must suppress the old IF payload while a request is pending");
     @(posedge clk);
     #1;
     redirect_req = 1'b0;
+    return_instr(32'h0000_0013); // stale PC 0x40 response is discarded
+    return_instr(32'h0000_0013); // redirected PC 0x100 response is published
     check(instr_pc == 32'h100 && pred_next_pc_if == 32'h104,
-          "redirect target must become aligned current PC");
+          "redirect target must become the next published transaction");
 
     // ID payload captures only on valid/ready fire.
     @(negedge clk);
